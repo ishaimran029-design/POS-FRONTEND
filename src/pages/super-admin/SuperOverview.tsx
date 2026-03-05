@@ -1,0 +1,286 @@
+import React, { useState, useEffect } from 'react';
+import { Store, CreditCard, Laptop2, Activity, CalendarDays, Download, Loader2, AlertCircle } from 'lucide-react';
+import { reportsApi } from '../../service/api';
+
+const SuperOverview: React.FC = () => {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await reportsApi.getSuperAdminOverview();
+        if (res.data.success) {
+          setStats(res.data.data);
+        } else {
+          setError(res.data.message || 'Failed to load stats');
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Error occurred while fetching stats');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px]">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-4" />
+        <p className="text-slate-500 font-medium animate-pulse">Loading global dashboard metrics...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px]">
+        <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+        <p className="text-slate-500 font-medium">{error}</p>
+      </div>
+    );
+  }
+
+  const maxRevenue = stats?.revenueByStore?.length ? Math.max(...stats.revenueByStore.map((s: any) => s.revenue)) : 1;
+
+  return (
+    <div className="space-y-6 animate-fade-in relative z-0">
+      
+      {/* Header Section */}
+      <div className="flex justify-between items-end mb-8 pt-2">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Super Admin Overview</h1>
+          <p className="text-slate-500 font-medium mt-1">Real-time performance metrics across 12 countries</p>
+        </div>
+        <div className="flex space-x-3">
+          <button className="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm">
+            <CalendarDays className="w-4 h-4 text-slate-400" />
+            <span>Last 30 Days</span>
+          </button>
+          <button className="flex items-center space-x-2 px-4 py-2 bg-[#1f1e35] text-white rounded-lg text-sm font-bold hover:bg-[#2a2845] transition-colors shadow-md">
+            <Download className="w-4 h-4 text-indigo-300" />
+            <span>Export Report</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Stat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-slate-500 font-bold text-sm tracking-wide">Total Stores</span>
+            <div className="w-8 h-8 rounded-md bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <Store className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+              {stats?.totalStores?.toLocaleString() || '0'}
+            </div>
+            <div className="text-xs font-bold text-slate-400 flex items-center">
+              <span className="text-emerald-500 mr-1">Live DB</span> total
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-slate-500 font-bold text-sm tracking-wide">Total Revenue</span>
+            <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CreditCard className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+              Rs {stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}
+            </div>
+            <div className="text-xs font-bold text-slate-400 flex items-center">
+              <span className="text-emerald-500 mr-1">Lifetime</span> total revenue
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-slate-500 font-bold text-sm tracking-wide">Active Devices</span>
+            <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center text-blue-600">
+              <Laptop2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+              {stats?.activeDevices?.toLocaleString() || '0'}
+            </div>
+            <div className="text-xs font-bold text-slate-400 flex items-center">
+              <span className="text-emerald-500 mr-1">Active</span> registered devices
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-40">
+          <div className="flex justify-between items-start">
+            <span className="text-slate-500 font-bold text-sm tracking-wide">Active Trials</span>
+            <div className="w-8 h-8 rounded-md bg-rose-50 flex items-center justify-center text-rose-600">
+              <Activity className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">
+              {stats?.activeTrials?.toLocaleString() || '0'}
+            </div>
+            <div className="text-xs font-bold text-slate-400 flex items-center">
+              <span className="text-slate-500 mr-1">Trials</span> in progress
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Middle Grid (Revenue Chart & Map) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Bar Chart Area */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">Revenue by Top Stores</h2>
+              <p className="text-slate-500 font-medium text-sm mt-1">Top performing branches globally</p>
+            </div>
+            <button className="text-sm font-bold text-slate-900 px-3 py-1">View All</button>
+          </div>
+          
+          <div className="mb-4">
+            <div className="text-4xl font-extrabold text-slate-900 tracking-tight">
+              Rs {stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}
+            </div>
+            <div className="text-xs font-bold text-slate-400 flex items-center mt-2">
+              <span className="text-slate-500">Total Lifetime Revenue</span>
+            </div>
+          </div>
+
+          <div className="flex-1 min-h-[160px] flex items-end justify-between px-2 pt-10 pb-4">
+            {stats?.revenueByStore?.length > 0 ? (
+              stats.revenueByStore.map((store: any, idx: number) => {
+                const heightPercentage = Math.max((store.revenue / maxRevenue) * 100, 5);
+                const isTop = idx === 0;
+                return (
+                  <div key={store.storeId} className="flex flex-col items-center space-y-3 w-1/6 group cursor-pointer" title={`Rs ${store.revenue.toLocaleString()}`}>
+                    <div 
+                      className={`w-full ${isTop ? 'bg-slate-900' : 'bg-slate-100 group-hover:bg-indigo-50'} rounded-t-sm relative transition-all`}
+                      style={{ height: `${Math.min(heightPercentage, 100)}%`, minHeight: '30px' }}
+                    ></div>
+                    <span className={`text-[10px] font-bold ${isTop ? 'text-slate-900' : 'text-slate-500'} truncate w-full text-center px-1 uppercase`}>
+                      {store.city?.substring(0, 3) || store.storeName.substring(0, 3)}
+                    </span>
+                  </div>
+                );
+              })
+            ) : (
+               <div className="w-full text-center text-slate-400 text-sm italic py-10">No revenue data available yet.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Store Density Map Area */}
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Store Density</h2>
+          <p className="text-slate-500 font-medium text-sm mt-1 mb-6">Geographical distribution</p>
+          
+          <div className="w-full h-48 bg-slate-200 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden">
+             {/* Map Placeholder */}
+             <div className="absolute w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)] top-[40%] left-[30%]"></div>
+             <div className="absolute w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)] top-[60%] left-[50%]"></div>
+             <div className="absolute w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)] top-[70%] left-[75%]"></div>
+             <span className="text-slate-400 font-mono text-sm tracking-widest hidden">MAP DATA</span>
+          </div>
+
+          <div className="space-y-4 flex-1 flex flex-col justify-end">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-600"></div>
+                <span className="font-bold text-slate-700">North America</span>
+              </div>
+              <span className="font-extrabold text-slate-900">42%</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-600 w-[42%]"></div>
+            </div>
+
+            <div className="flex items-center justify-between text-sm pt-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                <span className="font-bold text-slate-700">Europe</span>
+              </div>
+              <span className="font-extrabold text-slate-900">28%</span>
+            </div>
+             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-400 w-[28%]"></div>
+            </div>
+
+             <div className="flex items-center justify-between text-sm pt-2">
+              <div className="flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                <span className="font-bold text-slate-700">Asia Pacific</span>
+              </div>
+              <span className="font-extrabold text-slate-900">30%</span>
+            </div>
+             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-300 w-[30%]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Device Provisioning Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recent Device Provisioning</h2>
+          <button className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors">See activity log</button>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
+                <th className="py-4 px-6 min-w-[150px]">Store ID</th>
+                <th className="py-4 px-6 min-w-[200px]">Device Type</th>
+                <th className="py-4 px-6 min-w-[150px]">Region</th>
+                <th className="py-4 px-6 min-w-[120px]">Status</th>
+                <th className="py-4 px-6 min-w-[150px]">Time</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm">
+              {stats?.recentDevices?.length > 0 ? (
+                stats.recentDevices.map((device: any) => (
+                  <tr key={device.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                    <td className="py-4 px-6 font-bold text-slate-700">STR-{device.storeId?.substring(device.storeId.length - 4).toUpperCase()}</td>
+                    <td className="py-4 px-6 text-slate-500 font-medium">{device.deviceName || device.deviceType || 'Terminal'}</td>
+                    <td className="py-4 px-6 text-slate-500 font-medium truncate max-w-[150px]">
+                      {device.store?.city || 'Unknown'}, {device.store?.state || ''}
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`px-3 py-1 rounded-md text-xs font-bold font-mono ${device.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                        {device.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-slate-400 font-medium whitespace-nowrap">
+                      {new Date(device.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-500 italic border bg-slate-50">No devices provisioned recently.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  );
+};
+
+export default SuperOverview;

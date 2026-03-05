@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+/* Sliding Sidebar Label Visibility Rules */
+.sidebar-collapsed .sidebar-label {
+  opacity: 0;
+  width: 0;
+  display: none;
+}
+
+.sidebar-expanded .sidebar-label {
+  opacity: 1;
+  width: auto;
+  display: block;
+}
+
+.sidebar-collapsed .sidebar-header-text {
+  display: none;
+}
+
+/* Custom Scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
