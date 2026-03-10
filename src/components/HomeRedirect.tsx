@@ -14,11 +14,11 @@ const HomeRedirect: React.FC = () => {
   }
 
   switch (user?.role) {
-    case 'SUPER_ADMIN': return <Navigate to="/super-admin" replace />;
-    case 'STORE_ADMIN': return <Navigate to="/store-admin" replace />;
-    case 'CASHIER':     return <Navigate to="/cashier" replace />;
-    case 'ACCOUNTANT':  return <Navigate to="/accountant" replace />;
-    default:            return <Navigate to="/unauthorized" replace />;
+    case 'SUPER_ADMIN': return <Navigate to="/admin/dashboard" replace />;
+    case 'STORE_ADMIN': return <Navigate to="/store-admin/dashboard" replace />;
+    case 'CASHIER': return <Navigate to="/cashier" replace />;
+    case 'ACCOUNTANT': return <Navigate to="/accountant" replace />;
+    default: return <Navigate to="/unauthorized" replace />;
   }
 };
 

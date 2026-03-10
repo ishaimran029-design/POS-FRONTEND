@@ -9,9 +9,21 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { setAuth } = useAuthStore();
+
+  const { setAuth, isAuthenticated, user: authUser } = useAuthStore();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && authUser) {
+      switch (authUser.role) {
+        case 'SUPER_ADMIN': navigate('/admin/dashboard', { replace: true }); break;
+        case 'STORE_ADMIN': navigate('/store-admin/dashboard', { replace: true }); break;
+        case 'CASHIER': navigate('/cashier', { replace: true }); break;
+        case 'ACCOUNTANT': navigate('/accountant', { replace: true }); break;
+      }
+    }
+  }, [isAuthenticated, authUser, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,10 +32,10 @@ const LoginPage: React.FC = () => {
 
     try {
       const response = await authApi.login({ email, password });
-      
+
       if (response.data.success) {
         const { user, accessToken, refreshToken } = response.data.data;
-        
+
         if (refreshToken) {
           localStorage.setItem('refresh-token', refreshToken);
         }
@@ -31,11 +43,11 @@ const LoginPage: React.FC = () => {
         setAuth(user, accessToken);
 
         switch (user.role) {
-          case 'SUPER_ADMIN': navigate('/super-admin'); break;
+          case 'SUPER_ADMIN': navigate('/admin/dashboard'); break;
           case 'STORE_ADMIN': navigate('/store-admin'); break;
-          case 'CASHIER':     navigate('/cashier'); break;
-          case 'ACCOUNTANT':  navigate('/accountant'); break;
-          default:            navigate('/unauthorized');
+          case 'CASHIER': navigate('/cashier'); break;
+          case 'ACCOUNTANT': navigate('/accountant'); break;
+          default: navigate('/unauthorized');
         }
       } else {
         setError(response.data.message || 'Login failed');
@@ -60,7 +72,7 @@ const LoginPage: React.FC = () => {
 
         <div className="bg-white border border-slate-200/60 p-8 rounded-3xl shadow-xl shadow-slate-200/50 relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
-          
+
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email Address</label>

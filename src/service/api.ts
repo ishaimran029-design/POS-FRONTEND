@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3003/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3005/api/v1',
   withCredentials: true,
 });
 
@@ -26,30 +26,30 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     // If 401 and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      
+
       try {
         const authStorage = localStorage.getItem('auth-storage');
         if (authStorage) {
           const { state } = JSON.parse(authStorage);
           const refreshToken = localStorage.getItem('refresh-token'); // Or from state if preferred
-          
+
           if (refreshToken) {
             const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
               refreshToken
             });
-            
+
             if (response.data.success) {
               const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-              
+
               // Update state in localStorage (Zustand will pick it up or we manually patch)
               const newState = { ...JSON.parse(authStorage), state: { ...state, accessToken } };
               localStorage.setItem('auth-storage', JSON.stringify(newState));
               localStorage.setItem('refresh-token', newRefreshToken);
-              
+
               originalRequest.headers.Authorization = `Bearer ${accessToken}`;
               return axios(originalRequest);
             }
