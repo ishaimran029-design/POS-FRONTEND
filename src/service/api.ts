@@ -69,6 +69,8 @@ export const authApi = {
   login: (data: any) => api.post('/auth/login', data),
   logout: (refreshToken?: string) => api.post('/auth/logout', { refreshToken }),
   refresh: (refreshToken: string) => api.post('/auth/refresh', { refreshToken }),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
 };
 
 export const profileApi = {
@@ -93,10 +95,13 @@ export const devicesApi = {
   getAll: (storeId?: string) => api.get(storeId ? `/devices?storeId=${storeId}` : '/devices'),
   register: (data: any) => api.post('/devices', data),
   update: (id: string, data: any) => api.patch(`/devices/${id}`, data),
+  heartbeat: (id: string) => api.patch(`/devices/${id}/heartbeat`),
 };
 
 export const reportsApi = {
   getSuperAdminOverview: () => api.get('/reports/superadmin/overview'),
+  getSalesReport: (params: { startDate: string; endDate: string }) =>
+    api.get('/reports/sales', { params }),
 };
 
 export default api;

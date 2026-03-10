@@ -4,7 +4,7 @@ import { useAuthStore } from './store/useAuthStore';
 
 // UI Components
 import PageLoader from './components/ui/PageLoader';
-import HomeRedirect from './components/HomeRedirect';
+import HomeRedirect from './components/shared/HomeRedirect';
 
 // Lazy loading pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -21,7 +21,7 @@ const CashierDashboard = lazy(() => import('./pages/cashier/CashierDashboard'));
 const AccountantDashboard = lazy(() => import('./pages/accountant/AccountantDashboard'));
 
 const Unauthorized = lazy(() => import('./pages/Unauthorized'));
-const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
+const ProtectedRoute = lazy(() => import('./components/shared/ProtectedRoute'));
 
 // New Admin Dashboard
 const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));

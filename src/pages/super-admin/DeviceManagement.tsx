@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Laptop2, Loader2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
 import { devicesApi } from '../../service/api';

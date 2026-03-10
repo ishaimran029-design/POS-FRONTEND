@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../Sidebar';
+import Sidebar from './Sidebar';
 import { Menu, X, Bell } from 'lucide-react';
 
 interface AdminLayoutProps {
