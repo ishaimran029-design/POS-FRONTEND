@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 
 const FinancialOverview: React.FC = () => {
   return (

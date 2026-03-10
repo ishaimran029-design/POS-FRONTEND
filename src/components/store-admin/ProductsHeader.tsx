@@ -1,7 +1,10 @@
 import { Plus, Download } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
-export default function ProductsHeader({ openModal }: any) {
+interface ProductsHeaderProps {
+  openModal?: () => void;
+}
+export default function ProductsHeader({ openModal: _openModal }: ProductsHeaderProps) {
     const navigate = useNavigate();
 
     return (

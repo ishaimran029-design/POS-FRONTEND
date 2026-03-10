@@ -1,7 +1,7 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 interface DashboardGridProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
 export default function DashboardGrid({ children }: DashboardGridProps) {

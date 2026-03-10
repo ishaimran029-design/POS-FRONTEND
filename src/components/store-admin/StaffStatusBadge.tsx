@@ -17,20 +17,25 @@ export function StaffStatusBadge({ status }: { status: StaffStatus }) {
     );
 }
 
-export function RoleBadge({ role }: { role: StaffRole }) {
-    const styles = {
-        Manager: "bg-purple-100 text-purple-700",
-        Cashier: "bg-blue-100 text-blue-700",
-        Accountant: "bg-orange-100 text-orange-700",
-        Admin: "bg-slate-100 text-slate-700",
-    };
+const ROLE_LABELS: Record<string, string> = {
+    STORE_ADMIN: "Store Admin",
+    CASHIER: "Cashier",
+    ACCOUNTANT: "Accountant",
+};
 
+const ROLE_STYLES: Record<string, string> = {
+    STORE_ADMIN: "bg-purple-100 text-purple-700",
+    CASHIER: "bg-blue-100 text-blue-700",
+    ACCOUNTANT: "bg-orange-100 text-orange-700",
+};
+
+export function RoleBadge({ role }: { role: StaffRole }) {
     return (
         <span className={cn(
             "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest",
-            styles[role as keyof typeof styles] || "bg-gray-100 text-gray-700"
+            ROLE_STYLES[role] || "bg-gray-100 text-gray-700"
         )}>
-            {role}
+            {ROLE_LABELS[role] || role}
         </span>
     );
 }

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Laptop2, Loader2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
+import { Laptop2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
 import { devicesApi } from '../../service/api';
 
 const DeviceManagement: React.FC = () => {
@@ -124,7 +124,7 @@ const DeviceManagement: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  devices.map((device: any, idx) => (
+                  devices.map((device: any) => (
                     <tr key={device.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors group">
                       <td className="py-5 px-6">
                         <div className="font-extrabold text-slate-900 tracking-tight">{device.deviceName}</div>

@@ -10,6 +10,11 @@ export type Store = {
   state?: string;
 };
 
+export type AssignedTerminal = {
+  id: string;
+  deviceName: string;
+};
+
 export type User = {
   id: string;
   email: string;
@@ -20,6 +25,7 @@ export type User = {
   store?: Store | null;
   lastLoginAt?: string | null;
   createdAt: string;
+  assignedTerminals?: AssignedTerminal[];
 };
 
 export type AuthState = {

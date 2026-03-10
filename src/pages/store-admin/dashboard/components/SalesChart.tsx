@@ -1,13 +1,4 @@
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Cell
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface SalesChartProps {
     data: { date: string; sales: number }[];
@@ -26,7 +17,6 @@ export default function SalesChart({ data }: SalesChartProps) {
                     <span className="text-xs font-bold text-slate-600 uppercase tracking-widest">Revenue</span>
                 </div>
             </div>
-
             <div className="h-[300px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data}>
@@ -37,37 +27,10 @@ export default function SalesChart({ data }: SalesChartProps) {
                             </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis
-                            dataKey="date"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
-                            dy={10}
-                        />
-                        <YAxis
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }}
-                            tickFormatter={(v) => `$${v}`}
-                        />
-                        <Tooltip
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{
-                                borderRadius: '16px',
-                                border: 'none',
-                                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                                padding: '12px'
-                            }}
-                            itemStyle={{ fontWeight: 800, color: '#1a192b' }}
-                            labelStyle={{ fontWeight: 500, color: '#64748b', marginBottom: '4px' }}
-                        />
-                        <Bar
-                            dataKey="sales"
-                            fill="url(#barGradient)"
-                            radius={[10, 10, 0, 0]}
-                            barSize={45}
-                            animationDuration={1500}
-                        >
+                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} tickFormatter={(v) => `$${v}`} />
+                        <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }} itemStyle={{ fontWeight: 800, color: '#1a192b' }} labelStyle={{ fontWeight: 500, color: '#64748b', marginBottom: '4px' }} />
+                        <Bar dataKey="sales" fill="url(#barGradient)" radius={[10, 10, 0, 0]} barSize={45} animationDuration={1500}>
                             {data.map((_, index) => (
                                 <Cell key={`cell-${index}`} className="hover:opacity-80 transition-opacity cursor-pointer" />
                             ))}

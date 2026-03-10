@@ -9,6 +9,7 @@ interface DashboardLayoutProps {
   subtitle: string;
   role: string;
   accentColor?: string;
+  headerExtra?: React.ReactNode;
 }
 
 // Adding a context or just cloning children if needed for isCollapsed, 
@@ -21,7 +22,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   title, 
   subtitle, 
   role,
-  accentColor = 'indigo'
+  accentColor = 'indigo',
+  headerExtra
 }) => {
   const { user, logout } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -115,6 +117,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            {headerExtra}
             <div className={`${accentStyles[accentColor]} px-3 py-1 lg:px-4 lg:py-1.5 rounded-full text-[10px] lg:text-xs tracking-wide font-bold border uppercase shadow-sm`}>
               {role.replace('_', ' ')}
             </div>

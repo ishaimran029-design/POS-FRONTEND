@@ -14,7 +14,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
   label, 
   to,
   onClick,
-  variant = 'navy'
+  variant: _variant = 'navy'
 }) => {
   const variantStyles = {
     indigo: 'bg-[#1a192b] shadow-md text-white border border-[#2a2845]',
@@ -23,13 +23,6 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({
     emerald: 'bg-[#1a192b] shadow-md text-white border border-[#2a2845]',
     navy: 'bg-[#1a192b] shadow-md text-white border border-[#2a2845]'
   };
-
-  const content = (
-    <div className="flex items-center space-x-3 w-full">
-      <div className="flex-shrink-0 flex items-center justify-center w-6">{icon}</div>
-      <span className="sidebar-label whitespace-nowrap transition-all duration-300 ease-in-out font-medium tracking-wide text-sm">{label}</span>
-    </div>
-  );
 
   const baseClasses = "flex items-center px-4 py-3.5 mb-2 rounded-2xl transition-all duration-200 cursor-pointer overflow-hidden group";
 

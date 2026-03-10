@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, Shield, Loader2, AlertCircle } from 'lucide-react';
+import { Users, UserPlus, Shield, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
 
@@ -9,8 +9,6 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -28,11 +26,7 @@ const UserManagement: React.FC = () => {
       }
     };
     fetchUsers();
-  }, [refreshTrigger]);
-
-  const handleUserUpdated = () => {
-    setRefreshTrigger(prev => prev + 1);
-  };
+  }, []);
 
   return (
     <div className="p-8 bg-white border border-slate-200 rounded-3xl overflow-hidden group min-h-[500px] relative z-0">

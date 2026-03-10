@@ -53,7 +53,7 @@ export function ChartTooltipContent({
   className,
   indicator = "dot",
   hideLabel = false,
-  formatter,
+  formatter: _formatter,
 }: any) {
   if (!active || !payload || !payload.length) {
     return null

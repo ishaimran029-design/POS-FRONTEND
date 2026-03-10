@@ -4,6 +4,7 @@ import { ShoppingCart, Scan, Package } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import SidebarLink from '../../components/ui/SidebarLink';
 import DeviceAccessGate from '../../components/cashier/DeviceAccessGate';
+import DeviceStatusIndicator from '../../components/cashier/DeviceStatusIndicator';
 import POSInterface from './POSInterface';
 import ShiftTools from './ShiftTools';
 import DeviceSelection from './DeviceSelection';
@@ -13,9 +14,14 @@ import InventoryCheckPage from './InventoryCheckPage';
 import CashierProfilePage from './CashierProfilePage';
 import ProductsListPage from './ProductsListPage';
 import { useDeviceStore } from '../../store/useDeviceStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const CashierDashboard: React.FC = () => {
   const { deviceId } = useDeviceStore();
+  const { user } = useAuthStore();
+  const terminal = user?.assignedTerminals?.[0];
+  const displayTerminalId = terminal?.id ?? null;
+  const displayTerminalName = terminal?.deviceName ?? null;
 
   const sidebar = (
     <>
@@ -30,12 +36,14 @@ const CashierDashboard: React.FC = () => {
       </div>
 
       <nav className="flex-1 space-y-1">
-        <SidebarLink
-          to="/cashier/devices"
-          icon={<Scan size={20} />}
-          label="Select Device"
-          variant="emerald"
-        />
+        {!deviceId && (
+          <SidebarLink
+            to="/cashier/devices"
+            icon={<Scan size={20} />}
+            label="Select Device"
+            variant="emerald"
+          />
+        )}
         <SidebarLink
           to="/cashier/terminal"
           icon={<ShoppingCart size={20} />}
@@ -59,34 +67,23 @@ const CashierDashboard: React.FC = () => {
   );
 
   return (
-    <DashboardLayout 
-      sidebarContent={sidebar}
-      title="POS Terminal"
-      subtitle="Complete sales and manage your active shift"
-      role="CASHIER"
-      accentColor="emerald"
-    >
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Navigate
-              to={deviceId ? '/cashier/terminal' : '/cashier/devices'}
-              replace
-            />
-          }
-        />
-        <Route path="/devices" element={<DeviceSelection />} />
-        <Route
-          path="/terminal"
-          element={
-            <DeviceAccessGate>
-              <POSInterface />
-              <ShiftTools />
-            </DeviceAccessGate>
-          }
-        />
-        <Route path="/products" element={<ProductsListPage />} />
+    <DeviceAccessGate>
+      <DashboardLayout 
+        sidebarContent={sidebar}
+        title="POS Terminal"
+        subtitle="Complete sales and manage your active shift"
+        role="CASHIER"
+        accentColor="emerald"
+        headerExtra={<DeviceStatusIndicator deviceId={displayTerminalId} deviceName={displayTerminalName} />}
+      >
+        <Routes>
+          <Route
+            path="/"
+            element={<Navigate to="/cashier/terminal" replace />}
+          />
+          <Route path="/devices" element={deviceId ? <Navigate to="/cashier/terminal" replace /> : <DeviceSelection />} />
+          <Route path="/terminal" element={<><POSInterface /><ShiftTools /></>} />
+          <Route path="/products" element={<ProductsListPage />} />
         <Route path="/receipt/:saleId" element={<ReceiptPage />} />
         <Route path="/receipt/offline/:saleId" element={<ReceiptPage />} />
         <Route path="/shift-summary" element={<ShiftSummaryPage />} />
@@ -103,8 +100,9 @@ const CashierDashboard: React.FC = () => {
           }
         />
         <Route path="*" element={<Navigate to="/cashier" replace />} />
-      </Routes>
-    </DashboardLayout>
+        </Routes>
+      </DashboardLayout>
+    </DeviceAccessGate>
   );
 };
 

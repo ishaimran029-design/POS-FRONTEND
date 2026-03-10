@@ -1,4 +1,4 @@
-import { Usb, Bluetooth, MoreVertical, Edit2, Trash2, Cpu } from "lucide-react"
+import { Usb, Bluetooth, MoreVertical, Edit2, Trash2, Cpu, User } from "lucide-react"
 import DeviceStatusBadge from "./DeviceStatusBadge"
 import type { Device } from "@/pages/store-admin/devices-management/types/device.types"
 
@@ -30,6 +30,16 @@ export default function DeviceRow({ device, index, onDelete }: { device: Device;
             </td>
             <td className="py-4">
                 <DeviceStatusBadge status={device.status} />
+            </td>
+            <td className="py-4">
+                {device.connectedTo ? (
+                    <div className="flex items-center gap-1.5">
+                        <User size={12} className="text-emerald-600" />
+                        <span className="text-xs font-bold text-emerald-700">{device.connectedTo}</span>
+                    </div>
+                ) : (
+                    <span className="text-[10px] font-medium text-gray-400 uppercase tracking-widest">Free</span>
+                )}
             </td>
             <td className="py-4">
                 <p className="text-xs font-bold text-gray-600">{device.lastHeartbeat}</p>

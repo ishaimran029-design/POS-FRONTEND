@@ -15,7 +15,7 @@ const UserManagement = lazy(() => import('./pages/super-admin/UserManagement'));
 const EditUserPage = lazy(() => import('./pages/super-admin/EditUserPage'));
 const DeviceManagement = lazy(() => import('./pages/super-admin/DeviceManagement'));
 
-const StoreAdminDashboard = lazy(() => import('./pages/store-admin/StoreAdminDashboard'));
+const StoreAdminDashboard = lazy(() => import('./pages/store-admin/dashboard/StoreAdminDashboard'));
 const StaffManagementPage = lazy(() => import('./pages/store-admin/staff-management/StaffManagementPage'));
 const CashierDashboard = lazy(() => import('./pages/cashier/CashierDashboard'));
 const AccountantDashboard = lazy(() => import('./pages/accountant/AccountantDashboard'));
@@ -29,7 +29,6 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ProductsManagementPage = lazy(() => import('./pages/store-admin/products-management/ProductsManagementPage'));
 const AddProductPage = lazy(() => import('./pages/store-admin/products-management/AddProductPage'));
 const DevicesManagementPage = lazy(() => import('./pages/store-admin/devices-management/DevicesManagementPage'));
-const RegisterDevicePage = lazy(() => import('./pages/store-admin/device-management/RegisterDevicePage'));
 
 const App: React.FC = () => {
   const { hydrate, isLoading } = useAuthStore();
@@ -58,7 +57,6 @@ const App: React.FC = () => {
             <Route path="/store-admin/inventory/products" element={<ProductsManagementPage />} />
             <Route path="/store-admin/inventory/products/add" element={<AddProductPage />} />
             <Route path="/store-admin/devices" element={<DevicesManagementPage />} />
-            <Route path="/store-admin/devices/register" element={<RegisterDevicePage />} />
             <Route path="/store-admin" element={<Navigate to="/store-admin/dashboard" replace />} />
           </Route>
 

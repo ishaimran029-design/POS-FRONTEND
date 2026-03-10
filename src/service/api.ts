@@ -96,6 +96,19 @@ export const devicesApi = {
   register: (data: any) => api.post('/devices', data),
   update: (id: string, data: any) => api.patch(`/devices/${id}`, data),
   heartbeat: (id: string) => api.patch(`/devices/${id}/heartbeat`),
+  release: () => api.patch('/devices/release'),
+};
+
+export const terminalsApi = {
+  register: (data: { terminalName: string; deviceFingerprint: string }) =>
+    api.post('/terminals/register', data),
+  list: () => api.get('/terminals'),
+  check: (fingerprint: string) => api.get(`/terminals/check?fingerprint=${encodeURIComponent(fingerprint)}`),
+  assignCashier: (terminalId: string, userId: string) =>
+    api.post(`/terminals/${terminalId}/assign`, { userId }),
+  unassignCashier: (terminalId: string, userId: string) =>
+    api.delete(`/terminals/${terminalId}/assign/${userId}`),
+  listCashiers: (terminalId: string) => api.get(`/terminals/${terminalId}/cashiers`),
 };
 
 export const reportsApi = {

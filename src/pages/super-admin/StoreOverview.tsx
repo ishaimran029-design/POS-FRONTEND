@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle, Loader2 } from 'lucide-react';
+import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle } from 'lucide-react';
 import { storesApi, reportsApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
 
@@ -41,10 +41,6 @@ const StoreOverview: React.FC = () => {
   useEffect(() => {
     fetchStores();
   }, [fetchStores, refreshTrigger]);
-
-  const handleStoreCreated = () => {
-    setRefreshTrigger(prev => prev + 1); // Triggers re-fetch
-  };
 
   return (
     <div className="space-y-6 animate-fade-in relative z-0">

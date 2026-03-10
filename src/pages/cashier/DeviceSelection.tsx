@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Monitor, Wifi, WifiOff, Clock, LogOut, Loader2, AlertCircle } from 'lucide-react';
+import { Monitor, Wifi, WifiOff, Clock, LogOut, Loader2, AlertCircle, User } from 'lucide-react';
 import { devicesApi } from '../../service/api';
 import { useDeviceStore } from '../../store/useDeviceStore';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -13,6 +13,8 @@ type Device = {
   lastActiveAt?: string;
   lastHeartbeatAt?: string;
   ipAddress?: string;
+  currentUserId?: string | null;
+  currentUser?: { id: string; name: string; email: string } | null;
 };
 
 /**
@@ -210,20 +212,28 @@ const DeviceSelection: React.FC = () => {
           ))}
         </div>
       ) : hasActiveDevices ? (
-        /* Device Cards Grid */
+        /* Device Cards Grid - Free vs In use */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {devices.map((device) => {
             const online = isDeviceOnline(device);
+            const isInUse = !!device.currentUserId;
+            const inUseBy = device.currentUser?.name || 'Another cashier';
             
             return (
               <div
                 key={device.id}
-                className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-200"
+                className={`group flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition-all duration-200 ${
+                  isInUse 
+                    ? 'border-slate-200 bg-slate-50/80 opacity-90' 
+                    : 'border-slate-200 bg-white hover:border-emerald-500/60 hover:shadow-lg hover:shadow-emerald-500/10'
+                }`}
               >
                 {/* Header: Icon + Name + Status */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
+                      isInUse ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white'
+                    }`}>
                       <Monitor size={20} />
                     </div>
                     <div>
@@ -233,25 +243,27 @@ const DeviceSelection: React.FC = () => {
                       <div className="text-[11px] font-mono text-slate-500">
                         {device.deviceType || 'POS'} • {device.id.slice(-6).toUpperCase()}
                       </div>
+                      {isInUse && (
+                        <div className="flex items-center space-x-1 mt-1.5 text-amber-700">
+                          <User size={12} />
+                          <span className="text-[10px] font-semibold">In use by {inUseBy}</span>
+                        </div>
+                      )}
+                      {!isInUse && (
+                        <div className="flex items-center space-x-1 mt-1.5 text-emerald-600">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          <span className="text-[10px] font-bold">Free</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  {/* Status Badge: Green = Online, Gray = Offline */}
+                  {/* Status Badge: Online/Offline */}
                   <div className={`flex items-center space-x-1.5 rounded-full px-2.5 py-1.5 ${
-                    online 
-                      ? 'bg-emerald-50' 
-                      : 'bg-slate-100'
+                    online ? 'bg-emerald-50' : 'bg-slate-100'
                   }`}>
-                    <span className={`h-2 w-2 rounded-full ${
-                      online 
-                        ? 'bg-emerald-500 animate-pulse' 
-                        : 'bg-slate-400'
-                    }`} />
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${
-                      online 
-                        ? 'text-emerald-700' 
-                        : 'text-slate-600'
-                    }`}>
+                    <span className={`h-2 w-2 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${online ? 'text-emerald-700' : 'text-slate-600'}`}>
                       {online ? 'Online' : 'Offline'}
                     </span>
                   </div>
@@ -265,17 +277,23 @@ const DeviceSelection: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Use This Device Button */}
+                {/* Use This Device Button - disabled when in use */}
                 <button
-                  disabled={!!selectingId}
-                  onClick={() => handleUseDevice(device)}
-                  className="inline-flex items-center justify-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-500 hover:shadow-md disabled:bg-emerald-400 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
+                  disabled={!!selectingId || isInUse}
+                  onClick={() => !isInUse && handleUseDevice(device)}
+                  className={`inline-flex items-center justify-center space-x-2 rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed ${
+                    isInUse 
+                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed' 
+                      : 'bg-emerald-600 text-white hover:bg-emerald-500 hover:shadow-md disabled:bg-emerald-400'
+                  }`}
                 >
                   {selectingId === device.id ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
                       <span>Attaching...</span>
                     </>
+                  ) : isInUse ? (
+                    <span>Unavailable</span>
                   ) : (
                     <>
                       <Wifi size={16} />

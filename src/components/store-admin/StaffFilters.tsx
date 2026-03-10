@@ -43,10 +43,9 @@ export default function StaffFilters({
                     className="px-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl text-slate-600 font-black uppercase tracking-widest text-xs outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
                 >
                     <option value="All">All Roles</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Cashier">Cashier</option>
-                    <option value="Accountant">Accountant</option>
-                    <option value="Admin">Admin</option>
+                    <option value="STORE_ADMIN">Store Admin</option>
+                    <option value="CASHIER">Cashier</option>
+                    <option value="ACCOUNTANT">Accountant</option>
                 </select>
 
                 <select

@@ -6,7 +6,14 @@ export const fetchStaffMembers = () => {
 };
 
 export const createStaffMember = (data: CreateStaffInput) => {
-    return axios.post<StaffMember>("/staff", data);
+    const payload = {
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        password: data.password,
+        ...(data.role === "CASHIER" && { assignedTerminalIds: Array.isArray(data.assignedTerminalIds) ? data.assignedTerminalIds : [] }),
+    };
+    return axios.post<StaffMember>("/staff", payload);
 };
 
 export const updateStaffMember = (id: string, data: Partial<CreateStaffInput>) => {

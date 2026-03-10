@@ -49,7 +49,8 @@ const OFFLINE_SALES_KEY = 'cashier-offline-sales';
 const POSInterface: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { deviceId, deviceName } = useDeviceStore();
+  const { deviceId } = useDeviceStore();
+  const displayTerminalName = user?.assignedTerminals?.[0]?.deviceName ?? null;
 
   const [barcodeInput, setBarcodeInput] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -325,9 +326,11 @@ const POSInterface: React.FC = () => {
               <div className="font-bold text-slate-800">
                 {user?.name || user?.email}
               </div>
-              <div className="text-slate-500 font-medium">
-                {deviceName ? `Device: ${deviceName}` : 'No device selected'}
-              </div>
+              {displayTerminalName && (
+                <div className="text-slate-500 font-medium">
+                  Terminal: {displayTerminalName}
+                </div>
+              )}
             </div>
           </div>
         </div>

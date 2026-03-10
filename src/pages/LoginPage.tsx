@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { authApi } from '../service/api';
+import { getDeviceFingerprint } from '../utils/fingerprint';
 import { Shield, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
@@ -31,7 +32,8 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const deviceFingerprint = await getDeviceFingerprint();
+      const response = await authApi.login({ email, password, deviceFingerprint });
 
       if (response.data.success) {
         const { user, accessToken, refreshToken } = response.data.data;
@@ -53,7 +55,12 @@ const LoginPage: React.FC = () => {
         setError(response.data.message || 'Login failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Connection error. Is the backend running?');
+      const msg = err.response?.data?.message;
+      if (err.response?.status === 403) {
+        setError(msg || 'This device is not registered or you are not assigned to this terminal.');
+      } else {
+        setError(msg || 'Connection error. Is the backend running?');
+      }
     } finally {
       setIsLoading(false);
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Monitor, Wifi, WifiOff, CheckCircle2 } from 'lucide-react';
+import { Monitor, WifiOff } from 'lucide-react';
 
 interface DeviceStatusIndicatorProps {
   deviceId: string | null;
@@ -17,7 +17,6 @@ interface DeviceStatusIndicatorProps {
 const DeviceStatusIndicator: React.FC<DeviceStatusIndicatorProps> = ({
   deviceId,
   deviceName,
-  isOnline = true,
 }) => {
   if (!deviceId || !deviceName) {
     return (

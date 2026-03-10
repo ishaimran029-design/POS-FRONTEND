@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authApi, profileApi } from '../service/api';
-import { type User, type AuthState } from '../types/auth';
+import { authApi, profileApi, devicesApi } from '../service/api';
+import { type AuthState } from '../types/auth';
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -26,6 +26,11 @@ export const useAuthStore = create<AuthState>()(
       
       logout: async () => {
         try {
+          try {
+            await devicesApi.release();
+          } catch {
+            // Ignore - user may not be cashier/accountant
+          }
           const refreshToken = localStorage.getItem('refresh-token');
           await authApi.logout(refreshToken || undefined);
           console.log('[AUTH] ✅ Logout API successful');

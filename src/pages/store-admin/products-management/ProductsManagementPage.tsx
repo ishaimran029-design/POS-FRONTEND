@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
 
@@ -8,14 +8,42 @@ import ProductsTable from "@/components/store-admin/ProductsTable"
 import ProductPagination from "@/components/store-admin/ProductPagination"
 import AddProductModal from "@/components/store-admin/AddProductModal"
 
-import { useProductsData } from "./hooks/useProductsData"
+import { fetchProducts } from "@/api/products.api"
+import type { Product } from "./types/product.types"
 
 export default function ProductsManagementPage() {
 
     const [sidebarOpen, setSidebarOpen] = useState(false)
-    const { paginated, page, setPage, total, loading } = useProductsData()
-
     const [openModal, setOpenModal] = useState(false)
+
+    const [products, setProducts] = useState<Product[]>([])
+    const [loading, setLoading] = useState(false)
+    const [page, setPage] = useState(1)
+    const limit = 10
+
+    useEffect(() => {
+        void loadProducts()
+    }, [])
+
+    const loadProducts = async () => {
+        setLoading(true)
+        try {
+            const res = await fetchProducts()
+            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+                setProducts(res.data)
+            } else {
+                setProducts([])
+            }
+        } catch (error) {
+            console.error("Failed to fetch products:", error)
+            setProducts([])
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const paginated = products.slice((page - 1) * limit, page * limit)
+    const total = products.length
 
     return (
 

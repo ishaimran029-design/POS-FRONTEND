@@ -1,5 +1,5 @@
 import { Monitor, Info, Wifi, WifiOff } from 'lucide-react';
-import type { Device } from '../types/dashboard.types';
+import type { Device } from '../types';
 
 interface ActiveDevicesPanelProps {
     devices: Device[];
@@ -17,7 +17,6 @@ export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps)
                     <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{devices.length} Live</span>
                 </div>
             </div>
-
             <div className="space-y-4 flex-1">
                 {devices.map((device) => (
                     <div key={device.id} className="group flex items-center justify-between p-4 bg-slate-50 hover:bg-white border-2 border-transparent hover:border-indigo-100 rounded-2xl transition-all duration-300">
@@ -59,7 +58,6 @@ export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps)
                     </div>
                 )}
             </div>
-
             <button className="mt-6 w-full py-3 bg-white border-2 border-slate-100 text-slate-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all">
                 See All Logs
             </button>

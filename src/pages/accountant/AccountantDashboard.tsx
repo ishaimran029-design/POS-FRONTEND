@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { BarChart3, PieChart, FileText, Download, LogOut, Calculator } from 'lucide-react';
+import { BarChart3, PieChart, FileText, Download, Calculator } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import SidebarLink from '../../components/ui/SidebarLink';
 import StatCard from '../../components/ui/StatCard';

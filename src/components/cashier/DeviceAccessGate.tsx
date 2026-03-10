@@ -7,7 +7,8 @@ import {
   Monitor, 
   RefreshCcw,
   CheckCircle2,
-  XCircle
+  XCircle,
+  User
 } from 'lucide-react';
 import { devicesApi } from '../../service/api';
 import { useDeviceStore } from '../../store/useDeviceStore';
@@ -19,6 +20,8 @@ type Device = {
   deviceType?: string;
   isActive: boolean;
   lastActiveAt?: string;
+  currentUserId?: string | null;
+  currentUser?: { id: string; name: string; email: string } | null;
 };
 
 interface DeviceAccessGateProps {
@@ -39,7 +42,7 @@ interface DeviceAccessGateProps {
  */
 const DeviceAccessGate: React.FC<DeviceAccessGateProps> = ({ children }) => {
   const navigate = useNavigate();
-  const { deviceId, deviceName, setDevice } = useDeviceStore();
+  const { deviceId, setDevice } = useDeviceStore();
   const { logout, user } = useAuthStore();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -69,10 +72,11 @@ const DeviceAccessGate: React.FC<DeviceAccessGateProps> = ({ children }) => {
           console.warn('[DeviceGate] Current device no longer available');
         }
         
-        // Auto-select if only one device available
-        if (activeDevices.length === 1 && !deviceId) {
-          console.log('[DeviceGate] Auto-selecting single available device');
-          handleSelectDevice(activeDevices[0]);
+        // Auto-select if only one free device available
+        const freeDevices = activeDevices.filter((d) => !d.currentUserId);
+        if (freeDevices.length === 1 && !deviceId) {
+          console.log('[DeviceGate] Auto-selecting single free device');
+          handleSelectDevice(freeDevices[0]);
         }
       }
     } catch (err: any) {
@@ -262,7 +266,7 @@ const DeviceAccessGate: React.FC<DeviceAccessGateProps> = ({ children }) => {
                 </div>
               </div>
             ) : (
-              /* Devices Available - Show Selection */
+              /* Devices Available - Show Selection (Free vs In use) */
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 text-sm font-bold text-slate-700">
                   <Monitor size={18} className="text-emerald-600" />
@@ -270,37 +274,59 @@ const DeviceAccessGate: React.FC<DeviceAccessGateProps> = ({ children }) => {
                 </div>
 
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {availableDevices.map((device) => (
-                    <button
-                      key={device.id}
-                      disabled={isSelecting}
-                      onClick={() => handleSelectDevice(device)}
-                      className="w-full flex items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                          <Monitor size={18} />
+                  {availableDevices.map((device) => {
+                    const isInUse = !!device.currentUserId;
+                    const inUseBy = device.currentUser?.name || 'Another cashier';
+                    return (
+                      <button
+                        key={device.id}
+                        disabled={isSelecting || isInUse}
+                        onClick={() => !isInUse && handleSelectDevice(device)}
+                        className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all disabled:cursor-not-allowed group
+                          ${isInUse 
+                            ? 'border-slate-200 bg-slate-50 opacity-75' 
+                            : 'border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50'}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all
+                            ${isInUse ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white'}`}>
+                            <Monitor size={18} />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm font-bold text-slate-900">
+                              {device.deviceName || 'POS Terminal'}
+                            </p>
+                            <p className="text-[11px] text-slate-500 font-mono">
+                              {device.deviceType || 'POS'} • {device.id.slice(-6).toUpperCase()}
+                            </p>
+                            {isInUse && (
+                              <div className="flex items-center space-x-1 mt-1 text-amber-700">
+                                <User size={12} />
+                                <span className="text-[10px] font-semibold">In use by {inUseBy}</span>
+                              </div>
+                            )}
+                            {!isInUse && (
+                              <div className="flex items-center space-x-1 mt-1 text-emerald-600">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                <span className="text-[10px] font-bold">Free</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <p className="text-sm font-bold text-slate-900">
-                            {device.deviceName || 'POS Terminal'}
-                          </p>
-                          <p className="text-[11px] text-slate-500 font-mono">
-                            {device.deviceType || 'POS'} • {device.id.slice(-6).toUpperCase()}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {isSelecting ? (
-                        <Loader2 size={18} className="text-emerald-500 animate-spin" />
-                      ) : (
-                        <div className="flex items-center space-x-1 text-emerald-600">
-                          <CheckCircle2 size={18} />
-                          <span className="text-xs font-bold">Select</span>
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                        
+                        {isSelecting ? (
+                          <Loader2 size={18} className="text-emerald-500 animate-spin" />
+                        ) : isInUse ? (
+                          <span className="text-[10px] font-medium text-slate-400"> unavailable</span>
+                        ) : (
+                          <div className="flex items-center space-x-1 text-emerald-600">
+                            <CheckCircle2 size={18} />
+                            <span className="text-xs font-bold">Select</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}

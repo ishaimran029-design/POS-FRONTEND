@@ -7,4 +7,6 @@ export interface Device {
     lastHeartbeat: string
     ipAddress: string
     scanner: "USB" | "Bluetooth" | "None"
+    connectedTo?: string | null
+    deviceFingerprint?: string | null
 }

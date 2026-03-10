@@ -9,9 +9,10 @@ export default function DevicesTable({ data, onDelete }: { data: Device[]; onDel
                     <thead>
                         <tr className="bg-gray-50/50 border-b border-gray-100 uppercase tracking-widest text-[10px] font-black text-gray-400">
                             <th className="py-5 pl-8 font-black">#</th>
-                            <th className="py-5 font-black">Device Name</th>
+                            <th className="py-5 font-black">Terminal Name</th>
                             <th className="py-5 font-black">Serial Number</th>
                             <th className="py-5 font-black">Status</th>
+                            <th className="py-5 font-black">Connected To</th>
                             <th className="py-5 font-black">Last Heartbeat</th>
                             <th className="py-5 font-black">IP Address</th>
                             <th className="py-5 font-black">Scanner</th>
@@ -32,8 +33,8 @@ export default function DevicesTable({ data, onDelete }: { data: Device[]; onDel
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
                         </svg>
                     </div>
-                    <p className="text-sm font-black text-gray-900 mb-1">No devices registered</p>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Connect hardware to see them here.</p>
+                    <p className="text-sm font-black text-gray-900 mb-1">No terminals registered</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest leading-none">Add a terminal from the button above.</p>
                 </div>
             )}
         </div>
