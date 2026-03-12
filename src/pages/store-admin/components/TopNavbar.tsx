@@ -2,9 +2,10 @@ import { Search, Bell, HelpCircle, Plus, ChevronRight, Menu } from 'lucide-react
 
 interface TopNavbarProps {
     onMenuClick: () => void;
+    onNewTransaction?: () => void;
 }
 
-export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
+export default function TopNavbar({ onMenuClick, onNewTransaction }: TopNavbarProps) {
     return (
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-4 sm:px-8 flex items-center justify-between">
             {/* Left: Menu (Mobile) & Breadcrumb */}
@@ -35,7 +36,10 @@ export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-6">
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-sm font-extrabold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 transform active:scale-95">
+                <button 
+                    onClick={() => onNewTransaction?.()}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-sm font-extrabold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 transform active:scale-95"
+                >
                     <Plus size={18} />
                     <span>New Transaction</span>
                 </button>

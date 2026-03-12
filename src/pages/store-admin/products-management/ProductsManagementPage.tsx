@@ -29,8 +29,9 @@ export default function ProductsManagementPage() {
         setLoading(true)
         try {
             const res = await fetchProducts()
-            if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-                setProducts(res.data)
+            // Backend wraps data in { success: true, data: [...], ... }
+            if (res.data && res.data.success && Array.isArray(res.data.data)) {
+                setProducts(res.data.data)
             } else {
                 setProducts([])
             }
@@ -59,7 +60,10 @@ export default function ProductsManagementPage() {
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
-                <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
+                <TopNavbar 
+                    onMenuClick={() => setSidebarOpen(true)} 
+                    onNewTransaction={() => setOpenModal(true)}
+                />
 
                 <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in">
                     <ProductsHeader openModal={() => setOpenModal(true)} />
@@ -85,7 +89,11 @@ export default function ProductsManagementPage() {
                 </main>
             </div>
 
-            <AddProductModal open={openModal} onClose={() => setOpenModal(false)} />
+            <AddProductModal 
+                open={openModal} 
+                onClose={() => setOpenModal(false)} 
+                onSuccess={() => loadProducts()}
+            />
 
         </div>
 

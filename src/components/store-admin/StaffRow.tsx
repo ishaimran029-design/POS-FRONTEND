@@ -1,14 +1,14 @@
-import { Edit2, Trash2, Mail } from 'lucide-react';
+import { Trash2, Mail } from 'lucide-react';
 import type { StaffMember } from '../../pages/store-admin/staff-management/types/staff.types';
 import { StaffStatusBadge, RoleBadge } from './StaffStatusBadge';
 
 interface StaffRowProps {
     member: StaffMember;
-    onEdit: () => void;
+
     onDelete: () => void;
 }
 
-export default function StaffRow({ member, onEdit, onDelete }: StaffRowProps) {
+export default function StaffRow({ member, onDelete }: Omit<StaffRowProps, 'onEdit'>) {
     return (
         <tr className="hover:bg-blue-50/50 transition-colors group">
             <td className="px-6 py-4">
@@ -43,13 +43,7 @@ export default function StaffRow({ member, onEdit, onDelete }: StaffRowProps) {
             </td>
             <td className="px-6 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
-                    <button
-                        onClick={onEdit}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-xl transition-all active:scale-90"
-                        title="Edit Member"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
+
                     <button
                         onClick={onDelete}
                         className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-90"

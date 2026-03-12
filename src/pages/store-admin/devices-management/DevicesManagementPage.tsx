@@ -9,7 +9,7 @@ import DevicesFilters, { type StatusFilter, type ViewFilter } from "@/components
 import DevicesTable from "@/components/store-admin/DevicesTable"
 import DevicesPagination from "@/components/store-admin/DevicesPagination"
 
-import { terminalsApi, devicesApi } from "@/service/api"
+import * as deviceApi from "@/api/devices.api"
 import type { Device } from "./types/device.types"
 
 export default function DevicesManagementPage() {
@@ -39,7 +39,7 @@ export default function DevicesManagementPage() {
     const loadTerminals = async () => {
         setLoading(true)
         try {
-            const res = await terminalsApi.list()
+            const res = await deviceApi.listTerminals()
             const data = res.data?.data
             if (Array.isArray(data)) {
                 const mapped: Device[] = data.map((t: any) => ({
@@ -69,7 +69,7 @@ export default function DevicesManagementPage() {
     const handleDelete = async (id: string): Promise<boolean> => {
         setLoading(true)
         try {
-            await devicesApi.update(id, { isActive: false })
+            await deviceApi.updateDevice(id, { isActive: false })
             await loadTerminals()
             return true
         } catch (error) {
@@ -126,13 +126,13 @@ export default function DevicesManagementPage() {
 
                     <div className="mt-8">
                         <DevicesFilters
-                        statusFilter={statusFilter}
-                        onStatusFilterChange={(v) => { setStatusFilter(v); setPage(1); }}
-                        viewFilter={viewFilter}
-                        onViewFilterChange={(v) => { setViewFilter(v); setPage(1); }}
-                        searchQuery={searchQuery}
-                        onSearchQueryChange={(v) => { setSearchQuery(v); setPage(1); }}
-                    />
+                            statusFilter={statusFilter}
+                            onStatusFilterChange={(v) => { setStatusFilter(v); setPage(1); }}
+                            viewFilter={viewFilter}
+                            onViewFilterChange={(v) => { setViewFilter(v); setPage(1); }}
+                            searchQuery={searchQuery}
+                            onSearchQueryChange={(v) => { setSearchQuery(v); setPage(1); }}
+                        />
                     </div>
 
                     <div className="mt-8">

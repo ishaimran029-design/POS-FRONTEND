@@ -3,11 +3,11 @@ import type { StaffMember } from '../../pages/store-admin/staff-management/types
 
 interface StaffTableProps {
     staff: StaffMember[];
-    onEdit: (id: string) => void;
+
     onDelete: (id: string) => void;
 }
 
-export default function StaffTable({ staff, onEdit, onDelete }: StaffTableProps) {
+export default function StaffTable({ staff, onDelete }: Omit<StaffTableProps, 'onEdit'>) {
     return (
         <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden mb-6 animate-fade-in">
             <div className="overflow-x-auto">
@@ -28,7 +28,7 @@ export default function StaffTable({ staff, onEdit, onDelete }: StaffTableProps)
                             <StaffRow
                                 key={member.id}
                                 member={member}
-                                onEdit={() => onEdit(member.id)}
+
                                 onDelete={() => onDelete(member.id)}
                             />
                         ))}

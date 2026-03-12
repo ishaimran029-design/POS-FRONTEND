@@ -141,7 +141,6 @@ export default function StaffManagementPage() {
                         <>
                             <StaffTable
                                 staff={paginatedStaff}
-                                onEdit={(id: string) => alert(`Edit feature for ${id} coming soon!`)}
                                 onDelete={handleDeleteStaff}
                             />
 

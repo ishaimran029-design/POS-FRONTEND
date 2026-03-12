@@ -10,7 +10,8 @@ import CategoryPieChart from './components/CategoryPieChart';
 import ActiveDevicesPanel from './components/ActiveDevicesPanel';
 import TopProductsTable from './components/TopProductsTable';
 import StorageStatusCard from './components/StorageStatusCard';
-import api from '@/service/api';
+import { getDashboardSummary } from '@/api/dashboard.api';
+import { getDevices } from '@/api/dashboard.api';
 
 interface DashboardView {
   metrics: { value: number }[];
@@ -32,8 +33,14 @@ export default function StoreAdminDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const res = await api.get('/reports/storeadmin/dashboard');
-        const raw = res.data?.data ?? null;
+        const [dashRes, devicesRes] = await Promise.all([
+          getDashboardSummary(),
+          getDevices()
+        ]);
+
+        const raw = dashRes.data?.data ?? null;
+        const deviceData = devicesRes.data?.data ?? [];
+
         if (!raw) {
           setData(null);
           return;
@@ -61,7 +68,12 @@ export default function StoreAdminDashboard() {
             value: p.revenue ?? 0,
             color: colors[i % colors.length],
           })),
-          devices: [],
+          devices: deviceData.map((d: any) => ({
+            id: d.id,
+            name: d.deviceName || d.name || 'Unknown Device',
+            location: d.location || 'Main Floor',
+            status: d.isActive ? 'online' : 'offline',
+          })),
           topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
             id: p.productId ?? p.id ?? '',
             name: p.name ?? 'Unknown',

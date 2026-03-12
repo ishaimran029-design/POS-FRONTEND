@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Cpu, Network, Info, Shield, Printer } from 'lucide-react';
 import Sidebar from '../components/Sidebar';
 import TopNavbar from '../components/TopNavbar';
-import { registerDevice } from '@/api/device.api';
+import { registerDevice } from '@/api/devices.api';
 
 type ScannerConnection = 'USB' | 'Bluetooth' | 'Network' | 'None';
 type FormData = {

@@ -29,6 +29,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ProductsManagementPage = lazy(() => import('./pages/store-admin/products-management/ProductsManagementPage'));
 const AddProductPage = lazy(() => import('./pages/store-admin/products-management/AddProductPage'));
 const DevicesManagementPage = lazy(() => import('./pages/store-admin/devices-management/DevicesManagementPage'));
+const SalesTransactions = lazy(() => import('./pages/SalesTransactions'));
+const ProductCategories = lazy(() => import('./pages/ProductCategories'));
 
 const App: React.FC = () => {
   const { hydrate, isLoading } = useAuthStore();
@@ -57,6 +59,8 @@ const App: React.FC = () => {
             <Route path="/store-admin/inventory/products" element={<ProductsManagementPage />} />
             <Route path="/store-admin/inventory/products/add" element={<AddProductPage />} />
             <Route path="/store-admin/devices" element={<DevicesManagementPage />} />
+            <Route path="/sales-transactions" element={<SalesTransactions />} />
+            <Route path="/categories" element={<ProductCategories />} />
             <Route path="/store-admin" element={<Navigate to="/store-admin/dashboard" replace />} />
           </Route>
 

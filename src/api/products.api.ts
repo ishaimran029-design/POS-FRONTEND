@@ -8,11 +8,11 @@ export const fetchTopProducts = () => {
   return api.get("/products/top");
 };
 
-export const createProduct = (data: any) => {
+export const createProduct = (data: FormData) => {
   return api.post("/products", data);
 };
 
-export const updateProduct = (id: string, data: any) => {
+export const updateProduct = (id: string, data: FormData) => {
   return api.patch(`/products/${id}`, data);
 };
 

@@ -27,11 +27,11 @@ const menuItems = [
         children: [
             { name: 'Stock Levels', icon: Layers, path: '/store-admin/inventory/stocks' },
             { name: 'Products', icon: Package, path: '/store-admin/inventory/products' },
-            { name: 'Categories', icon: Layers, path: '/store-admin/inventory/categories' },
+            { name: 'Categories', icon: Layers, path: '/categories' },
             { name: 'Adjustments', icon: Settings2, path: '/store-admin/inventory/adjustments' },
         ]
     },
-    { name: 'Sales', icon: ShoppingCart, path: '/store-admin/sales' },
+    { name: 'Sales', icon: ShoppingCart, path: '/sales-transactions' },
     { name: 'Devices', icon: Monitor, path: '/store-admin/devices' },
     { name: 'Reports', icon: BarChart3, path: '/store-admin/reports' },
     { name: 'Store Settings', icon: Settings, path: '/store-admin/settings' },
