@@ -21,16 +21,34 @@ const ReceiptPage: React.FC = () => {
     const fetchSaleIfNeeded = async () => {
       if (sale || !saleId || status === 'PENDING_SYNC') return;
       try {
+        console.log('📡 [ReceiptPage] Fetching sale from API:', saleId);
         const res = await getSaleById(saleId);
         if (res.data?.success && res.data.data) {
+          console.log('✅ [ReceiptPage] Sale fetched:', res.data.data);
           setSale(res.data.data);
         }
-      } catch {
-        // Ignore; minimal fallback
+      } catch (err: any) {
+        console.error('❌ [ReceiptPage] Error fetching sale:', err);
       }
     };
     fetchSaleIfNeeded();
   }, [sale, saleId, status]);
+
+  // Debug: Log sale data when it changes
+  React.useEffect(() => {
+    if (sale) {
+      console.log('📦 [ReceiptPage] Current sale data:', {
+        saleId: sale.id,
+        invoiceNumber: sale.invoiceNumber,
+        saleItemsCount: sale.saleItems?.length || 0,
+        saleItems: sale.saleItems,
+        subtotal: sale.subtotal,
+        discountAmount: sale.discountAmount,
+        totalTax: sale.totalTax,
+        totalAmount: sale.totalAmount,
+      });
+    }
+  }, [sale]);
 
   const handlePrint = () => {
     window.print();
@@ -49,8 +67,12 @@ const ReceiptPage: React.FC = () => {
     ? new Date(sale.createdAt)
     : new Date();
 
-  const items = sale?.items || [];
-  const totals = sale?.totals || {};
+  // Backend returns flat fields, not nested in totals
+  const items = sale?.saleItems || sale?.items || [];
+  const subtotal = Number(sale?.subtotal || sale?.totals?.subtotal || 0);
+  const discountAmount = Number(sale?.discountAmount || sale?.totals?.discountAmount || 0);
+  const totalTax = Number(sale?.totalTax || sale?.totals?.tax || 0);
+  const totalAmount = Number(sale?.totalAmount || sale?.totals?.total || 0);
 
   return (
     <div className="min-h-[520px] flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden">
@@ -92,13 +114,13 @@ const ReceiptPage: React.FC = () => {
               </div>
               <div>{createdAt.toLocaleString()}</div>
             </div>
-            {sale?.cashier && (
+            {sale?.user && (
               <div className="text-right">
                 <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
                   Cashier
                 </div>
                 <div className="font-semibold text-slate-800">
-                  {sale.cashier.name || sale.cashier.email}
+                  {sale.user.name || sale.user.email}
                 </div>
               </div>
             )}
@@ -135,30 +157,45 @@ const ReceiptPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                items.map((item: any, idx: number) => (
-                  <tr
-                    key={idx}
-                    className="border-t border-slate-100"
-                  >
-                    <td className="px-3 py-2">
-                      <div className="font-semibold text-slate-800">
-                        {item.product?.name || item.name}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      {item.quantity}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      ₹{(item.unitPrice || item.price || 0).toFixed(2)}
-                    </td>
-                    <td className="px-3 py-2 text-right font-semibold">
-                      ₹{(
-                        (item.unitPrice || item.price || 0) *
-                        (item.quantity || 1)
-                      ).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
+                items.map((item: any, idx: number) => {
+                  // Backend returns prices as strings (Prisma Decimal), convert to numbers
+                  const unitPrice = Number(item.price || 0);
+                  const quantity = Number(item.quantity || 1);
+                  const lineTotal = unitPrice * quantity;
+                  
+                  // Get product name from nested product object or fallback fields
+                  const productName = item.product?.name || item.name || item.productName || 'Unknown Product';
+                  
+                  console.log(`🏷️ [ReceiptPage] Rendering item ${idx}:`, {
+                    productName,
+                    unitPrice,
+                    quantity,
+                    lineTotal,
+                    item,
+                  });
+                  
+                  return (
+                    <tr
+                      key={idx}
+                      className="border-t border-slate-100"
+                    >
+                      <td className="px-3 py-2">
+                        <div className="font-semibold text-slate-800">
+                          {productName}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        {quantity}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        ₹{unitPrice.toFixed(2)}
+                      </td>
+                      <td className="px-3 py-2 text-right font-semibold">
+                        ₹{lineTotal.toFixed(2)}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -167,25 +204,25 @@ const ReceiptPage: React.FC = () => {
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>
-                ₹{(totals.subtotal || totals.total || 0).toFixed(2)}
+                ₹{subtotal.toFixed(2)}
               </span>
             </div>
-            {typeof totals.discountAmount === 'number' && (
+            {discountAmount > 0 && (
               <div className="flex justify-between">
                 <span>Discount</span>
-                <span>-₹{totals.discountAmount.toFixed(2)}</span>
+                <span>-₹{discountAmount.toFixed(2)}</span>
               </div>
             )}
-            {typeof totals.tax === 'number' && (
+            {totalTax > 0 && (
               <div className="flex justify-between">
-                <span>Tax</span>
-                <span>₹{totals.tax.toFixed(2)}</span>
+                <span>Tax (GST)</span>
+                <span>₹{totalTax.toFixed(2)}</span>
               </div>
             )}
             <hr className="my-2 border-dashed border-slate-200" />
             <div className="flex justify-between font-bold text-slate-900">
               <span>TOTAL</span>
-              <span>₹{(totals.total || totals.subtotal || 0).toFixed(2)}</span>
+              <span>₹{totalAmount.toFixed(2)}</span>
             </div>
           </div>
 

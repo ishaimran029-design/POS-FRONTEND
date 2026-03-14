@@ -17,7 +17,7 @@ import {
   AlertCircle,
   Search,
 } from 'lucide-react';
-import { getProductByBarcode, searchProducts } from '../../api/products.api';
+import { getProductByBarcode, searchProducts, fetchProducts } from '../../api/products.api';
 import { createSale } from '../../api/sales.api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDeviceStore } from '../../store/useDeviceStore';
@@ -65,12 +65,70 @@ const POSInterface: React.FC = () => {
   const [modalQuery, setModalQuery] = useState('');
   const [modalResults, setModalResults] = useState<Product[]>([]);
   const [modalLoading, setModalLoading] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsError, setProductsError] = useState<string | null>(null);
 
   // Top bar time
   const [now, setNow] = useState<Date>(new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000 * 30);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch all products for grid display
+  useEffect(() => {
+    const loadProducts = async () => {
+      setProductsLoading(true);
+      setProductsError(null);
+      try {
+        console.log('🔄 POSInterface - Component mounted, loading products from /products endpoint...');
+        
+        // Try to fetch all active products
+        const res = await fetchProducts();
+        console.log('📦 POSInterface - Raw API Response:', res);
+        console.log('📦 POSInterface - Response data:', res.data);
+        console.log('📦 POSInterface - Response status:', res.status);
+        
+        let products: Product[] = [];
+        
+        // Handle different response formats
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          products = res.data.data as Product[];
+          console.log('✅ POSInterface - Found products in res.data.data:', products.length, 'products');
+        } else if (res.data?.data && Array.isArray(res.data.data)) {
+          products = res.data.data as Product[];
+          console.log('✅ POSInterface - Found products in res.data.data (nested):', products.length, 'products');
+        } else if (Array.isArray(res.data)) {
+          products = res.data as Product[];
+          console.log('✅ POSInterface - Found products in res.data (direct array):', products.length, 'products');
+        } else {
+          console.warn('⚠️ POSInterface - Unexpected API response structure:', res.data);
+          products = [];
+        }
+        
+        // Filter to only show active products if not already filtered by API
+        const activeProducts = products.filter((p: any) => p.isActive !== false);
+        console.log('✅ POSInterface - Active products after filtering:', activeProducts.length, activeProducts);
+        
+        setAllProducts(activeProducts);
+      } catch (err: any) {
+        console.error('❌ POSInterface - Error fetching products:', err);
+        console.error('❌ POSInterface - Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+        });
+        const errorMsg = err.response?.data?.message || err.message || 'Failed to load products';
+        setProductsError(errorMsg);
+        setAllProducts([]);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+    
+    loadProducts();
   }, []);
 
   // Online / offline detection
@@ -107,8 +165,17 @@ const POSInterface: React.FC = () => {
   const canCompleteSale = cart.length > 0 && !!paymentMethod && !!deviceId;
 
   const handleAddProductToCart = (product: Product) => {
-    const unitPrice =
-      (product as any).sellingPrice ?? (product as any).price ?? 0;
+    const rawPrice = (product as any).sellingPrice ?? (product as any).price ?? 0;
+    const unitPrice = typeof rawPrice === 'number' ? rawPrice : Number(rawPrice) || 0;
+    
+    console.log('🛒 [POSInterface] Adding to cart:', {
+      productId: product.id,
+      productName: product.name,
+      rawPrice,
+      unitPrice,
+      priceType: typeof unitPrice,
+    });
+    
     setCart((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
@@ -190,7 +257,24 @@ const POSInterface: React.FC = () => {
   };
 
   const handleCompleteSale = async () => {
-    if (!canCompleteSale || !deviceId) return;
+    console.log('🔴 [POSInterface] handleCompleteSale called');
+    console.log('🔵 [POSInterface] canCompleteSale:', canCompleteSale);
+    console.log('🔵 [POSInterface] deviceId:', deviceId);
+    console.log('🔵 [POSInterface] cart.length:', cart.length);
+    console.log('🔵 [POSInterface] paymentMethod:', paymentMethod);
+    
+    if (!canCompleteSale || !deviceId) {
+      console.error('❌ [POSInterface] Sale blocked - missing requirements');
+      setError('Please select a payment method and ensure you are connected to a POS terminal.');
+      return;
+    }
+
+    // Validate items array is not empty
+    if (!cart || cart.length === 0) {
+      console.error('❌ [POSInterface] Sale blocked - cart is empty');
+      setError('Cart is empty. Please add items before completing the sale.');
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -200,21 +284,83 @@ const POSInterface: React.FC = () => {
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-      const payload = {
-      deviceId,
-      paymentMethod,
-      discountAmount,
-      notes: notes || undefined,
-      items: cart.map((item) => ({
+    // Ensure all numeric values are properly converted to numbers (not strings)
+    const numericDiscountAmount = typeof discountAmount === 'number' ? discountAmount : Number(discountAmount) || 0;
+
+    // Build items array matching backend expectations
+    // Backend validates: item.productId, item.quantity > 0, item.price >= 0
+    // We also send productName, unitPrice, totalPrice for completeness
+    const itemsPayload = cart.map((item) => {
+      // Ensure price is a number, not a string (CRITICAL for backend validation)
+      const numericPrice = typeof item.price === 'number' ? item.price : Number(item.price) || 0;
+      // Ensure quantity is a number, not a string
+      const numericQuantity = typeof item.quantity === 'number' ? item.quantity : Number(item.quantity) || 1;
+      // Calculate total price for this line item
+      const totalPrice = numericPrice * numericQuantity;
+      
+      console.log('🛒 [POSInterface] Processing item:', {
+        id: item.id,
+        name: item.name,
+        rawPrice: item.price,
+        numericPrice,
+        numericQuantity,
+        totalPrice,
+      });
+      
+      return {
         productId: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      })),
+        productName: item.name,
+        unitPrice: numericPrice,
+        quantity: numericQuantity,
+        totalPrice: totalPrice,
+        price: numericPrice, // REQUIRED: Backend validates this field name
+      };
+    });
+
+    const payload = {
+      deviceId: deviceId,
+      paymentMethod: paymentMethod,
+      discountAmount: numericDiscountAmount,
+      notes: notes || undefined,
+      items: itemsPayload,
     };
+
+    // Validate payload before sending
+    const validationErrors = [];
+    if (!payload.deviceId) validationErrors.push('deviceId is missing');
+    if (!payload.paymentMethod) validationErrors.push('paymentMethod is missing');
+    if (!payload.items || payload.items.length === 0) validationErrors.push('items array is empty');
+    
+    payload.items.forEach((item: any, idx: number) => {
+      if (!item.productId) validationErrors.push(`items[${idx}].productId is missing`);
+      if (!item.price || item.price < 0) validationErrors.push(`items[${idx}].price must be >= 0`);
+      if (!item.quantity || item.quantity <= 0) validationErrors.push(`items[${idx}].quantity must be > 0`);
+    });
+
+    if (validationErrors.length > 0) {
+      console.error('❌ [POSInterface] Payload validation failed:', validationErrors);
+      setError('Invalid sale data: ' + validationErrors.join(', '));
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Log complete payload for debugging
+    console.log('🟢 [POSInterface] === SALE PAYLOAD ===');
+    console.log('🟢 deviceId:', payload.deviceId, `(type: ${typeof payload.deviceId})`);
+    console.log('🟢 paymentMethod:', payload.paymentMethod, `(type: ${typeof payload.paymentMethod})`);
+    console.log('🟢 discountAmount:', payload.discountAmount, `(type: ${typeof payload.discountAmount})`);
+    console.log('🟢 notes:', payload.notes);
+    console.log('🟢 items count:', payload.items.length);
+    console.log('🟢 items:', JSON.stringify(payload.items, null, 2));
+    console.log('🟢 isOnline:', isOnline);
+    console.log('🟢 ==========================');
 
     try {
       if (isOnline) {
+        console.log('📡 [POSInterface] Sending POST /sales request...');
         const res = await createSale(payload, idempotencyKey);
+        console.log('✅ [POSInterface] Sale created successfully:', res.data);
+        
         if (res.data?.success && res.data.data) {
           const sale = res.data.data;
           // Clear cart before navigating
@@ -226,20 +372,21 @@ const POSInterface: React.FC = () => {
             state: { sale, status: 'COMPLETED' },
           });
         } else {
+          console.error('❌ [POSInterface] Sale response missing data:', res.data);
           setError(res.data?.message || 'Unable to complete sale');
         }
       } else {
         const offlineId = `OFF-${Date.now()}`;
         const existingRaw = localStorage.getItem(OFFLINE_SALES_KEY);
         const existing = existingRaw ? JSON.parse(existingRaw) : [];
-      const offlineSale = {
+        const offlineSale = {
           tempId: offlineId,
           createdAt: new Date().toISOString(),
           deviceId,
           paymentMethod,
-          discountAmount,
+          discountAmount: numericDiscountAmount,
           notes: notes || undefined,
-        items: payload.items,
+          items: payload.items,
           totals: { subtotal, tax, total },
         };
         localStorage.setItem(
@@ -257,7 +404,14 @@ const POSInterface: React.FC = () => {
         });
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Failed to complete sale';
+      console.error('❌ [POSInterface] Sale error:', err);
+      console.error('❌ [POSInterface] Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+      });
+      const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to complete sale';
       setError(msg);
     } finally {
       setIsSubmitting(false);
@@ -294,7 +448,7 @@ const POSInterface: React.FC = () => {
   }, [modalQuery, productModalOpen]);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-white border border-slate-200 rounded-3xl">
+    <div className="flex flex-col h-full overflow-hidden bg-white border border-slate-200 rounded-3xl">
       {/* Top Bar */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/60">
         <div>
@@ -352,9 +506,10 @@ const POSInterface: React.FC = () => {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Scan & Cart Table */}
-        <section className="flex-1 flex flex-col p-6 overflow-hidden border-r border-slate-200">
+      <div className="flex flex-col overflow-hidden flex-1">
+        <div className="flex overflow-hidden flex-1">
+          {/* Left: Scan & Cart Table */}
+          <section className="flex-1 flex flex-col p-6 overflow-hidden border-r border-slate-200">
           {/* Scan / Search */}
           <form onSubmit={handleScanSubmit} className="mb-4">
             <div className="relative">
@@ -380,31 +535,77 @@ const POSInterface: React.FC = () => {
             </div>
           </form>
 
-          {/* Cart Table */}
+          {/* Cart & Products Container */}
           <div className="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-50/40">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500">
-                <tr>
-                  <th className="px-4 py-2 text-left">Item</th>
-                  <th className="px-2 py-2 text-center w-32">Qty</th>
-                  <th className="px-4 py-2 text-right w-24">@Price</th>
-                  <th className="px-4 py-2 text-right w-28">Line Total</th>
-                  <th className="px-2 py-2 w-8"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {cart.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-10 text-center text-xs font-semibold text-slate-500"
-                    >
-                      Scan a product barcode or search by name to start a new
-                      cart.
-                    </td>
-                  </tr>
+            {cart.length === 0 ? (
+              // Display products when cart is empty
+              <div className="h-full flex flex-col">
+                {productsLoading ? (
+                  <div className="flex-1 flex items-center justify-center p-4">
+                    <div className="flex items-center space-x-2 text-xs text-slate-500">
+                      <div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+                      <span>Loading products...</span>
+                    </div>
+                  </div>
+                ) : productsError ? (
+                  <div className="flex-1 flex items-center justify-center p-4 text-[10px] text-red-600">
+                    Error: {productsError}
+                  </div>
+                ) : allProducts && allProducts.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 auto-rows-max">
+                    {allProducts.map((product) => {
+                      const stock = (product as any).inventoryStock?.totalQuantity ?? product.stock ?? 0;
+                      const price = Number(product.sellingPrice ?? product.price ?? 0);
+                      return (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => {
+                            console.log('✅ Clicked product:', product.name);
+                            handleAddProductToCart(product);
+                          }}
+                          disabled={stock <= 0}
+                          className="flex flex-col space-y-2 rounded-lg border border-slate-200 bg-white p-3 hover:border-emerald-400 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs"
+                        >
+                          <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 flex-1">
+                            {product.name}
+                          </h4>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-emerald-600 text-xs">₹{price.toFixed(2)}</span>
+                            <span className={`text-[9px] font-semibold ${
+                              stock <= 0 ? 'text-red-600' : stock <= 10 ? 'text-amber-600' : 'text-emerald-600'
+                            }`}>
+                              {stock}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-center space-x-1 rounded bg-emerald-50 py-1.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
+                            <Plus size={10} />
+                            <span>Add</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  cart.map((item) => (
+                  <div className="flex-1 flex items-center justify-center p-4 text-xs text-slate-500">
+                    No products available
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Display cart table when items exist
+              <table className="w-full text-sm">
+                <thead className="bg-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500">
+                  <tr>
+                    <th className="px-4 py-2 text-left">Item</th>
+                    <th className="px-2 py-2 text-center w-32">Qty</th>
+                    <th className="px-4 py-2 text-right w-24">@Price</th>
+                    <th className="px-4 py-2 text-right w-28">Line Total</th>
+                    <th className="px-2 py-2 w-8"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cart.map((item) => (
                     <tr key={item.id} className="border-t border-slate-100">
                       <td className="px-4 py-2">
                         <div className="text-[13px] font-semibold text-slate-900">
@@ -448,10 +649,10 @@ const POSInterface: React.FC = () => {
                         </button>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           <div className="mt-3 flex justify-between items-center">
@@ -665,6 +866,7 @@ const POSInterface: React.FC = () => {
             </div>
           </div>
         </aside>
+        </div>
       </div>
 
       {/* Product Search Modal */}
