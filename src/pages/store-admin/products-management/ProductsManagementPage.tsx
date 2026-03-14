@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 
 import ProductsHeader from "@/components/store-admin/ProductsHeader"
 import ProductsFilters from "@/components/store-admin/ProductsFilters"
@@ -9,6 +9,7 @@ import ProductPagination from "@/components/store-admin/ProductPagination"
 import AddProductModal from "@/components/store-admin/AddProductModal"
 
 import { fetchProducts } from "@/api/products.api"
+import { fetchFullInventory } from "@/api/inventory.api"
 import type { Product } from "./types/product.types"
 
 export default function ProductsManagementPage() {
@@ -28,15 +29,34 @@ export default function ProductsManagementPage() {
     const loadProducts = async () => {
         setLoading(true)
         try {
-            const res = await fetchProducts()
-            // Backend wraps data in { success: true, data: [...], ... }
-            if (res.data && res.data.success && Array.isArray(res.data.data)) {
-                setProducts(res.data.data)
-            } else {
-                setProducts([])
-            }
+            // Concurrent fetch of products and inventory
+            const [productsRes, inventoryRes] = await Promise.all([
+                fetchProducts(),
+                fetchFullInventory()
+            ])
+
+            const productsData = productsRes.data?.data || (Array.isArray(productsRes.data) ? productsRes.data : [])
+            const inventoryData = inventoryRes.data?.data || (Array.isArray(inventoryRes.data) ? inventoryRes.data : [])
+
+            // Map inventory by productId
+            const inventoryMap = inventoryData.reduce((acc: any, inv: any) => {
+                acc[inv.productId] = inv.totalQuantity || inv.stock || 0
+                return acc
+            }, {})
+
+            // Merge stock into products
+            const mergedProducts = productsData.map((p: any) => {
+                const stock = inventoryMap[p.id] || 0
+                return {
+                    ...p,
+                    stock: stock,
+                    // Optionally update status based on logic
+                }
+            })
+
+            setProducts(mergedProducts)
         } catch (error) {
-            console.error("Failed to fetch products:", error)
+            console.error("Failed to fetch products or inventory:", error)
             setProducts([])
         } finally {
             setLoading(false)
@@ -48,7 +68,7 @@ export default function ProductsManagementPage() {
 
     return (
 
-        <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">
+        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div
@@ -62,28 +82,27 @@ export default function ProductsManagementPage() {
             <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
                 <TopNavbar 
                     onMenuClick={() => setSidebarOpen(true)} 
-                    onNewTransaction={() => setOpenModal(true)}
                 />
 
-                <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in">
+                <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in">
                     <ProductsHeader openModal={() => setOpenModal(true)} />
 
-                    <div className="mt-8">
+                    <div className="mt-10">
                         <ProductsFilters />
                     </div>
 
                     <div className="mt-8">
                         {loading ? (
-                            <div className="bg-white rounded-[40px] p-20 flex flex-col items-center justify-center border border-slate-50 shadow-xl shadow-slate-200/50">
-                                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse mt-4">Syncing Inventory...</p>
+                            <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
+                                <div className="w-12 h-12 border-[3px] border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] animate-pulse mt-6">Syncing Inventory Assets...</p>
                             </div>
                         ) : (
                             <ProductsTable data={paginated} />
                         )}
                     </div>
 
-                    <div className="mt-8">
+                    <div className="mt-10">
                         <ProductPagination page={page} setPage={setPage} total={total} />
                     </div>
                 </main>

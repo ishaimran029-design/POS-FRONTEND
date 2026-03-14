@@ -2,8 +2,8 @@ import { useEffect, useState } from "react"
 import InventoryHeader from "@/components/store-admin/InventoryHeader"
 import InventoryFilters from "@/components/store-admin/InventoryFilters"
 import InventoryTable from "@/components/store-admin/InventoryTable"
-import Sidebar from '@/pages/store-admin/components/Sidebar'
-import TopNavbar from '@/pages/store-admin/components/TopNavbar'
+import Sidebar from '@/components/store-admin/Sidebar'
+import TopNavbar from '@/components/store-admin/TopNavbar'
 import { fetchFullInventory } from "@/api/inventory.api"
 
 export interface InventoryMovement {
@@ -18,7 +18,7 @@ export interface InventoryMovement {
   timestamp: string
 }
 
-const InventoryManagement = () => {
+const InventoryManagementPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [loading, setLoading] = useState(false)
@@ -26,13 +26,14 @@ const InventoryManagement = () => {
   const fetchMovements = async () => {
     try {
       setLoading(true)
-      // I checked inventory.api.ts and getInventoryMovements does not exist, so I am using fetchFullInventory as fallback or just mock data
       const res = await fetchFullInventory()
-      if (res.data?.data) {
-          setMovements(res.data.data)
-      } else {
-          setMovements(res.data)
-      }
+      
+      // Handle the nested structure of the API response
+      const inventoryData = res.data?.data || res.data || []
+      
+      // Mapping or direct assignment based on the API response structure
+      // For now, assuming the API returns an array of inventory items
+      setMovements(inventoryData)
     } catch (error) {
       console.error("Failed to load inventory movements", error)
       // Fallback data if API is not fully implemented yet 
@@ -81,7 +82,7 @@ const InventoryManagement = () => {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">
+    <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
       {sidebarOpen && (
         <div
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
@@ -94,7 +95,7 @@ const InventoryManagement = () => {
       <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in space-y-6">
+        <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-10">
           <InventoryHeader />
           <InventoryFilters />
           <InventoryTable movements={movements} loading={loading} />
@@ -104,4 +105,4 @@ const InventoryManagement = () => {
   )
 }
 
-export default InventoryManagement
+export default InventoryManagementPage

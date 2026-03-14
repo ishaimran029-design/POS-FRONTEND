@@ -360,7 +360,7 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-10 py-3 bg-blue-600 text-white rounded-xl font-bold text-xs hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50 tracking-wide"
+                            className="px-10 py-3 bg-[#1E1B4B] text-white rounded-xl font-bold text-xs hover:bg-[#2563EB] shadow-lg shadow-[#1E1B4B]/25 transition-all active:scale-95 disabled:opacity-50 tracking-wide"
                         >
                             {loading ? 'Creating Item...' : 'Save Product'}
                         </button>

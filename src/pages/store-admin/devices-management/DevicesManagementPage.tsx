@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { getDeviceFingerprint } from "@/utils/fingerprint"
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 
 import DevicesHeader from "@/components/store-admin/DevicesHeader"
 import AddTerminalModal from "@/components/store-admin/AddTerminalModal"
@@ -99,7 +99,7 @@ export default function DevicesManagementPage() {
     const total = filtered.length
 
     return (
-        <div className="min-h-screen bg-[#F7F8FA] flex transition-colors duration-500">
+        <div className="min-h-screen bg-[#F7F9FC] flex text-slate-900 transition-all duration-500">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div
@@ -113,7 +113,7 @@ export default function DevicesManagementPage() {
             <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
                 <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
-                <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in">
+                <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-10">
                     <DevicesHeader
                         onAddTerminal={() => setTerminalModalOpen(true)}
                         terminalCount={terminals.length}
@@ -124,31 +124,26 @@ export default function DevicesManagementPage() {
                         onSuccess={() => { loadTerminals(); setTerminalModalOpen(false); }}
                     />
 
-                    <div className="mt-8">
-                        <DevicesFilters
-                            statusFilter={statusFilter}
-                            onStatusFilterChange={(v) => { setStatusFilter(v); setPage(1); }}
-                            viewFilter={viewFilter}
-                            onViewFilterChange={(v) => { setViewFilter(v); setPage(1); }}
-                            searchQuery={searchQuery}
-                            onSearchQueryChange={(v) => { setSearchQuery(v); setPage(1); }}
-                        />
-                    </div>
+                    <DevicesFilters
+                        statusFilter={statusFilter}
+                        onStatusFilterChange={(v) => { setStatusFilter(v); setPage(1); }}
+                        viewFilter={viewFilter}
+                        onViewFilterChange={(v) => { setViewFilter(v); setPage(1); }}
+                        searchQuery={searchQuery}
+                        onSearchQueryChange={(v) => { setSearchQuery(v); setPage(1); }}
+                    />
 
-                    <div className="mt-8">
-                        {loading ? (
-                            <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-gray-100 shadow-sm shadow-indigo-100/10">
-                                <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-                                <p className="text-[10px] font-black text-gray-400 mt-6 uppercase tracking-widest animate-pulse leading-none">Scanning Hardware...</p>
-                            </div>
-                        ) : (
+                    {loading ? (
+                        <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
+                            <div className="w-12 h-12 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin"></div>
+                            <p className="text-[10px] font-black text-slate-400 mt-6 uppercase tracking-[4px] animate-pulse leading-none">Scanning Hardware...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-8 animate-fade-in">
                             <DevicesTable data={paginated} onDelete={handleDelete} />
-                        )}
-                    </div>
-
-                    <div className="mt-8">
-                        <DevicesPagination page={page} setPage={setPage} total={total} />
-                    </div>
+                            <DevicesPagination page={page} setPage={setPage} total={total} />
+                        </div>
+                    )}
                 </main>
             </div>
         </div>

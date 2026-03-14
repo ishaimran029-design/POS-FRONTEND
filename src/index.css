@@ -2,8 +2,19 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-[#F7F9FC] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900;
   }
+}
+
+:root {
+  --primary: #1E1B4B;      /* Professional Dark Blue Accent */
+  --primary-hover: #312E81;
+  --accent: #2563EB;       /* Action Blue */
+  --highlight: #EEF2FF;    /* Subtle highlight background */
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --border: #E2E8F0;
 }
 
 /* Sliding Sidebar Label Visibility Rules */

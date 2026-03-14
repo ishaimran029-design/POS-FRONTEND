@@ -22,17 +22,21 @@ export default function CategoryPieChart({ data }: CategoryPieChartProps) {
                                 <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                             ))}
                         </Pie>
-                        <Tooltip contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                        <Tooltip 
+                            contentStyle={{ borderRadius: '24px', border: '1px solid #F1F5F9', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)', padding: '16px', background: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)' }} 
+                            itemStyle={{ fontWeight: 900, fontSize: '14px', color: '#0F172A' }} 
+                            labelStyle={{ fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', color: '#94A3B8', marginBottom: '8px' }} 
+                        />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-8">
                 {data.map((cat, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-transparent hover:border-slate-200 transition-all">
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-slate-100 hover:border-blue-100 transition-all">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }}></div>
                         <div className="min-w-0">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">{cat.name}</p>
-                            <p className="text-sm font-black text-slate-900">{total > 0 ? ((cat.value / total) * 100).toFixed(0) : 0}%</p>
+                            <p className="text-sm font-black text-slate-900 tabular-nums">{total > 0 ? ((cat.value / total) * 100).toFixed(0) : 0}%</p>
                         </div>
                     </div>
                 ))}

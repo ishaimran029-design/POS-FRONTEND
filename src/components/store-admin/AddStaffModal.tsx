@@ -204,7 +204,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd }: AddStaffModalP
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-4 bg-blue-600 text-white rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all active:scale-95 disabled:opacity-50"
+                            className="flex-1 py-4 bg-[#1E1B4B] text-white rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-[#2563EB] shadow-lg shadow-[#1E1B4B]/25 transition-all active:scale-95 disabled:opacity-50"
                         >
                             {loading ? 'Creating...' : 'Create Staff'}
                         </button>

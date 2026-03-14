@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ShoppingBag, CreditCard, Activity, AlertCircle } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 import DashboardGrid from './components/DashboardGrid';
 import MetricCard from './components/MetricCard';
 import SalesChart from './components/SalesChart';
@@ -53,7 +53,7 @@ export default function StoreAdminDashboard() {
         const payBreakdown = charts.paymentBreakdown ?? [];
         const topProducts = raw.topProducts ?? [];
 
-        const colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+        const colors = ['#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE'];
         setData({
           metrics: [
             { value: s.totalRevenue ?? 0 },
@@ -123,7 +123,7 @@ export default function StoreAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">
+    <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in" onClick={() => setSidebarOpen(false)} />
       )}
@@ -132,13 +132,13 @@ export default function StoreAdminDashboard() {
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
         <DashboardGrid>
           <div className="xl:col-span-3">
-            <MetricCard title="Total Revenue" value={`$${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`} change={12} isPositive={true} icon={CreditCard} color="indigo" />
+            <MetricCard title="Total Revenue" value={`₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`} change={12} isPositive={true} icon={CreditCard} color="blue" />
           </div>
           <div className="xl:col-span-3">
-            <MetricCard title="Active Sales" value={data.metrics?.[1]?.value ?? 0} change={5} isPositive={true} icon={ShoppingBag} color="emerald" />
+            <MetricCard title="Active Sales" value={data.metrics?.[1]?.value ?? 0} change={5} isPositive={true} icon={ShoppingBag} color="indigo" />
           </div>
           <div className="xl:col-span-3">
-            <MetricCard title="Inventory Alerts" value={`${data.metrics?.[2]?.value ?? 0} Critical`} change={0} isPositive={false} icon={AlertCircle} color="rose" />
+            <MetricCard title="Inventory Alerts" value={`${data.metrics?.[2]?.value ?? 0}`} change={0} isPositive={false} icon={AlertCircle} color="rose" />
           </div>
           <div className="xl:col-span-3">
             <MetricCard title="Total Orders" value={Number(data.metrics?.[3]?.value ?? 0).toLocaleString()} change={8} isPositive={true} icon={Activity} color="amber" />

@@ -7,25 +7,26 @@ interface DevicesHeaderProps {
 
 export default function DevicesHeader({ onAddTerminal, terminalCount = 0 }: DevicesHeaderProps) {
     return (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 animate-fade-in px-2">
             <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Terminals Management</h1>
-                <p className="text-sm font-bold text-gray-400 mt-1 uppercase tracking-widest leading-none">
+                <h1 className="text-3xl font-black text-slate-900 tracking-tight">Terminals Management</h1>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
                     {terminalCount} {terminalCount === 1 ? 'terminal' : 'terminals'} registered · Monitor and manage all POS terminals
                 </p>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-black hover:bg-gray-50 transition-all active:scale-95 shadow-sm">
-                    <Download size={18} />
+            <div className="flex items-center gap-4">
+                <button className="flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-600 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all active:scale-95 shadow-sm group">
+                    <Download className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB]" />
+                    Export Hardware Log
                 </button>
                 {onAddTerminal && (
                     <button
                         onClick={onAddTerminal}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-xl text-sm font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20 active:scale-95"
+                        className="flex items-center gap-3 px-8 py-3.5 bg-[#1E1B4B] border border-[#1E1B4B]/20 rounded-2xl text-white font-black uppercase tracking-widest text-[10px] hover:bg-[#2563EB] shadow-lg shadow-[#1E1B4B]/20 transition-all active:scale-95"
                     >
-                        <Monitor size={18} />
-                        <span>Add New Terminal</span>
+                        <Monitor className="w-4 h-4" strokeWidth={3} />
+                        Add New Terminal
                     </button>
                 )}
             </div>

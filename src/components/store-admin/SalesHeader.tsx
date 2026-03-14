@@ -1,5 +1,5 @@
 import React from "react"
-import { Bell, Download, Plus } from "lucide-react"
+import { Bell, Download } from "lucide-react"
 
 interface Props {
   onDateRangeChange: (start: string, end: string) => void
@@ -30,12 +30,12 @@ const SalesHeader: React.FC<Props> = ({ onDateRangeChange }) => {
         <p className="text-sm text-gray-500 mt-1">Manage and monitor your recent store sales and order history accurately.</p>
       </div>
       <div className="flex items-center gap-4">
-        <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 transition-colors">
-          <Download className="w-4 h-4" /> Export CSV
+        <button className="flex items-center gap-2 px-4 py-2.5 text-xs border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] text-slate-600 font-bold transition-all group">
+          <Download className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB]" /> Export CSV
         </button>
         <select 
           onChange={handleDateSelect}
-          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+          className="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-4 focus:ring-[#2563EB]/5 focus:border-[#2563EB]/30 bg-white text-slate-600 cursor-pointer appearance-none pr-8 transition-all"
         >
           <option value="">All Time</option>
           <option value="Oct 1 - Oct 31, 2023">Oct 1 - Oct 31, 2023</option>
@@ -43,12 +43,9 @@ const SalesHeader: React.FC<Props> = ({ onDateRangeChange }) => {
           <option value="This Month">This Month</option>
         </select>
         <div className="w-px h-8 bg-gray-200 mx-2"></div>
-        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors relative">
+        <button className="p-2 text-slate-400 hover:text-[#2563EB] hover:bg-[#2563EB]/5 rounded-xl transition-all relative border border-transparent hover:border-[#2563EB]/10">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium text-sm">
-          <Plus className="w-4 h-4" /> New Transaction
         </button>
       </div>
     </div>

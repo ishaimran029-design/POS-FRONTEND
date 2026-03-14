@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from "react"
 import SalesHeader from "@/components/store-admin/SalesHeader"
 import SalesFilters from "@/components/store-admin/SalesFilters"
 import SalesTable from "@/components/store-admin/SalesTable"
-import Sidebar from '@/pages/store-admin/components/Sidebar'
-import TopNavbar from '@/pages/store-admin/components/TopNavbar'
+import Sidebar from '@/components/store-admin/Sidebar'
+import TopNavbar from '@/components/store-admin/TopNavbar'
 
 import { getSalesTransactions, cancelSale, refundSale } from "@/api/sales.api"
 import type { SaleTransaction } from "@/types/sales"
 
-const SalesTransactions = () => {
+const SalesTransactionsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [transactions, setTransactions] = useState<SaleTransaction[]>([])
   const [loading, setLoading] = useState(false)
@@ -111,7 +111,7 @@ const SalesTransactions = () => {
       <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full animate-fade-in space-y-6">
+        <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-6">
           <SalesHeader 
             onDateRangeChange={(start, end) => {
               setStartDate(start)
@@ -143,4 +143,4 @@ const SalesTransactions = () => {
   )
 }
 
-export default SalesTransactions
+export default SalesTransactionsPage

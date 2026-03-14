@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Cpu, Network, Info, Shield, Printer } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 import { registerDevice } from '@/api/devices.api';
 
 type ScannerConnection = 'USB' | 'Bluetooth' | 'Network' | 'None';
@@ -85,7 +85,7 @@ export default function RegisterDevicePage() {
       <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 lg:p-10 w-full">
           <div className="mb-8">
             <button
               onClick={() => navigate('/store-admin/devices')}

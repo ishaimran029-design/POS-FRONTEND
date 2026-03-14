@@ -43,7 +43,7 @@ const AddCategoryModal = ({ open, onClose, onCategoryAdded }: Props) => {
           <h2 className="text-xl font-bold tracking-tight text-gray-900">Add New Category</h2>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
+            className="text-slate-400 hover:text-[#2563EB] transition-colors p-2 hover:bg-[#2563EB]/5 rounded-xl"
           >
             ✕
           </button>
@@ -65,7 +65,7 @@ const AddCategoryModal = ({ open, onClose, onCategoryAdded }: Props) => {
                 setName(e.target.value)
                 setError("")
               }}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-[#2563EB]/5 focus:border-[#2563EB]/30 focus:bg-white transition-all font-medium text-slate-700 placeholder:text-slate-300"
               placeholder="e.g. Electronics, Clothing..."
             />
           </div>
@@ -74,14 +74,14 @@ const AddCategoryModal = ({ open, onClose, onCategoryAdded }: Props) => {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors active:scale-[0.98]"
+              className="flex-1 py-3 px-4 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all active:scale-[0.98]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center"
+              className="flex-1 py-3 px-4 bg-[#1E1B4B] text-white font-bold rounded-xl hover:bg-[#2563EB] transition-all shadow-lg shadow-[#1E1B4B]/20 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex justify-center items-center"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

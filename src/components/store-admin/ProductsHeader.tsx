@@ -25,16 +25,16 @@ export default function ProductsHeader({ openModal }: ProductsHeaderProps) {
 
             <div className="flex gap-3 w-full sm:w-auto">
 
-                <button className="flex-1 sm:flex-none border border-slate-200 bg-white px-5 py-3 rounded-2xl hover:bg-slate-50 text-slate-600 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
-                    <Download size={14} className="text-blue-600" />
+                <button className="flex-1 sm:flex-none border border-slate-200 bg-white px-5 py-3 rounded-2xl hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] text-slate-600 font-extrabold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm group">
+                    <Download size={14} className="text-slate-400 group-hover:text-[#2563EB]" />
                     Export CSV
                 </button>
 
                 <button
                     onClick={() => openModal ? openModal() : navigate('/store-admin/inventory/products/add')}
-                    className="flex-1 sm:flex-none bg-blue-600 text-white px-6 py-4 rounded-2xl hover:bg-blue-700 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+                    className="flex-1 sm:flex-none bg-[#1E1B4B] text-white px-6 py-4 rounded-2xl hover:bg-[#2563EB] font-extrabold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-[#1E1B4B]/20 transition-all active:scale-95 border border-[#1E1B4B]/20"
                 >
-                    <Plus size={16} />
+                    <Plus size={16} strokeWidth={2.5} />
                     Add New Product
                 </button>
 

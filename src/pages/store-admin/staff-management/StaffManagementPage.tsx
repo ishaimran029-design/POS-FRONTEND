@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 import StaffHeader from '@/components/store-admin/StaffHeader';
 import StaffFilters from '@/components/store-admin/StaffFilters';
 import StaffTable from '@/components/store-admin/StaffTable';
@@ -101,7 +101,7 @@ export default function StaffManagementPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">
+        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div
@@ -115,7 +115,7 @@ export default function StaffManagementPage() {
             <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
                 <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
-                <main className="p-4 md:p-8 lg:p-10 max-w-7xl mx-auto w-full">
+                <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-10">
                     <StaffHeader
                         onAddStaff={() => setIsModalOpen(true)}
                         onExport={() => alert('Export CSV feature coming soon!')}
@@ -131,14 +131,14 @@ export default function StaffManagementPage() {
                     />
 
                     {loading ? (
-                        <div className="flex items-center justify-center p-20">
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing Workforce...</p>
+                        <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-slate-100 shadow-sm">
+                            <div className="flex flex-col items-center gap-6">
+                                <div className="w-12 h-12 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin"></div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[4px] animate-pulse">Syncing Workforce...</p>
                             </div>
                         </div>
                     ) : (
-                        <>
+                        <div className="space-y-8 animate-fade-in">
                             <StaffTable
                                 staff={paginatedStaff}
                                 onDelete={handleDeleteStaff}
@@ -151,7 +151,7 @@ export default function StaffManagementPage() {
                                 itemsPerPage={5}
                                 onPageChange={setCurrentPage}
                             />
-                        </>
+                        </div>
                     )}
                 </main>
             </div>
