@@ -45,26 +45,26 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
                         onClick={() => onTabChange('sales')}
                         className={`pb-4 px-2 text-xs font-black uppercase tracking-widest transition-all relative ${
                             activeTab === 'sales' 
-                            ? 'text-[#2563EB]' 
+                            ? 'text-[#262255]' 
                             : 'text-slate-400 hover:text-slate-600'
                         }`}
                     >
                         Sales Report
                         {activeTab === 'sales' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563EB] rounded-t-full shadow-[0_-2px_8px_rgba(37,99,235,0.3)] animate-scale-up" />
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#262255] rounded-t-full shadow-[0_-2px_8px_rgba(38,34,85,0.3)] animate-scale-up" />
                         )}
                     </button>
                     <button 
                         onClick={() => onTabChange('inventory')}
                         className={`pb-4 px-2 text-xs font-black uppercase tracking-widest transition-all relative ${
                             activeTab === 'inventory' 
-                            ? 'text-[#2563EB]' 
+                            ? 'text-[#262255]' 
                             : 'text-slate-400 hover:text-slate-600'
                         }`}
                     >
                         Inventory Report
                         {activeTab === 'inventory' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#2563EB] rounded-t-full shadow-[0_-2px_8px_rgba(37,99,235,0.3)] animate-scale-up" />
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#262255] rounded-t-full shadow-[0_-2px_8px_rgba(38,34,85,0.3)] animate-scale-up" />
                         )}
                     </button>
                 </div>
@@ -77,18 +77,18 @@ const ReportsHeader: React.FC<ReportsHeaderProps> = ({
                             onClick={() => onDateRangeChange(range)}
                             className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 dateRange === range 
-                                ? 'bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/20' 
-                                : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-[#2563EB] hover:border-[#2563EB]/20'
+                                ? 'bg-[#262255] text-white shadow-lg shadow-[#262255]/20' 
+                                : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50 hover:text-[#262255] hover:border-[#262255]/20'
                             }`}
                         >
                             {range}
                         </button>
                     ))}
                     
-                    <button className="flex items-center gap-3 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:border-[#2563EB]/20 hover:text-[#2563EB] transition-all shadow-sm group">
-                        <Calendar size={14} className="text-[#2563EB]" />
+                    <button className="flex items-center gap-3 px-5 py-2.5 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:border-[#262255]/20 hover:text-[#262255] transition-all shadow-sm group">
+                        <Calendar size={14} className="text-[#262255]" />
                         Custom Date Range
-                        <ChevronDown size={14} className="text-slate-400 group-hover:text-[#2563EB]" />
+                        <ChevronDown size={14} className="text-slate-400 group-hover:text-[#262255]" />
                     </button>
                 </div>
             </div>

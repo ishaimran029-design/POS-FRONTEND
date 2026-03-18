@@ -1,4 +1,6 @@
-import { MoreVertical, Search, Filter } from 'lucide-react';
+import { MoreVertical, Search } from 'lucide-react';
+
+
 import type { Product } from '../types';
 
 interface TopProductsTableProps {
@@ -6,25 +8,27 @@ interface TopProductsTableProps {
 }
 
 export default function TopProductsTable({ products }: TopProductsTableProps) {
+    // Only show Top 3 sellers
+    const paginatedProducts = products.slice(0, 3);
+
     return (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
             <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Top Selling Inventory</h3>
-                    <p className="text-sm text-slate-500 font-medium">Most popular products this month</p>
+                    <p className="text-sm text-slate-500 font-medium">Most popular products this week</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative group">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#2563EB] transition-colors" />
                         <input type="text" placeholder="Filter items..." className="pl-12 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-2xl text-sm focus:bg-white focus:border-[#2563EB]/30 focus:ring-4 focus:ring-[#2563EB]/5 transition-all placeholder:text-slate-400 w-full sm:w-48 font-bold" />
                     </div>
-                    <button className="p-2.5 bg-slate-50 text-slate-400 hover:text-[#2563EB] hover:bg-[#2563EB]/5 rounded-xl transition-all border border-slate-100">
-                        <Filter size={18} />
-                    </button>
                 </div>
             </div>
-            <div className="overflow-x-auto">
+
+            <div className="overflow-x-auto flex-1">
                 <table className="w-full text-left border-collapse">
+
                     <thead>
                         <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                             <th className="px-8 py-5">Product Details</th>
@@ -35,7 +39,7 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                        {products.map((product) => (
+                        {paginatedProducts.map((product) => (
                             <tr key={product.id} className="group hover:bg-[#2563EB]/5 transition-all cursor-pointer">
                                 <td className="px-8 py-5">
                                     <div className="flex items-center gap-4">
@@ -57,7 +61,7 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
                                             <span className="text-slate-900 tabular-nums">{product.stockLevel}%</span>
                                         </div>
                                         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                            <div className={`h-full rounded-full transition-all duration-1000 ${product.stockLevel < 30 ? 'bg-rose-500' : product.stockLevel < 60 ? 'bg-amber-500' : 'bg-[#2563EB]'}`} style={{ width: `${product.stockLevel}%` }}></div>
+                                            <div className={`h-full rounded-full transition-all duration-1000 ${product.stockLevel < 30 ? 'bg-rose-500' : 'bg-[#262255]'}`} style={{ width: `${product.stockLevel}%` }}></div>
                                         </div>
                                     </div>
                                 </td>
@@ -70,9 +74,6 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
                         ))}
                     </tbody>
                 </table>
-            </div>
-            <div className="p-6 bg-slate-50/30 flex justify-center border-t border-slate-100">
-                <button className="text-[10px] font-black text-[#2563EB] uppercase tracking-[2px] hover:underline px-6 py-3 bg-white border border-[#2563EB]/20 rounded-2xl shadow-sm hover:shadow-md transition-all">View Full Analytics</button>
             </div>
         </div>
     );

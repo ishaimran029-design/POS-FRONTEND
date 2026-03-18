@@ -1,4 +1,5 @@
-import { Monitor, Info, Wifi, WifiOff } from 'lucide-react';
+import { useState } from 'react';
+import { Monitor, Info, Wifi, WifiOff, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Device } from '../types';
 
 interface ActiveDevicesPanelProps {
@@ -6,6 +7,12 @@ interface ActiveDevicesPanelProps {
 }
 
 export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps) {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
+    const totalPages = Math.ceil(devices.length / itemsPerPage);
+
+    const paginatedDevices = devices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col h-full hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-8">
@@ -18,10 +25,10 @@ export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps)
                 </div>
             </div>
             <div className="space-y-4 flex-1">
-                {devices.map((device) => (
+                {paginatedDevices.map((device) => (
                     <div key={device.id} className="group flex items-center justify-between p-4 bg-slate-50/50 hover:bg-white border border-slate-100 hover:border-[#2563EB]/20 rounded-2xl transition-all duration-300">
                         <div className="flex items-center gap-4">
-                            <div className={`p-2.5 rounded-xl ${device.status === 'online' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'} transition-all`}>
+                            <div className={`p-2.5 rounded-xl ${device.status === 'online' ? 'bg-[#262255] text-white border-[#262255]/20' : 'bg-rose-50 text-rose-600 border border-rose-100'} transition-all`}>
                                 <Monitor size={18} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -32,9 +39,9 @@ export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps)
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2">
                                 {device.status === 'online' ? (
-                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 rounded-md border border-emerald-100 shadow-sm shadow-emerald-50">
-                                        <Wifi size={10} strokeWidth={3} className="text-emerald-600" />
-                                        <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Online</span>
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#262255] rounded-md border border-[#262255]/20 shadow-sm shadow-indigo-50">
+                                        <Wifi size={10} strokeWidth={3} className="text-white" />
+                                        <span className="text-[8px] font-black text-white uppercase tracking-widest">Online</span>
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 rounded-md border border-rose-100 shadow-sm shadow-rose-50">
@@ -58,9 +65,31 @@ export default function ActiveDevicesPanel({ devices }: ActiveDevicesPanelProps)
                     </div>
                 )}
             </div>
-            <button className="mt-8 w-full py-4 bg-white border border-slate-100 text-[10px] text-slate-500 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 hover:text-slate-900 transition-all shadow-sm">
-                View Terminal Logs
-            </button>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between mb-2 mt-4 px-1">
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-1.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-slate-50 disabled:hover:text-slate-400 transition-all shadow-sm"
+                    >
+                        <ChevronLeft size={14} />
+                    </button>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                        Page <span className="text-slate-900">{currentPage}</span> of {totalPages}
+                    </span>
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="p-1.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 disabled:opacity-40 disabled:hover:bg-slate-50 disabled:hover:text-slate-400 transition-all shadow-sm"
+                    >
+                        <ChevronRight size={14} />
+                    </button>
+                </div>
+            )}
+
         </div>
     );
 }
+

@@ -30,8 +30,8 @@ export default function DevicesFilters({
                             onClick={() => onViewFilterChange("all")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 viewFilter === "all"
-                                    ? "bg-[#1E1B4B] text-white shadow-lg shadow-[#1E1B4B]/20"
-                                    : "text-slate-400 hover:text-[#2563EB] hover:bg-white"
+                                    ? "bg-[#262255] text-white shadow-lg shadow-[#262255]/20"
+                                    : "text-slate-400 hover:text-[#262255] hover:bg-white"
                             }`}
                         >
                             <LayoutGrid size={13} strokeWidth={3} />
@@ -41,8 +41,8 @@ export default function DevicesFilters({
                             onClick={() => onViewFilterChange("this_device")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 viewFilter === "this_device"
-                                    ? "bg-[#1E1B4B] text-white shadow-lg shadow-[#1E1B4B]/20"
-                                    : "text-slate-400 hover:text-[#2563EB] hover:bg-white"
+                                    ? "bg-[#262255] text-white shadow-lg shadow-[#262255]/20"
+                                    : "text-slate-400 hover:text-[#262255] hover:bg-white"
                             }`}
                         >
                             <Monitor size={13} strokeWidth={3} />
@@ -58,8 +58,8 @@ export default function DevicesFilters({
                             onClick={() => onStatusFilterChange("all")}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 statusFilter === "all"
-                                    ? "bg-[#1E1B4B] text-white shadow-lg shadow-[#1E1B4B]/20"
-                                    : "text-slate-400 hover:text-[#2563EB] hover:bg-white"
+                                    ? "bg-[#262255] text-white shadow-lg shadow-[#262255]/20"
+                                    : "text-slate-400 hover:text-[#262255] hover:bg-white"
                             }`}
                         >
                             All
@@ -68,8 +68,8 @@ export default function DevicesFilters({
                             onClick={() => onStatusFilterChange("online")}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 statusFilter === "online"
-                                    ? "bg-[#1E1B4B] text-white shadow-lg shadow-[#1E1B4B]/20"
-                                    : "text-slate-400 hover:text-[#2563EB] hover:bg-white"
+                                    ? "bg-[#262255] text-white shadow-lg shadow-[#262255]/20"
+                                    : "text-slate-400 hover:text-[#262255] hover:bg-white"
                             }`}
                         >
                             Online
@@ -78,8 +78,8 @@ export default function DevicesFilters({
                             onClick={() => onStatusFilterChange("offline")}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                 statusFilter === "offline"
-                                    ? "bg-[#1E1B4B] text-white shadow-lg shadow-[#1E1B4B]/20"
-                                    : "text-slate-400 hover:text-[#2563EB] hover:bg-white"
+                                    ? "bg-[#262255] text-white shadow-lg shadow-[#262255]/20"
+                                    : "text-slate-400 hover:text-[#262255] hover:bg-white"
                             }`}
                         >
                             Offline
@@ -89,13 +89,13 @@ export default function DevicesFilters({
             </div>
 
             <div className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#2563EB] transition-colors" size={16} />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#262255] transition-colors" size={16} />
                 <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchQueryChange(e.target.value)}
                     placeholder="Search terminals by hardware ID or nickname..."
-                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#2563EB]/30 focus:ring-4 focus:ring-[#2563EB]/5 outline-none transition-all placeholder:text-slate-300 font-black text-[10px] uppercase tracking-widest text-slate-600 shadow-sm"
+                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#262255]/30 focus:ring-4 focus:ring-[#262255]/5 outline-none transition-all placeholder:text-slate-300 font-black text-[10px] uppercase tracking-widest text-slate-600 shadow-sm"
                 />
             </div>
         </div>

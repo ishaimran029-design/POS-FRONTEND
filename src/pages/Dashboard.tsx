@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
+import GlobalPieChart from '@/components/global-components/PieChart';
+import StatsCards from "@/components/global-components/StatsCards";
 import {
     CalendarDays,
     Download,
-    Store,
-    CreditCard,
     Monitor,
-    Activity,
-    ArrowUpRight,
-    ArrowDownRight,
     MoreVertical,
     Search,
     Filter
@@ -20,10 +17,7 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell
+    ResponsiveContainer
 } from 'recharts';
 
 export default function Dashboard() {
@@ -45,40 +39,6 @@ export default function Dashboard() {
         fetchStats();
     }, []);
 
-    const metricCards = [
-        {
-            title: "Total Stores",
-            value: stats?.totalStores?.toLocaleString() || "0",
-            growth: "+12.5%",
-            isPositive: true,
-            icon: Store,
-            color: "bg-indigo-50 text-indigo-600"
-        },
-        {
-            title: "Total Revenue",
-            value: `Rs ${stats?.totalRevenue?.toLocaleString() || "0"}`,
-            growth: "+8.2%",
-            isPositive: true,
-            icon: CreditCard,
-            color: "bg-emerald-50 text-emerald-600"
-        },
-        {
-            title: "Active Devices",
-            value: stats?.activeDevices?.toLocaleString() || "0",
-            growth: "+4.1%",
-            isPositive: true,
-            icon: Monitor,
-            color: "bg-blue-50 text-blue-600"
-        },
-        {
-            title: "Active Trials",
-            value: stats?.activeTrials?.toLocaleString() || "0",
-            growth: "-2.4%",
-            isPositive: false,
-            icon: Activity,
-            color: "bg-rose-50 text-rose-600"
-        }
-    ];
 
     // Map existing revenue data to recharts format
     const revenueData = stats?.revenueByStore?.map((s: any) => ({
@@ -90,6 +50,13 @@ export default function Dashboard() {
         { name: 'North America', value: 42, color: '#4f46e5' },
         { name: 'Europe', value: 28, color: '#818cf8' },
         { name: 'Asia Pacific', value: 30, color: '#c7d2fe' },
+    ];
+
+    const statsData = [
+      { name: "Total Stores", stat: stats?.totalStores?.toLocaleString() || "0", change: "+12.5%", changeType: "positive" as const },
+      { name: "Total Revenue", stat: `Rs ${stats?.totalRevenue?.toLocaleString() || "0"}`, change: "+8.2%", changeType: "positive" as const },
+      { name: "Active Devices", stat: stats?.activeDevices?.toLocaleString() || "0", change: "+4.1%", changeType: "positive" as const },
+      { name: "Active Trials", stat: stats?.activeTrials?.toLocaleString() || "0", change: "-2.4%", changeType: "negative" as const },
     ];
 
     return (
@@ -112,32 +79,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {metricCards.map((card, idx) => {
-                    const Icon = card.icon;
-                    return (
-                        <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform"></div>
-                            <div className="flex items-start justify-between relative z-10">
-                                <div className={`p-3 rounded-2xl ${card.color}`}>
-                                    <Icon size={24} />
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <span className={`text-xs font-black ${card.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                        {card.growth}
-                                    </span>
-                                    {card.isPositive ? <ArrowUpRight size={12} className="text-emerald-600" /> : <ArrowDownRight size={12} className="text-rose-600" />}
-                                </div>
-                            </div>
-                            <div className="mt-6 relative z-10">
-                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{card.title}</p>
-                                <h3 className="text-3xl font-black text-slate-900 mt-1">{card.value}</h3>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            <StatsCards data={statsData} />
 
             {/* Second Row: Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -188,42 +130,15 @@ export default function Dashboard() {
                             <p className="text-sm text-slate-500 font-medium">Geographical distribution</p>
                         </div>
                     </div>
-                    <div className="h-[240px] w-full flex-1">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={densityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={8}
-                                    dataKey="value"
-                                >
-                                    {densityData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <div className="space-y-4 mt-8">
-                        {densityData.map((region, idx) => (
-                            <div key={idx} className="space-y-1.5 text-sm">
-                                <div className="flex justify-between font-bold">
-                                    <span className="text-slate-600 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: region.color }}></span>
-                                        {region.name}
-                                    </span>
-                                    <span className="text-slate-900">{region.value}%</span>
-                                </div>
-                                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${region.value}%`, backgroundColor: region.color }}></div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <GlobalPieChart 
+                        noWrapper 
+                        data={densityData} 
+                        dataKey="value" 
+                        nameKey="name" 
+                        innerRadius={60}
+                        outerRadius={80}
+                        showLabels={false}
+                    />
                 </div>
             </div>
 

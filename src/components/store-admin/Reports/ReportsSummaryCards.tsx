@@ -44,14 +44,23 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, trend, icon: Icon
     );
 };
 
-const ReportsSummaryCards: React.FC = () => {
-    // Mock data for initial UI implementation
+interface ReportsSummaryCardsProps {
+    summary?: {
+        totalTransactions?: number;
+        totalRevenue?: number;
+        totalDiscount?: number;
+        totalTax?: number;
+        averageTicketSize?: number;
+    };
+}
+
+const ReportsSummaryCards: React.FC<ReportsSummaryCardsProps> = ({ summary = {} }) => {
     const metrics = [
-        { title: 'Total Revenue', value: '₹ 1,28,450', trend: 12.5, icon: DollarSign, color: 'blue' },
-        { title: 'Transactions', value: '1,420', trend: 8.2, icon: ShoppingBag, color: 'purple' },
-        { title: 'Avg. Order Value', value: '₹ 904.58', trend: -2.4, icon: CreditCard, color: 'amber' },
-        { title: 'Total Tax', value: '₹ 15,414', trend: 11.8, icon: Receipt, color: 'emerald' },
-        { title: 'Discounts', value: '₹ 4,285', trend: 5.1, icon: Percent, color: 'rose' },
+        { title: 'Total Revenue', value: `₹ ${Math.round(summary.totalRevenue || 0).toLocaleString()}`, trend: 0, icon: DollarSign, color: 'blue' },
+        { title: 'Transactions', value: (summary.totalTransactions || 0).toLocaleString(), trend: 0, icon: ShoppingBag, color: 'purple' },
+        { title: 'Avg. Order Value', value: `₹ ${Math.round(summary.averageTicketSize || 0).toLocaleString()}`, trend: 0, icon: CreditCard, color: 'amber' },
+        { title: 'Total Tax', value: `₹ ${Math.round(summary.totalTax || 0).toLocaleString()}`, trend: 0, icon: Receipt, color: 'emerald' },
+        { title: 'Discounts', value: `₹ ${Math.round(summary.totalDiscount || 0).toLocaleString()}`, trend: 0, icon: Percent, color: 'rose' },
     ];
 
     return (

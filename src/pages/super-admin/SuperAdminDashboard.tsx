@@ -22,10 +22,10 @@ const SuperAdminDashboard: React.FC = () => {
           <ShieldCheck size={24} className="text-white" />
         </div>
         <div className="sidebar-header-text whitespace-nowrap overflow-hidden">
-          <div className="text-xl font-extrabold text-slate-900 tracking-tight leading-none">
+          <div className="text-xl font-extrabold text-white tracking-tight leading-none">
             Hybrid POS
           </div>
-          <div className="text-[10px] font-black uppercase text-slate-500 tracking-widest mt-1">SUPER ADMIN</div>
+          <div className="text-[10px] font-black uppercase text-slate-300 tracking-widest mt-1">SUPER ADMIN</div>
         </div>
       </div>
       

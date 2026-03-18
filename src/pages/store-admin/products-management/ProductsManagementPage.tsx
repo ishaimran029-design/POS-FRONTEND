@@ -10,7 +10,9 @@ import AddProductModal from "@/components/store-admin/AddProductModal"
 
 import { fetchProducts } from "@/api/products.api"
 import { fetchFullInventory } from "@/api/inventory.api"
+import { getCategories } from "@/api/category.api"
 import type { Product } from "./types/product.types"
+
 
 export default function ProductsManagementPage() {
 
@@ -22,18 +24,42 @@ export default function ProductsManagementPage() {
     const [page, setPage] = useState(1)
     const limit = 10
 
+    const [search, setSearch] = useState('')
+    const [categoryId, setCategoryId] = useState('')
+    const [isActive, setIsActive] = useState<string>('all')
+
+    const [categories, setCategories] = useState<any[]>([])
+
+
     useEffect(() => {
         void loadProducts()
+        void loadCategories()
     }, [])
+
+    const loadCategories = async () => {
+        try {
+            const res = await getCategories()
+            const cats = res.data?.data || (Array.isArray(res.data) ? res.data : [])
+            setCategories(cats)
+        } catch (error) {
+            console.error("Failed to load categories:", error)
+        }
+    }
+
 
     const loadProducts = async () => {
         setLoading(true)
         try {
-            // Concurrent fetch of products and inventory
+            const params: any = {}
+            if (search) params.search = search;
+            if (categoryId && categoryId !== 'all') params.categoryId = categoryId;
+            if (isActive !== 'all') params.isActive = isActive === 'true';
+
             const [productsRes, inventoryRes] = await Promise.all([
-                fetchProducts(),
+                fetchProducts(params),
                 fetchFullInventory()
             ])
+
 
             const productsData = productsRes.data?.data || (Array.isArray(productsRes.data) ? productsRes.data : [])
             const inventoryData = inventoryRes.data?.data || (Array.isArray(inventoryRes.data) ? inventoryRes.data : [])
@@ -88,8 +114,18 @@ export default function ProductsManagementPage() {
                     <ProductsHeader openModal={() => setOpenModal(true)} />
 
                     <div className="mt-10">
-                        <ProductsFilters />
+                        <ProductsFilters 
+                            search={search}
+                            setSearch={setSearch}
+                            categoryId={categoryId}
+                            setCategoryId={setCategoryId}
+                            isActive={isActive}
+                            setIsActive={setIsActive}
+                            categories={categories}
+                            onFilter={loadProducts}
+                        />
                     </div>
+
 
                     <div className="mt-8">
                         {loading ? (

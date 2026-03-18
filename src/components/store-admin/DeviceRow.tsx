@@ -16,9 +16,9 @@ export default function DeviceRow({ device, index, onDelete }: DeviceRowProps) {
     };
 
     return (
-        <tr className="group hover:bg-[#2563EB]/5 transition-all duration-300 cursor-pointer border-b border-slate-50/50 last:border-0">
+        <tr className="group hover:bg-[#262255]/5 transition-all duration-300 cursor-pointer border-b border-slate-50/50 last:border-0">
             <td className="py-6 pl-8">
-                <span className="text-[10px] font-black text-slate-300 group-hover:text-[#2563EB]/40 transition-colors">{(index + 1).toString().padStart(2, '0')}</span>
+                <span className="text-[10px] font-black text-slate-300 group-hover:text-[#262255]/40 transition-colors">{(index + 1).toString().padStart(2, '0')}</span>
             </td>
             <td className="py-6">
                 <div className="flex items-center gap-4">
@@ -66,7 +66,7 @@ export default function DeviceRow({ device, index, onDelete }: DeviceRowProps) {
             </td>
             <td className="py-6 pr-8 text-right">
                 <div className="flex items-center justify-end gap-3 transition-opacity">
-                    <button className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-[#2563EB] hover:bg-white rounded-2xl transition-all shadow-sm border border-transparent hover:border-[#2563EB]/10">
+                    <button className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-[#262255] hover:bg-white rounded-2xl transition-all shadow-sm border border-transparent hover:border-[#262255]/10">
                         <Edit2 size={16} />
                     </button>
                     <button

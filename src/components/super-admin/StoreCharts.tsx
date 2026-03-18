@@ -7,6 +7,8 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, Line, LineChart, 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart"
 
+import GlobalPieChart from "@/components/global-components/PieChart";
+
 type ChartConfig = Record<string, { label: string; color?: string }>
 
 const standardConfig = {
@@ -167,25 +169,16 @@ export function StoreCharts() {
           <CardDescription className="font-medium text-slate-500">All time distribution</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
-          <ChartContainer config={pieConfig} className="mx-auto aspect-square max-h-[250px] w-full">
-            <PieChart>
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-              <Pie data={pieData} dataKey="visitors" nameKey="browser" innerRadius={60} strokeWidth={5} stroke="#fff">
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      return (
-                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan x={viewBox.cx} y={viewBox.cy} className="fill-slate-900 text-3xl font-extrabold">{totalVisitors.toLocaleString()}</tspan>
-                          <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className="fill-slate-500 font-bold text-xs uppercase tracking-widest">Transactions</tspan>
-                        </text>
-                      )
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
+          <GlobalPieChart 
+            noWrapper 
+            data={pieData} 
+            config={pieConfig} 
+            dataKey="visitors" 
+            nameKey="browser" 
+            centerLabel={totalVisitors.toLocaleString()} 
+            innerRadius={60} 
+            outerRadius={85}
+          />
         </CardContent>
         <CardFooter className="flex-col gap-1 text-sm mt-4">
           <div className="flex items-center gap-2 leading-none font-bold text-slate-700">

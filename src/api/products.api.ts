@@ -1,8 +1,9 @@
 import api from "./api";
 
-export const fetchProducts = () => {
-  return api.get("/products");
+export const fetchProducts = (params?: { categoryId?: string; isActive?: boolean | string; search?: string }) => {
+  return api.get("/products", { params });
 };
+
 
 export const fetchTopProducts = () => {
   return api.get("/products/top");

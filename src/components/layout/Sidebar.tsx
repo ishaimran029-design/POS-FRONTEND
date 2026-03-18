@@ -32,7 +32,7 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="w-[240px] bg-white border-r border-slate-200 h-screen fixed left-0 top-0 flex flex-col z-50">
+        <aside className="w-[240px] bg-[#262255] border-r border-[#2A2760]/20 h-screen fixed left-0 top-0 flex flex-col z-50 text-slate-200">
             {/* Top Section */}
             <div className="p-6">
                 <div className="flex items-center gap-3 mb-2">
@@ -40,8 +40,8 @@ export default function Sidebar() {
                         <LayoutDashboard size={24} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="font-extrabold text-xl text-slate-900 tracking-tight leading-none">Hybrid POS</h1>
-                        <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">ADMIN CONSOLE</p>
+                        <h1 className="font-extrabold text-xl text-white tracking-tight leading-none">Hybrid POS</h1>
+                        <p className="text-[10px] font-black text-slate-300 mt-1 uppercase tracking-widest">ADMIN CONSOLE</p>
                     </div>
                 </div>
             </div>
@@ -56,8 +56,8 @@ export default function Sidebar() {
                             to={item.path}
                             className={({ isActive }) =>
                                 `flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-200 group ${isActive
-                                    ? "bg-[#1a192b] text-white shadow-md shadow-indigo-100/50"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-[#2A2760] text-white shadow-md shadow-indigo-900/10"
+                                    : "text-slate-300 hover:bg-[#2A2760] hover:text-white"
                                 }`
                             }
                         >
@@ -80,18 +80,18 @@ export default function Sidebar() {
             {/* Footer / Logout */}
             <div className="p-4 border-t border-slate-100">
                 <div className="flex flex-col gap-2">
-                    <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#1a192b] flex items-center justify-center text-white font-bold text-xs uppercase">
+                    <div className="bg-[#2A2760] rounded-2xl p-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#262255] border border-[#2A2760] flex items-center justify-center text-white font-bold text-xs uppercase">
                             SA
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-slate-900 truncate">Super Admin</p>
-                            <p className="text-[10px] text-slate-500 truncate">Global Region</p>
+                            <p className="text-xs font-bold text-white truncate">Super Admin</p>
+                            <p className="text-[10px] text-slate-300 truncate">Global Region</p>
                         </div>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-rose-400 hover:bg-rose-950/20 rounded-xl transition-all font-bold text-sm"
                     >
                         <LogOut size={18} />
                         <span>Logout</span>

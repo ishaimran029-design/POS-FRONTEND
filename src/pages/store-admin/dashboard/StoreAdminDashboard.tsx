@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ShoppingBag, CreditCard, Activity, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import DashboardGrid from './components/DashboardGrid';
-import MetricCard from './components/MetricCard';
-import SalesChart from './components/SalesChart';
-import RevenueChart from './components/RevenueChart';
+import ChartLineDots from '@/components/global-components/chart-line-dots';
+import BarChartLabelCustom from '@/components/global-components/BarChartLabelCustom';
+import StatsCards from '@/components/global-components/StatsCards';
+
 import CategoryPieChart from './components/CategoryPieChart';
 import ActiveDevicesPanel from './components/ActiveDevicesPanel';
 import TopProductsTable from './components/TopProductsTable';
-import StorageStatusCard from './components/StorageStatusCard';
+
 import { getDashboardSummary } from '@/api/dashboard.api';
 import { getDevices } from '@/api/dashboard.api';
 
@@ -53,7 +54,7 @@ export default function StoreAdminDashboard() {
         const payBreakdown = charts.paymentBreakdown ?? [];
         const topProducts = raw.topProducts ?? [];
 
-        const colors = ['#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#BFDBFE'];
+        const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
         setData({
           metrics: [
             { value: s.totalRevenue ?? 0 },
@@ -121,6 +122,12 @@ export default function StoreAdminDashboard() {
       </div>
     );
   }
+  const statsData = [
+    { name: "Total Revenue", stat: `₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`, change: "+12.5%", changeType: "positive" as const },
+    { name: "Active Sales", stat: `${data.metrics?.[1]?.value ?? 0}`, change: "+5.1%", changeType: "positive" as const },
+    { name: "Inventory Alerts", stat: `${data.metrics?.[2]?.value ?? 0}`, change: "0%", changeType: "positive" as const },
+    { name: "Total Orders", stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, change: "+8.4%", changeType: "positive" as const }
+  ];
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex">
@@ -131,28 +138,65 @@ export default function StoreAdminDashboard() {
       <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
         <DashboardGrid>
-          <div className="xl:col-span-3">
-            <MetricCard title="Total Revenue" value={`₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`} change={12} isPositive={true} icon={CreditCard} color="blue" />
+          <div className="xl:col-span-12">
+            <StatsCards data={statsData} />
           </div>
-          <div className="xl:col-span-3">
-            <MetricCard title="Active Sales" value={data.metrics?.[1]?.value ?? 0} change={5} isPositive={true} icon={ShoppingBag} color="indigo" />
-          </div>
-          <div className="xl:col-span-3">
-            <MetricCard title="Inventory Alerts" value={`${data.metrics?.[2]?.value ?? 0}`} change={0} isPositive={false} icon={AlertCircle} color="rose" />
-          </div>
-          <div className="xl:col-span-3">
-            <MetricCard title="Total Orders" value={Number(data.metrics?.[3]?.value ?? 0).toLocaleString()} change={8} isPositive={true} icon={Activity} color="amber" />
-          </div>
-          <div className="xl:col-span-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <SalesChart data={data.dailySales ?? []} />
-              <RevenueChart data={data.weeklyRevenue ?? []} />
+          {/* Row 1: Charts & Pie Chart */}
+          <div className="xl:col-span-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Daily Sales Revenue</h3>
+                    <p className="text-xs text-slate-500 font-medium">Performance over the last 7 days</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100"></span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</span>
+                  </div>
+                </div>
+                <ChartLineDots noWrapper data={data?.dailySales ?? []} />
+
+              </div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Weekly Revenue Trend</h3>
+                    <p className="text-xs text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Channel performance summary</p>
+                  </div>
+                  <div className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 shadow-sm shadow-blue-50/50">
+                    <span className="text-[10px] font-black uppercase tracking-widest">+12% vs LY</span>
+                  </div>
+                </div>
+                {data.weeklyRevenue && data.weeklyRevenue.length > 0 ? (
+                  <BarChartLabelCustom
+                    data={data.weeklyRevenue.map((d: { week: string; revenue: number }) => ({ 
+                      label: new Date(d.week).toLocaleDateString('en-US', { weekday: 'short' }), 
+                      value: d.revenue 
+                    }))}
+                    dataKey="value"
+                    labelKey="label"
+                    config={{ value: { label: "Revenue", color: "#262255" } }}
+                    noWrapper
+                    height="min-h-[220px]"
+                  />
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center">
+                    <p className="text-slate-400 font-bold text-sm">No revenue data found</p>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+          <div className="xl:col-span-4">
+            <CategoryPieChart data={data.categories ?? []} />
+          </div>
+
+          {/* Row 2: Top Selling Inventory & Active Devices */}
+          <div className="xl:col-span-8">
             <TopProductsTable products={data.topProducts ?? []} />
           </div>
-          <div className="xl:col-span-4 space-y-8">
-            <StorageStatusCard />
-            <CategoryPieChart data={data.categories ?? []} />
+          <div className="xl:col-span-4">
             <ActiveDevicesPanel devices={data.devices ?? []} />
           </div>
         </DashboardGrid>
