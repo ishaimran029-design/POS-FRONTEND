@@ -1,7 +1,24 @@
 import api from "./api";
 
-export const fetchProducts = (params?: { categoryId?: string; isActive?: boolean | string; search?: string }) => {
-  return api.get("/products", { params });
+console.log('📦 [Products API] Calling GET /products...');
+try {
+  const response = await api.get("/products");
+  console.log('📦 [Products API] Response:', response);
+  return response;
+} catch (error: any) {
+  console.error('❌ [Products API] Error:', error);
+=======
+  try {
+    console.log('🔗 Products API - Calling GET /products endpoint...');
+    const response = await api.get("/products");
+    console.log('🔗 Products API - Response received:', response);
+    return response;
+  } catch (error: any) {
+    console.error('🔗 Products API - Error calling /products:', error);
+>>>>>>> main
+  throw error;
+}
+>>>>>>> origin/main
 };
 
 

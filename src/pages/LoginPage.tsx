@@ -33,13 +33,48 @@ const LoginPage: React.FC = () => {
 
     try {
       const deviceFingerprint = await getDeviceFingerprint();
-      const response = await authApi.login({ email, password, deviceFingerprint });
+      
+      // Try multiple sources for deviceId
+      const deviceId = 
+        localStorage.getItem('device-id') ||
+        localStorage.getItem('deviceId') ||
+        (() => {
+          // Try to get from cashier-device Zustand storage
+          try {
+            const cashierDevice = localStorage.getItem('cashier-device');
+            if (cashierDevice) {
+              const { state } = JSON.parse(cashierDevice);
+              return state?.deviceId || undefined;
+            }
+          } catch {}
+          return undefined;
+        })() ||
+        undefined;
+      
+      console.log('[LOGIN] Attempting login:', {
+        email,
+        deviceId,
+        deviceFingerprint: deviceFingerprint.substring(0, 16) + '...',
+      });
+
+      const response = await authApi.login({ 
+        email, 
+        password, 
+        deviceFingerprint, 
+        deviceId 
+      });
 
       if (response.data.success) {
         const { user, accessToken, refreshToken } = response.data.data;
 
         if (refreshToken) {
           localStorage.setItem('refresh-token', refreshToken);
+        }
+
+        // Store deviceId for cashier login persistence
+        if (user.role === 'CASHIER' && deviceId) {
+          localStorage.setItem('device-id', deviceId);
+          console.log('[LOGIN] Device ID stored for cashier:', deviceId);
         }
 
         setAuth(user, accessToken);
@@ -56,8 +91,16 @@ const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       const msg = err.response?.data?.message;
+      console.error('[LOGIN] Error:', {
+        status: err.response?.status,
+        message: msg,
+        data: err.response?.data,
+      });
+      
       if (err.response?.status === 403) {
         setError(msg || 'This device is not registered or you are not assigned to this terminal.');
+      } else if (err.response?.status === 401) {
+        setError(msg || 'Invalid email or password.');
       } else {
         setError(msg || 'Connection error. Is the backend running?');
       }
