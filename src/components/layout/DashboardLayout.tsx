@@ -56,7 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Sliding Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 bg-white border-r border-slate-200 flex flex-col shadow-xl z-50 transition-all duration-300 ease-in-out
+        className={`fixed inset-y-0 left-0 bg-[#262255] border-r border-[#2A2760]/20 flex flex-col shadow-xl z-50 transition-all duration-300 ease-in-out
           ${isSidebarOpen ? 'w-64' : 'w-20'} 
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
@@ -64,7 +64,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Toggle Button (Desktop) */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="hidden lg:flex absolute -right-3 top-8 w-6 h-6 bg-white border border-slate-200 rounded-full items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-200 shadow-sm z-50"
+          className="hidden lg:flex absolute -right-3 top-8 w-6 h-6 bg-[#2A2760] border border-[#262255]/20 rounded-full items-center justify-center text-white hover:bg-[#262255] shadow-sm z-50"
         >
           {isSidebarOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
         </button>
@@ -88,7 +88,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
            <button 
             onClick={logout}
-            className={`mt-auto flex items-center ${isSidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'} py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all font-medium`}
+            className={`mt-auto flex items-center ${isSidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'} py-3 text-slate-400 hover:text-red-400 hover:bg-red-950/20 rounded-xl transition-all font-medium`}
             title="Logout"
           >
             <LogOut size={20} className="flex-shrink-0" />

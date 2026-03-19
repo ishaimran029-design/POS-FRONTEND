@@ -1,23 +1,31 @@
-export default function ProductStockBadge({ stock }: { stock: number }) {
+export default function ProductStockBadge({ stock, reorderLevel = 10 }: { stock: number, reorderLevel?: number }) {
 
     if (stock === 0)
         return (
-            <span className="bg-red-100 text-red-600 px-2 py-1 rounded text-xs">
-                Out of stock
-            </span>
+            <div className="flex flex-col items-center gap-1">
+                <span className="text-xs font-black text-slate-900 tabular-nums">{stock}</span>
+                <span className="bg-rose-50 text-rose-600 border border-rose-100 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                    Out of Stock
+                </span>
+            </div>
         )
 
-    if (stock < 10)
+    if (stock <= reorderLevel)
         return (
-            <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">
-                Low stock
-            </span>
+            <div className="flex flex-col items-center gap-1">
+                <span className="text-xs font-black text-slate-900 tabular-nums">{stock}</span>
+                <span className="bg-amber-50 text-amber-600 border border-amber-100 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                    Low Stock
+                </span>
+            </div>
         )
 
     return (
-        <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">
-            {stock} units
-        </span>
+        <div className="flex flex-col items-center gap-1">
+            <span className="text-xs font-black text-slate-900 tabular-nums">{stock}</span>
+            <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                Available
+            </span>
+        </div>
     )
-
 }

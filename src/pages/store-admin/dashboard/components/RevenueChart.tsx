@@ -12,7 +12,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                     <h3 className="text-xl font-black text-slate-900 tracking-tight">Weekly Revenue Trend</h3>
                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Channel performance summary</p>
                 </div>
-                <div className="px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100">
+                <div className="px-4 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 shadow-sm shadow-blue-50/50">
                     <span className="text-[10px] font-black uppercase tracking-widest">+12% vs LY</span>
                 </div>
             </div>
@@ -21,16 +21,16 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15} />
-                                <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                                <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15} />
+                                <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} tickFormatter={(v) => `$${v}`} />
-                        <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.1)', padding: '16px', background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(8px)' }} itemStyle={{ fontWeight: 900, color: '#1a192b' }} labelStyle={{ fontWeight: 600, color: '#64748b', marginBottom: '8px' }} />
-                        <Area type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" animationDuration={2000} />
-                        <Line type="monotone" dataKey="revenue" stroke="#4F46E5" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#4F46E5', strokeWidth: 3 }} activeDot={{ r: 8, fill: '#4F46E5', stroke: '#fff', strokeWidth: 4 }} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
+                        <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `₹${v}`} />
+                        <Tooltip contentStyle={{ borderRadius: '24px', border: '1px solid #F1F5F9', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)', padding: '16px', background: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)' }} itemStyle={{ fontWeight: 900, fontSize: '14px', color: '#0F172A' }} labelStyle={{ fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', color: '#94A3B8', marginBottom: '8px' }} />
+                        <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" animationDuration={2000} />
+                        <Line type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#1E1B4B', strokeWidth: 3 }} activeDot={{ r: 8, fill: '#2563EB', stroke: '#fff', strokeWidth: 4 }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>

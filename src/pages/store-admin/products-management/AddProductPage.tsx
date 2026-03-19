@@ -11,8 +11,8 @@ import {
     Percent,
     Inbox
 } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
-import TopNavbar from '../components/TopNavbar';
+import Sidebar from '@/components/store-admin/Sidebar';
+import TopNavbar from '@/components/store-admin/TopNavbar';
 
 export default function AddProductPage() {
     const navigate = useNavigate();

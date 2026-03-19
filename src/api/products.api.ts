@@ -1,14 +1,12 @@
 import api from "./api";
 
-export const fetchProducts = async () => {
-<<<<<<< HEAD
-  console.log('📦 [Products API] Calling GET /products...');
-  try {
-    const response = await api.get("/products");
-    console.log('📦 [Products API] Response:', response);
-    return response;
-  } catch (error: any) {
-    console.error('❌ [Products API] Error:', error);
+console.log('📦 [Products API] Calling GET /products...');
+try {
+  const response = await api.get("/products");
+  console.log('📦 [Products API] Response:', response);
+  return response;
+} catch (error: any) {
+  console.error('❌ [Products API] Error:', error);
 =======
   try {
     console.log('🔗 Products API - Calling GET /products endpoint...');
@@ -18,19 +16,21 @@ export const fetchProducts = async () => {
   } catch (error: any) {
     console.error('🔗 Products API - Error calling /products:', error);
 >>>>>>> main
-    throw error;
-  }
+  throw error;
+}
+>>>>>>> origin/main
 };
+
 
 export const fetchTopProducts = () => {
   return api.get("/products/top");
 };
 
-export const createProduct = (data: any) => {
+export const createProduct = (data: FormData) => {
   return api.post("/products", data);
 };
 
-export const updateProduct = (id: string, data: any) => {
+export const updateProduct = (id: string, data: FormData) => {
   return api.patch(`/products/${id}`, data);
 };
 
