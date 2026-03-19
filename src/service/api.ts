@@ -35,15 +35,17 @@ api.interceptors.response.use(
         const authStorage = localStorage.getItem('auth-storage');
         if (authStorage) {
           const { state } = JSON.parse(authStorage);
-          const refreshToken = localStorage.getItem('refresh-token'); // Or from state if preferred
+          const refreshToken = localStorage.getItem('refresh-token');
 
           if (refreshToken) {
+            console.log('[API] Attempting token refresh...');
             const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
               refreshToken
             });
 
             if (response.data.success) {
               const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+              console.log('[API] ✅ Token refreshed successfully');
 
               // Update state in localStorage (Zustand will pick it up or we manually patch)
               const newState = { ...JSON.parse(authStorage), state: { ...state, accessToken } };
@@ -53,12 +55,19 @@ api.interceptors.response.use(
               originalRequest.headers.Authorization = `Bearer ${accessToken}`;
               return axios(originalRequest);
             }
+          } else {
+            console.warn('[API] No refresh token available');
           }
         }
-      } catch (refreshError) {
-        console.error('Refresh token failed', refreshError);
-        // localStorage.removeItem('auth-storage');
-        // window.location.href = '/login';
+      } catch (refreshError: any) {
+        console.error('[API] ❌ Refresh token failed:', refreshError.response?.data?.message || refreshError.message);
+        // Clear auth state on refresh failure
+        localStorage.removeItem('auth-storage');
+        localStorage.removeItem('refresh-token');
+        // Optionally redirect to login
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
