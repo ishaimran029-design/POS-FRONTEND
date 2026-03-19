@@ -16,9 +16,7 @@ import {
   WifiOff,
   AlertCircle,
   Search,
-  Package,
-}
- from 'lucide-react';
+} from 'lucide-react';
 import { fetchProducts, getProductByBarcode, searchProducts } from '../../api/products.api';
 import { createSale } from '../../api/sales.api';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -78,8 +76,6 @@ const POSInterface: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [productsError, setProductsError] = useState<string | null>(null);
-
-  // Top bar time
   const [now, setNow] = useState<Date>(new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000 * 30);
@@ -146,8 +142,17 @@ const POSInterface: React.FC = () => {
   const canCompleteSale = cart.length > 0 && !!paymentMethod && !!deviceId;
 
   const handleAddProductToCart = (product: Product) => {
-    const unitPrice =
-      (product as any).sellingPrice ?? (product as any).price ?? 0;
+    const unitPrice = Number(
+      (product as any).sellingPrice ?? (product as any).price ?? 0
+    );
+    
+    console.log('🛒 Adding to cart:', {
+      id: product.id,
+      name: product.name,
+      price: unitPrice,
+      type: typeof unitPrice
+    });
+    
     setCart((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
@@ -407,6 +412,7 @@ const POSInterface: React.FC = () => {
           </div>
         </div>
       </header>
+    
 
       {isOnline === false && (
         <div className="flex items-center space-x-3 px-6 py-3 bg-amber-50 border-b border-amber-200 text-amber-900 text-sm font-medium">
@@ -426,415 +432,553 @@ const POSInterface: React.FC = () => {
 
       <div className="flex flex-col overflow-hidden flex-1">
         <div className="flex overflow-hidden flex-1">
-          {/* Left: Scan & Cart Table */}
-          <section className="flex-1 flex flex-col p-6 overflow-hidden border-r border-slate-200">
-          {/* Scan / Search */}
-          <form onSubmit={handleScanSubmit} className="mb-4">
-            <div className="relative">
-              <Scan className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                autoFocus
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Scan barcode or type product..."
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setProductModalOpen(true);
-                  setModalQuery('');
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center space-x-1 px-3 py-1 rounded-lg bg-slate-900 text-[11px] font-bold text-white uppercase tracking-widest"
-              >
-                <Search size={14} />
-                <span>Search</span>
-              </button>
-            </div>
-          </form>
+          {/* Left: Scan, Products & Cart */}
+          <section className="flex-1 flex flex-col gap-4 p-6 overflow-hidden border-r border-slate-200">
+            {/* Scan / Search */}
+            <form onSubmit={handleScanSubmit} className="flex-shrink-0">
+              <div className="relative">
+                <Scan className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  autoFocus
+                  value={barcodeInput}
+                  onChange={(e) => setBarcodeInput(e.target.value)}
+                  placeholder="Scan barcode or type product..."
+                  className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProductModalOpen(true);
+                    setModalQuery('');
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center space-x-1 px-3 py-1 rounded-lg bg-slate-900 text-[11px] font-bold text-white uppercase tracking-widest"
+                >
+                  <Search size={14} />
+                  <span>Search</span>
+                </button>
+              </div>
+            </form>
 
-          {/* Cart & Products Container */}
-          <div className="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-50/40">
-            {cart.length === 0 ? (
-              // Display products when cart is empty
-              <div className="h-full flex flex-col">
-                {productsLoading ? (
-                  <div className="flex-1 flex items-center justify-center p-4">
-                    <div className="flex items-center space-x-2 text-xs text-slate-500">
-                      <div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
-                      <span>Loading products...</span>
-                    </div>
+            {/* Products Table - takes remaining space */}
+            <div className="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-50/40 min-h-0">
+              {productsLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center space-x-2 text-xs text-slate-500">
+                    <div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <span>Loading products...</span>
                   </div>
-                ) : productsError ? (
-                  <div className="flex-1 flex items-center justify-center p-4 text-[10px] text-red-600">
-                    Error: {productsError}
-                  </div>
-                ) : allProducts && allProducts.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 auto-rows-max">
+                </div>
+              ) : productsError ? (
+                <div className="flex items-center justify-center h-full text-[10px] text-red-600">
+                  Error: {productsError}
+                </div>
+              ) : allProducts && allProducts.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Product</th>
+                      <th className="px-4 py-2 text-left">SKU</th>
+                      <th className="px-4 py-2 text-left">Category</th>
+                      <th className="px-4 py-2 text-right">Price</th>
+                      <th className="px-4 py-2 text-center">Stock</th>
+                      <th className="px-4 py-2 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {allProducts.map((product) => {
                       const stock = (product as any).inventoryStock?.totalQuantity ?? product.stock ?? 0;
                       const price = Number(product.sellingPrice ?? product.price ?? 0);
+                      const isOutOfStock = stock <= 0;
+                      const category = (product as any).category?.name || (product as any).category || 'N/A';
+                      
                       return (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => {
-                            console.log('✅ Clicked product:', product.name);
-                            handleAddProductToCart(product);
-                          }}
-                          disabled={stock <= 0}
-                          className="flex flex-col space-y-2 rounded-lg border border-slate-200 bg-white p-3 hover:border-emerald-400 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs"
-                        >
-                          <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 flex-1">
-                            {product.name}
-                          </h4>
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-emerald-600 text-xs">₹{price.toFixed(2)}</span>
-                            <span className={`text-[9px] font-semibold ${
-                              stock <= 0 ? 'text-red-600' : stock <= 10 ? 'text-amber-600' : 'text-emerald-600'
+                        <tr key={product.id} className="border-t border-slate-100 hover:bg-slate-100/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="text-[12px] font-semibold text-slate-900">
+                              {product.name}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-[11px] text-slate-600">
+                              {product.sku || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-[11px] text-slate-600">
+                              {category}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="font-bold text-emerald-600 text-[12px]">
+                              ₹{price.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-block px-2 py-1 rounded text-[10px] font-bold ${
+                              stock <= 0 
+                                ? 'bg-red-100 text-red-700' 
+                                : stock <= 5 
+                                ? 'bg-amber-100 text-amber-700' 
+                                : 'bg-emerald-100 text-emerald-700'
                             }`}>
                               {stock}
                             </span>
-                          </div>
-                          <div className="flex items-center justify-center space-x-1 rounded bg-emerald-50 py-1.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
-                            <Plus size={10} />
-                            <span>Add</span>
-                          </div>
-                        </button>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex items-center justify-center space-x-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log('✅ Add clicked:', product.name);
+                                  handleAddProductToCart(product);
+                                }}
+                                disabled={isOutOfStock}
+                                className="inline-flex items-center space-x-1 rounded-lg bg-emerald-600 text-white px-2 py-1 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all"
+                              >
+                                <Plus size={12} />
+                                <span>Add</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log('⏸️ Hold clicked:', product.name);
+                                  handleAddProductToCart(product);
+                                  setTimeout(() => handleHoldOrder(), 0);
+                                }}
+                                disabled={isOutOfStock}
+                                className="inline-flex items-center space-x-1 rounded-lg border-2 border-amber-500 bg-amber-50 text-amber-700 px-2 py-1 text-[10px] font-black uppercase tracking-widest hover:bg-amber-100 disabled:border-slate-300 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
+                              >
+                                <Clock size={12} />
+                                <span>Hold</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       );
                     })}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center p-4 text-xs text-slate-500">
-                    No products available
-                  </div>
-                )}
-              </div>
-            ) : (
-              // Display cart table when items exist
-              <table className="w-full text-sm">
-                <thead className="bg-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Item</th>
-                    <th className="px-2 py-2 text-center w-32">Qty</th>
-                    <th className="px-4 py-2 text-right w-24">@Price</th>
-                    <th className="px-4 py-2 text-right w-28">Line Total</th>
-                    <th className="px-2 py-2 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-100">
-                      <td className="px-4 py-2">
-                        <div className="text-[13px] font-semibold text-slate-900">
-                          {item.name}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <div className="inline-flex items-center rounded-full border border-slate-200 bg-white">
-                          <button
-                            type="button"
-                            onClick={() => handleQuantityChange(item.id, -1)}
-                            className="p-1 text-slate-500 hover:text-emerald-500"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-8 text-center text-xs font-bold">
-                            {item.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleQuantityChange(item.id, 1)}
-                            className="p-1 text-slate-500 hover:text-emerald-500"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-right text-[13px] font-semibold text-slate-700">
-                        ₹{item.price.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right text-[13px] font-bold text-slate-900">
-                        ₹{(item.price * item.quantity).toFixed(2)}
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="p-1 text-slate-400 hover:text-red-500"
-                        >
-                          <X size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </section>
-
-        {/* Right: Totals & Payment */}
-        <aside className="w-80 flex flex-col bg-white/50">
-          <div className="p-4 border-b border-slate-200 flex items-center space-x-2">
-            <ShoppingCart size={18} className="text-emerald-400" />
-            <h2 className="text-sm font-bold">Active Cart</h2>
-          </div>
-
-          <div className="p-4 border-b border-slate-200 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-600">Subtotal</span>
-              <span className="font-semibold text-slate-800">
-                ₹{subtotal.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-600">Tax (GST)</span>
-              <span className="font-semibold text-slate-800">
-                ₹{tax.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-600">Discount</span>
-              <span className="font-semibold text-emerald-600">
-                -₹{discountAmount.toFixed(2)}
-              </span>
-            </div>
-            <hr className="my-2 border-dashed border-slate-200" />
-            <div className="flex justify-between items-center text-lg font-black">
-              <span className="flex items-center space-x-1 text-slate-900">
-                <IndianRupee size={18} />
-                <span>Total</span>
-              </span>
-              <span className="text-emerald-500">
-                ₹{total.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {/* Discount controls */}
-          <div className="p-4 border-b border-slate-200 space-y-3 text-xs">
-            <div className="flex space-x-2">
-              <button
-                type="button"
-                onClick={() => setDiscountMode('amount')}
-                className={`flex-1 inline-flex items-center justify-center space-x-1 rounded-lg border px-2 py-1 font-bold uppercase tracking-widest ${
-                  discountMode === 'amount'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 text-slate-600 bg-white'
-                }`}
-              >
-                <IndianRupee size={13} />
-                <span>Amount</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDiscountMode('percent')}
-                className={`flex-1 inline-flex items-center justify-center space-x-1 rounded-lg border px-2 py-1 font-bold uppercase tracking-widest ${
-                  discountMode === 'percent'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                    : 'border-slate-200 text-slate-600 bg-white'
-                }`}
-              >
-                <Percent size={13} />
-                <span>Percent</span>
-              </button>
-            </div>
-            <div className="flex space-x-2 items-center">
-              <input
-                type="number"
-                min={0}
-                value={discountValue || ''}
-                onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
-                className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-                placeholder={discountMode === 'amount' ? '₹ amount' : '% value'}
-              />
-              <span className="text-[11px] text-slate-500 font-semibold">
-                APPLY DISCOUNT
-              </span>
-            </div>
-            {discountAmount > 0 && (
-              <div className="text-[11px] text-emerald-700 font-medium">
-                Applied discount:{' '}
-                {discountMode === 'amount'
-                  ? `₹${discountAmount.toFixed(2)}`
-                  : `${discountValue}% (₹${discountAmount.toFixed(2)})`}
-              </div>
-            )}
-          </div>
-
-          {/* Payment methods */}
-          <div className="p-4 border-b border-slate-200 space-y-3">
-            <div className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">
-              Payment Method
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {['CASH', 'CARD', 'UPI', 'CHEQUE', 'DIGITAL_WALLET', 'OTHER'].map(
-                (method) => (
-                  <button
-                    key={method}
-                    type="button"
-                    onClick={() => setPaymentMethod(method)}
-                    className={`rounded-lg px-2 py-1.5 text-[11px] font-bold uppercase tracking-widest border ${
-                      paymentMethod === method
-                        ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {method.replace('_', ' ')}
-                  </button>
-                )
+                  </tbody>
+                </table>
+              ) : (
+                <div className="flex items-center justify-center h-full text-xs text-slate-500">
+                  No products available. Add products from the admin panel.
+                </div>
               )}
             </div>
 
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 mb-1">
-                <span>Customer Notes</span>
-                <span className="text-slate-400">(optional)</span>
+            {/* Cart Cards Section - shows added products as cards */}
+            {cart.length > 0 && (
+              <div className="flex-shrink-0 rounded-2xl border border-slate-200 bg-white overflow-hidden">
+                <div className="bg-slate-100 px-4 py-2 border-b border-slate-200">
+                  <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-600 flex items-center space-x-2">
+                    <ShoppingCart size={14} className="text-emerald-600" />
+                    <span>Added Products ({cart.length} items)</span>
+                  </h3>
+                </div>
+                <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-80 overflow-y-auto">
+                  {cart.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-col rounded-lg border border-emerald-200 bg-emerald-50 p-3 hover:shadow-md transition-shadow"
+                    >
+                      {/* Product Image Placeholder */}
+                      <div className="w-full h-20 bg-emerald-100 rounded-lg mb-2 flex items-center justify-center border border-emerald-200">
+                        <ShoppingCart size={24} className="text-emerald-400" />
+                      </div>
+
+                      {/* Product Name */}
+                      <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 mb-2 flex-1">
+                        {item.name}
+                      </h4>
+
+                      {/* Price */}
+                      <div className="mb-2">
+                        <span className="text-[10px] text-slate-600">Price:</span>
+                        <div className="text-xs font-bold text-emerald-600">
+                          ₹{item.price.toFixed(2)}
+                        </div>
+                      </div>
+
+                      {/* Quantity Controls */}
+                      <div className="flex items-center justify-between mb-2 bg-white rounded-lg border border-emerald-200 p-1">
+                        <button
+                          type="button"
+                          onClick={() => handleQuantityChange(item.id, -1)}
+                          className="p-0.5 text-slate-500 hover:text-emerald-600"
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span className="text-[10px] font-bold text-slate-900 w-6 text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleQuantityChange(item.id, 1)}
+                          className="p-0.5 text-slate-500 hover:text-emerald-600"
+                        >
+                          <Plus size={12} />
+                        </button>
+                      </div>
+
+                      {/* Line Total */}
+                      <div className="mb-2 text-center">
+                        <span className="text-[9px] text-slate-600">Subtotal:</span>
+                        <div className="text-xs font-bold text-emerald-700">
+                          ₹{(item.price * item.quantity).toFixed(2)}
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="w-full rounded-lg bg-red-50 border border-red-200 text-red-600 px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest hover:bg-red-100 transition-all"
+                      >
+                        <X size={10} className="inline mr-1" />
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <textarea
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Customer notes..."
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-              />
-            </div>
-          </div>
+            )}
 
-          {/* Hold Order Button */}
-          <div className="p-4 border-t border-slate-200 space-y-2">
-            <button
-              type="button"
-              onClick={handleHoldOrder}
-              disabled={!cart.length}
-              className="w-full rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-amber-700 hover:bg-amber-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 flex items-center justify-center space-x-2 transition-all"
-            >
-              <Clock size={16} />
-              <span>Hold Current Order</span>
-            </button>
-          </div>
+            {/* Cart Table Section (Optional - can be kept for detailed view) */}
+            {cart.length > 0 && (
+              <div className="flex-shrink-0 rounded-2xl border border-slate-200 bg-white overflow-hidden max-h-48 overflow-y-auto hidden">
+                <div className="bg-slate-100 px-4 py-2 border-b border-slate-200 sticky top-0">
+                  <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-600 flex items-center space-x-2">
+                    <ShoppingCart size={14} className="text-emerald-600" />
+                    <span>Current Cart ({cart.length} items)</span>
+                  </h3>
+                </div>
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-2 text-left">Item</th>
+                      <th className="px-2 py-2 text-center w-32">Qty</th>
+                      <th className="px-4 py-2 text-right w-24">@Price</th>
+                      <th className="px-4 py-2 text-right w-28">Line Total</th>
+                      <th className="px-2 py-2 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cart.map((item) => (
+                      <tr key={item.id} className="border-t border-slate-100 hover:bg-slate-50">
+                        <td className="px-4 py-2">
+                          <div className="text-[12px] font-semibold text-slate-900">
+                            {item.name}
+                          </div>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <div className="inline-flex items-center rounded-full border border-slate-200 bg-white">
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(item.id, -1)}
+                              className="p-1 text-slate-500 hover:text-emerald-500"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="w-8 text-center text-xs font-bold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleQuantityChange(item.id, 1)}
+                              className="p-1 text-slate-500 hover:text-emerald-500"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 text-right text-[12px] font-semibold text-slate-700">
+                          ₹{item.price.toFixed(2)}
+                        </td>
+                        <td className="px-4 py-2 text-right text-[12px] font-bold text-slate-900">
+                          ₹{(item.price * item.quantity).toFixed(2)}
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="p-1 text-slate-400 hover:text-red-500"
+                          >
+                            <X size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
 
-          {/* Bottom action bar */}
-          <div className="p-4 space-y-3 border-t border-slate-200 bg-slate-50/80 mt-auto">
-            <div className="flex items-center justify-between mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
-              <span>Actions</span>
-              <span className="flex items-center space-x-1 text-slate-400">
-                <Clock size={13} />
-                <span>Ready</span>
-              </span>
+          {/* Right: Totals & Payment */}
+          <aside className="w-80 flex flex-col bg-white/50">
+            <div className="p-4 border-b border-slate-200 flex items-center space-x-2">
+              <ShoppingCart size={18} className="text-emerald-400" />
+              <h2 className="text-sm font-bold">Active Cart</h2>
             </div>
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              <button
-                type="button"
-                onClick={handleClearCart}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
-              >
-                <Trash2 size={14} />
-                <span>Clear Cart</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/cashier/inventory')}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
-              >
-                <Scan size={14} />
-                <span>Inventory Check</span>
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => navigate('/cashier/profile')}
-                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
-              >
-                <UserCircle2 size={14} />
-                <span>Profile</span>
-              </button>
-              <button
-                type="button"
-                disabled={!canCompleteSale || isSubmitting}
-                onClick={handleCompleteSale}
-                className="rounded-xl bg-emerald-600 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-900 shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 disabled:bg-emerald-400 disabled:shadow-none"
-              >
-                {isSubmitting ? (
-                  <>
-                    <CreditCard size={14} className="animate-pulse" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <CreditCard size={14} />
-                    <span>Complete Sale</span>
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
-              <div className="flex items-center space-x-1">
-                {isOnline ? (
-                  <Wifi size={13} className="text-emerald-500" />
-                ) : (
-                  <WifiOff size={13} className="text-amber-500" />
-                )}
-                <span>
-                  {isOnline
-                    ? 'Sales posted directly to server'
-                    : 'Sales stored locally for sync'}
+
+            <div className="p-4 border-b border-slate-200 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-slate-600">Subtotal</span>
+                <span className="font-semibold text-slate-800">
+                  ₹{subtotal.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Tax (GST)</span>
+                <span className="font-semibold text-slate-800">
+                  ₹{tax.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Discount</span>
+                <span className="font-semibold text-emerald-600">
+                  -₹{discountAmount.toFixed(2)}
+                </span>
+              </div>
+              <hr className="my-2 border-dashed border-slate-200" />
+              <div className="flex justify-between items-center text-lg font-black">
+                <span className="flex items-center space-x-1 text-slate-900">
+                  <IndianRupee size={18} />
+                  <span>Total</span>
+                </span>
+                <span className="text-emerald-500">
+                  ₹{total.toFixed(2)}
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Hold Orders Section */}
-          {holdOrders.length > 0 && (
-            <div className="p-4 border-t border-slate-200 space-y-3">
-              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
-                <Clock size={16} className="text-amber-600" />
-                <span>Hold Orders ({holdOrders.length})</span>
-              </h3>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {holdOrders.map((order) => (
-                  <div
-                    key={order.id}
-                    className="p-3 rounded-lg border border-amber-200 bg-amber-50 space-y-2 hover:bg-amber-100 transition-colors"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-amber-900">{order.id}</span>
-                      <span className="text-xs font-semibold text-amber-700">
-                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-slate-600">
-                        {order.timestamp.toLocaleTimeString()}
-                      </span>
-                      <span className="text-sm font-bold text-amber-900">
-                        ₹{order.total.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => handleResumeOrder(order.id)}
-                        className="flex-1 rounded-lg bg-amber-600 text-white px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all"
-                      >
-                        Resume
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteHoldOrder(order.id)}
-                        className="rounded-lg border border-red-300 bg-red-50 text-red-600 px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+            {/* Discount controls */}
+            <div className="p-4 border-b border-slate-200 space-y-3 text-xs">
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setDiscountMode('amount')}
+                  className={`flex-1 inline-flex items-center justify-center space-x-1 rounded-lg border px-2 py-1 font-bold uppercase tracking-widest ${
+                    discountMode === 'amount'
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                      : 'border-slate-200 text-slate-600 bg-white'
+                  }`}
+                >
+                  <IndianRupee size={13} />
+                  <span>Amount</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiscountMode('percent')}
+                  className={`flex-1 inline-flex items-center justify-center space-x-1 rounded-lg border px-2 py-1 font-bold uppercase tracking-widest ${
+                    discountMode === 'percent'
+                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                      : 'border-slate-200 text-slate-600 bg-white'
+                  }`}
+                >
+                  <Percent size={13} />
+                  <span>Percent</span>
+                </button>
+              </div>
+              <div className="flex space-x-2 items-center">
+                <input
+                  type="number"
+                  min={0}
+                  value={discountValue || ''}
+                  onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
+                  className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
+                  placeholder={discountMode === 'amount' ? '₹ amount' : '% value'}
+                />
+                <span className="text-[11px] text-slate-500 font-semibold">
+                  APPLY DISCOUNT
+                </span>
+              </div>
+              {discountAmount > 0 && (
+                <div className="text-[11px] text-emerald-700 font-medium">
+                  Applied discount:{' '}
+                  {discountMode === 'amount'
+                    ? `₹${discountAmount.toFixed(2)}`
+                    : `${discountValue}% (₹${discountAmount.toFixed(2)})`}
+                </div>
+              )}
+            </div>
+
+            {/* Payment methods */}
+            <div className="p-4 border-b border-slate-200 space-y-3">
+              <div className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">
+                Payment Method
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {['CASH', 'CARD', 'UPI', 'CHEQUE', 'DIGITAL_WALLET', 'OTHER'].map(
+                  (method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setPaymentMethod(method)}
+                      className={`rounded-lg px-2 py-1.5 text-[11px] font-bold uppercase tracking-widest border ${
+                        paymentMethod === method
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {method.replace('_', ' ')}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 mb-1">
+                  <span>Customer Notes</span>
+                  <span className="text-slate-400">(optional)</span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Customer notes..."
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 resize-none focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
+                />
               </div>
             </div>
-          )}
-        </aside>
+
+            {/* Hold Order Button */}
+            <div className="p-4 border-t border-slate-200 space-y-2">
+              <button
+                type="button"
+                onClick={handleHoldOrder}
+                disabled={!cart.length}
+                className="w-full rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-amber-700 hover:bg-amber-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 flex items-center justify-center space-x-2 transition-all"
+              >
+                <Clock size={16} />
+                <span>Hold Current Order</span>
+              </button>
+            </div>
+
+            {/* Bottom action bar */}
+            <div className="p-4 space-y-3 border-t border-slate-200 bg-slate-50/80 mt-auto">
+              <div className="flex items-center justify-between mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                <span>Actions</span>
+                <span className="flex items-center space-x-1 text-slate-400">
+                  <Clock size={13} />
+                  <span>Ready</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={handleClearCart}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
+                >
+                  <Trash2 size={14} />
+                  <span>Clear Cart</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/cashier/inventory')}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
+                >
+                  <Scan size={14} />
+                  <span>Inventory Check</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/cashier/profile')}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-700 hover:bg-slate-100 flex items-center justify-center space-x-1"
+                >
+                  <UserCircle2 size={14} />
+                  <span>Profile</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={!canCompleteSale || isSubmitting}
+                  onClick={handleCompleteSale}
+                  className="rounded-xl bg-emerald-600 px-3 py-2 text-[11px] font-black uppercase tracking-widest text-slate-900 shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 disabled:bg-emerald-400 disabled:shadow-none"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <CreditCard size={14} className="animate-pulse" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard size={14} />
+                      <span>Complete Sale</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
+                <div className="flex items-center space-x-1">
+                  {isOnline ? (
+                    <Wifi size={13} className="text-emerald-500" />
+                  ) : (
+                    <WifiOff size={13} className="text-amber-500" />
+                  )}
+                  <span>
+                    {isOnline
+                      ? 'Sales posted directly to server'
+                      : 'Sales stored locally for sync'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Hold Orders Section */}
+            {holdOrders.length > 0 && (
+              <div className="p-4 border-t border-slate-200 space-y-3">
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
+                  <Clock size={16} className="text-amber-600" />
+                  <span>Hold Orders ({holdOrders.length})</span>
+                </h3>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {holdOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="p-3 rounded-lg border border-amber-200 bg-amber-50 space-y-2 hover:bg-amber-100 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-amber-900">{order.id}</span>
+                        <span className="text-xs font-semibold text-amber-700">
+                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-slate-600">
+                          {order.timestamp.toLocaleTimeString()}
+                        </span>
+                        <span className="text-sm font-bold text-amber-900">
+                          ₹{order.total.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => handleResumeOrder(order.id)}
+                          className="flex-1 rounded-lg bg-amber-600 text-white px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all"
+                        >
+                          Resume
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteHoldOrder(order.id)}
+                          className="rounded-lg border border-red-300 bg-red-50 text-red-600 px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+        </div>
       </div>
 
       {/* Product Search Modal */}
@@ -933,6 +1077,7 @@ const POSInterface: React.FC = () => {
         </div>
       )}
     </div>
+
   );
 };
 
