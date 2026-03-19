@@ -17,7 +17,8 @@ import {
   AlertCircle,
   Search,
   Package,
-} from 'lucide-react';
+}
+ from 'lucide-react';
 import { fetchProducts, getProductByBarcode, searchProducts } from '../../api/products.api';
 import { createSale } from '../../api/sales.api';
 import { useAuthStore } from '../../store/useAuthStore';
