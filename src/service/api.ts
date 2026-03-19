@@ -18,6 +18,19 @@ api.interceptors.request.use((config) => {
       console.error('Error parsing auth-storage', e);
     }
   }
+  
+  // Log sales-related requests for debugging
+  if (config.url?.includes('/sales')) {
+    console.log('🌐 [API Interceptor] Outgoing request:', {
+      url: config.url,
+      method: config.method,
+      baseURL: config.baseURL,
+      fullUrl: `${config.baseURL}${config.url}`,
+      headers: config.headers,
+      data: config.data,
+    });
+  }
+  
   return config;
 });
 

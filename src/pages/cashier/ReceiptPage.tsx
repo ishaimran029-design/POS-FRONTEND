@@ -21,16 +21,34 @@ const ReceiptPage: React.FC = () => {
     const fetchSaleIfNeeded = async () => {
       if (sale || !saleId || status === 'PENDING_SYNC') return;
       try {
+        console.log('📡 [ReceiptPage] Fetching sale from API:', saleId);
         const res = await getSaleById(saleId);
         if (res.data?.success && res.data.data) {
+          console.log('✅ [ReceiptPage] Sale fetched:', res.data.data);
           setSale(res.data.data);
         }
-      } catch {
-        // Ignore; minimal fallback
+      } catch (err: any) {
+        console.error('❌ [ReceiptPage] Error fetching sale:', err);
       }
     };
     fetchSaleIfNeeded();
   }, [sale, saleId, status]);
+
+  // Debug: Log sale data when it changes
+  React.useEffect(() => {
+    if (sale) {
+      console.log('📦 [ReceiptPage] Current sale data:', {
+        saleId: sale.id,
+        invoiceNumber: sale.invoiceNumber,
+        saleItemsCount: sale.saleItems?.length || 0,
+        saleItems: sale.saleItems,
+        subtotal: sale.subtotal,
+        discountAmount: sale.discountAmount,
+        totalTax: sale.totalTax,
+        totalAmount: sale.totalAmount,
+      });
+    }
+  }, [sale]);
 
   const handlePrint = () => {
     window.print();
@@ -150,7 +168,6 @@ const ReceiptPage: React.FC = () => {
                     lineTotal,
                     item,
                   });
-
                   return (
                     <tr
                       key={idx}
