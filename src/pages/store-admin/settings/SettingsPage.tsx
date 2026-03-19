@@ -36,27 +36,24 @@ const SettingsPage = () => {
 
                     {/* Content Section */}
                     {activeTab === 'Store Profile' ? (
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                            {/* Left Column - Main Forms */}
-                            <div className="xl:col-span-2 space-y-8">
-                                <StoreIdentityCard />
-                                <TaxSettingsForm />
+                        <div className="max-w-4xl mx-auto w-full flex flex-col gap-8">
+                            <StoreIdentityCard />
+                            <TaxSettingsForm />
 
-                                {/* Action Buttons */}
-                                <div className="flex items-center justify-end gap-3 pt-4 pb-10">
-                                    <button className="flex items-center gap-2 px-6 py-3.5 bg-white text-[#1E1B4B] font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all border border-[#1E1B4B]/20 shadow-sm active:scale-95">
-                                        <X size={16} className="text-rose-600" />
-                                        Discard Changes
-                                    </button>
-                                    <button className="flex items-center gap-2 px-8 py-3.5 bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-blue-800 shadow-lg shadow-blue-400/20 transition-all border border-blue-600 active:scale-95">
-                                        <Save size={16} />
-                                        Save Profile Settings
-                                    </button>
-                                </div>
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-end gap-3 pt-4">
+                                <button className="flex items-center gap-2 px-6 py-3.5 bg-white text-[#1E1B4B] font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all border border-[#1E1B4B]/20 shadow-sm active:scale-95">
+                                    <X size={16} className="text-rose-600" />
+                                    Discard Changes
+                                </button>
+                                <button className="flex items-center gap-2 px-8 py-3.5 bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-blue-800 shadow-lg shadow-blue-400/20 transition-all border border-blue-600 active:scale-95">
+                                    <Save size={16} />
+                                    Save Profile Settings
+                                </button>
                             </div>
 
-                            {/* Right Column - Info Cards */}
-                            <div className="space-y-8 h-fit">
+                            {/* Info Cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 pb-10">
                                 <StoreHealthCard />
                                 <StoreBrandingCard />
                                 <QuickHelpCard />

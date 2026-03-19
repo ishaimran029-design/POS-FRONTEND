@@ -4,24 +4,24 @@ import type { StaffMember } from '../../pages/store-admin/staff-management/types
 
 interface StaffTableProps {
     staff: StaffMember[];
-
-    onDelete: (id: string) => void;
+    onToggleStatus: (id: string, active: boolean) => void;
+    onEdit: (member: StaffMember) => void;
 }
 
-export default function StaffTable({ staff, onDelete }: Omit<StaffTableProps, 'onEdit'>) {
+export default function StaffTable({ staff, onToggleStatus, onEdit }: StaffTableProps) {
     return (
         <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden mb-10 animate-fade-in hover:shadow-md transition-all duration-300">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-slate-50/50 border-b border-slate-100">
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">#</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">Member Identity</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">Email Address</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">Access Role</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">Current Status</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">Activity Log</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-right">Actions</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">ID</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Name</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Email Address</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Role</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Status</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Activity</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50/50">
@@ -29,7 +29,8 @@ export default function StaffTable({ staff, onDelete }: Omit<StaffTableProps, 'o
                             <StaffRow
                                 key={member.id}
                                 member={member}
-                                onDelete={() => onDelete(member.id)}
+                                onToggleStatus={onToggleStatus}
+                                onEdit={onEdit}
                             />
                         ))}
                         {staff.length === 0 && (

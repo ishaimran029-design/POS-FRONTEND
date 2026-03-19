@@ -110,7 +110,7 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
                 onClick={onClose}
             ></div>
 
-            <div className="bg-white dark:bg-gray-900 w-full max-w-5xl h-fit max-h-[90vh] rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col animate-scale-up">
+            <div className="bg-white dark:bg-gray-900 w-full max-w-4xl h-fit max-h-[90vh] rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col animate-scale-up">
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-50 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 shrink-0">
                     <div>

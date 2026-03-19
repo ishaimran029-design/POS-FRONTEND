@@ -7,7 +7,7 @@ import StaffTable from '@/components/store-admin/StaffTable';
 import StaffPagination from '@/components/store-admin/StaffPagination';
 import AddStaffModal from '@/components/store-admin/AddStaffModal';
 import type { StaffMember, CreateStaffInput, StaffRole, StaffStatus } from './types/staff.types';
-import { fetchStaffMembers, createStaffMember, deleteStaffMember } from '@/api/staff.api';
+import { fetchStaffMembers, createStaffMember, updateStaffMember } from '@/api/staff.api';
 
 function mapApiUser(u: { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null }): StaffMember {
     return {
@@ -23,6 +23,7 @@ function mapApiUser(u: { id: string; name: string; email: string; role: string; 
 export default function StaffManagementPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStaffToEdit, setSelectedStaffToEdit] = useState<StaffMember | undefined>(undefined);
 
     const [staff, setStaff] = useState<StaffMember[]>([]);
     const [loading, setLoading] = useState(true);
@@ -91,14 +92,34 @@ export default function StaffManagementPage() {
         }
     };
 
-    const handleDeleteStaff = async (id: string) => {
+    const handleToggleStatus = async (id: string, active: boolean) => {
         try {
-            await deleteStaffMember(id);
-            setStaff(prev => prev.filter(s => s.id !== id));
+            // Optimistic update for punchy feel
+            setStaff(prev => prev.map(s => s.id === id ? { ...s, status: active ? 'active' : 'inactive' } : s));
+            await updateStaffMember(id, { isActive: active });
         } catch (err) {
-            console.warn("Delete staff failed", err);
+            console.warn("Toggle status failed", err);
+            // Rollback
+            setStaff(prev => prev.map(s => s.id === id ? { ...s, status: !active ? 'active' : 'inactive' } : s));
         }
     };
+
+    const handleEditStaff = async (id: string, data: any): Promise<{ success: boolean; error?: string }> => {
+        try {
+            await updateStaffMember(id, data);
+            setStaff(prev => prev.map(s => s.id === id ? { 
+                ...s, 
+                ...data, 
+                status: data.isActive !== undefined ? (data.isActive ? 'active' : 'inactive') : s.status 
+            } : s));
+            return { success: true };
+        } catch (err) {
+            console.warn("Edit staff failed", err);
+            return { success: false, error: 'Failed to update user details' };
+        }
+    };
+
+
 
     return (
         <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
@@ -141,7 +162,11 @@ export default function StaffManagementPage() {
                         <div className="space-y-8 animate-fade-in">
                             <StaffTable
                                 staff={paginatedStaff}
-                                onDelete={handleDeleteStaff}
+                                onToggleStatus={handleToggleStatus}
+                                onEdit={(member) => {
+                                    setSelectedStaffToEdit(member);
+                                    setIsModalOpen(true);
+                                }}
                             />
 
                             <StaffPagination
@@ -158,8 +183,13 @@ export default function StaffManagementPage() {
 
             <AddStaffModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setSelectedStaffToEdit(undefined);
+                }}
+                editMember={selectedStaffToEdit}
                 onAdd={handleAddStaff}
+                onEdit={handleEditStaff}
             />
         </div>
     );
