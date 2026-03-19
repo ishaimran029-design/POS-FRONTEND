@@ -1,7 +1,25 @@
 import api from "./api";
 
-export const fetchProducts = () => {
-  return api.get("/products");
+export const fetchProducts = async () => {
+<<<<<<< HEAD
+  console.log('📦 [Products API] Calling GET /products...');
+  try {
+    const response = await api.get("/products");
+    console.log('📦 [Products API] Response:', response);
+    return response;
+  } catch (error: any) {
+    console.error('❌ [Products API] Error:', error);
+=======
+  try {
+    console.log('🔗 Products API - Calling GET /products endpoint...');
+    const response = await api.get("/products");
+    console.log('🔗 Products API - Response received:', response);
+    return response;
+  } catch (error: any) {
+    console.error('🔗 Products API - Error calling /products:', error);
+>>>>>>> main
+    throw error;
+  }
 };
 
 export const fetchTopProducts = () => {
