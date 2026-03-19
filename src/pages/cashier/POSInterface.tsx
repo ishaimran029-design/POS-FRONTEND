@@ -16,6 +16,7 @@ import {
   WifiOff,
   AlertCircle,
   Search,
+  Package,
 } from 'lucide-react';
 import { getProductByBarcode, searchProducts, fetchProducts } from '../../api/products.api';
 import { createSale } from '../../api/sales.api';
@@ -27,6 +28,13 @@ type CartItem = {
   name: string;
   price: number;
   quantity: number;
+};
+
+type HoldOrder = {
+  id: string;
+  items: CartItem[];
+  timestamp: Date;
+  total: number;
 };
 
 type Product = {
@@ -54,6 +62,7 @@ const POSInterface: React.FC = () => {
 
   const [barcodeInput, setBarcodeInput] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [holdOrders, setHoldOrders] = useState<HoldOrder[]>([]);
   const [discountMode, setDiscountMode] = useState<DiscountMode>('amount');
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
@@ -254,6 +263,38 @@ const POSInterface: React.FC = () => {
     setPaymentMethod(null);
     setNotes('');
     setError(null);
+  };
+
+  const handleHoldOrder = () => {
+    if (!cart.length) {
+      setError('Cart is empty. Cannot hold an empty order.');
+      return;
+    }
+    const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const newHoldOrder: HoldOrder = {
+      id: `ORDER-${Date.now()}`,
+      items: [...cart],
+      timestamp: new Date(),
+      total: cartTotal,
+    };
+    setHoldOrders((prev) => [newHoldOrder, ...prev]);
+    setCart([]);
+    setDiscountValue(0);
+    setPaymentMethod(null);
+    setNotes('');
+    setError(null);
+  };
+
+  const handleResumeOrder = (holdOrderId: string) => {
+    const holdOrder = holdOrders.find((order) => order.id === holdOrderId);
+    if (!holdOrder) return;
+    setCart(holdOrder.items);
+    setHoldOrders((prev) => prev.filter((order) => order.id !== holdOrderId));
+  };
+
+  const handleDeleteHoldOrder = (holdOrderId: string) => {
+    if (!window.confirm('Delete this hold order?')) return;
+    setHoldOrders((prev) => prev.filter((order) => order.id !== holdOrderId));
   };
 
   const handleCompleteSale = async () => {
@@ -457,6 +498,7 @@ const POSInterface: React.FC = () => {
           </div>
           <div className="text-[11px] text-slate-500 font-medium">
             CASHIER POS TERMINAL
+
           </div>
         </div>
         <div className="text-xs font-semibold text-slate-600">
@@ -508,162 +550,222 @@ const POSInterface: React.FC = () => {
 
       <div className="flex flex-col overflow-hidden flex-1">
         <div className="flex overflow-hidden flex-1">
-          {/* Left: Scan & Cart Table */}
-          <section className="flex-1 flex flex-col p-6 overflow-hidden border-r border-slate-200">
-          {/* Scan / Search */}
-          <form onSubmit={handleScanSubmit} className="mb-4">
-            <div className="relative">
-              <Scan className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                autoFocus
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Scan barcode or type product..."
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setProductModalOpen(true);
-                  setModalQuery('');
-                }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center space-x-1 px-3 py-1 rounded-lg bg-slate-900 text-[11px] font-bold text-white uppercase tracking-widest"
-              >
-                <Search size={14} />
-                <span>Search</span>
-              </button>
+          {/* Left: Products Grid & Cart */}
+          <section className="flex-1 flex flex-col p-5 overflow-hidden border-r border-slate-200">
+            {/* Barcode Scanner */}
+            <form onSubmit={handleScanSubmit} className="mb-5">
+              <div className="relative">
+                <Scan className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  autoFocus
+                  value={barcodeInput}
+                  onChange={(e) => setBarcodeInput(e.target.value)}
+                  placeholder="Scan barcode..."
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-100 focus:border-emerald-400"
+                />
+              </div>
+            </form>
+          {/* Stats Bar */}
+          <div className="flex items-center space-x-2 mb-4 text-xs">
+            <div className="inline-flex items-center space-x-2 rounded-full bg-blue-50 px-3 py-1.5 border border-blue-200 text-blue-800">
+              <ShoppingCart size={14} />
+              <span className="font-semibold">
+                Cart: {cart.length} items
+              </span>
             </div>
-          </form>
+          </div>
 
-          {/* Cart & Products Container */}
-          <div className="flex-1 overflow-auto rounded-2xl border border-slate-200 bg-slate-50/40">
-            {cart.length === 0 ? (
-              // Display products when cart is empty
-              <div className="h-full flex flex-col">
-                {productsLoading ? (
-                  <div className="flex-1 flex items-center justify-center p-4">
-                    <div className="flex items-center space-x-2 text-xs text-slate-500">
-                      <div className="w-3 h-3 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
-                      <span>Loading products...</span>
-                    </div>
-                  </div>
-                ) : productsError ? (
-                  <div className="flex-1 flex items-center justify-center p-4 text-[10px] text-red-600">
-                    Error: {productsError}
-                  </div>
-                ) : allProducts && allProducts.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 auto-rows-max">
-                    {allProducts.map((product) => {
+          {/* Products Table */}
+          <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white mb-4">
+            {productsLoading ? (
+              <div className="flex items-center justify-center h-full text-xs text-slate-500">
+                <div className="text-center">
+                  <div className="w-6 h-6 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin mx-auto mb-2"></div>
+                  Loading products...
+                </div>
+              </div>
+            ) : productsError ? (
+              <div className="flex items-center justify-center h-full text-xs text-red-600">
+                Error: {productsError}
+              </div>
+            ) : allProducts.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-center">
+                <div>
+                  <Package size={28} className="text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs text-slate-500">No products available</p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="sticky top-0 bg-slate-50 border-b-2 border-slate-200">
+                    <tr className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                      <th className="px-2 sm:px-4 md:px-6 py-3 sm:py-4">Product</th>
+                      <th className="hidden sm:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">SKU</th>
+                      <th className="hidden lg:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">Barcode</th>
+                      <th className="hidden md:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">Category</th>
+                      <th className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-right">Price</th>
+                      <th className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-right">Stock</th>
+                      <th className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {allProducts.map((product, index) => {
                       const stock = (product as any).inventoryStock?.totalQuantity ?? product.stock ?? 0;
                       const price = Number(product.sellingPrice ?? product.price ?? 0);
+                      const isOutOfStock = stock <= 0;
+                      const isActive = (product as any).isActive !== false;
+                      const category = (product as any).category;
+
                       return (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => {
-                            console.log('✅ Clicked product:', product.name);
-                            handleAddProductToCart(product);
-                          }}
-                          disabled={stock <= 0}
-                          className="flex flex-col space-y-2 rounded-lg border border-slate-200 bg-white p-3 hover:border-emerald-400 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs"
-                        >
-                          <h4 className="text-xs font-semibold text-slate-900 line-clamp-2 flex-1">
-                            {product.name}
-                          </h4>
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-emerald-600 text-xs">₹{price.toFixed(2)}</span>
-                            <span className={`text-[9px] font-semibold ${
-                              stock <= 0 ? 'text-red-600' : stock <= 10 ? 'text-amber-600' : 'text-emerald-600'
+                        <tr key={product.id} className={`hover:bg-emerald-50/30 transition-colors ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                        }`}>
+                          <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4">
+                            <span className="font-semibold text-xs sm:text-sm text-slate-900">{product.name}</span>
+                          </td>
+                          <td className="hidden sm:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">
+                            <span className="text-xs sm:text-sm font-medium text-slate-600 font-mono">{product.sku || '—'}</span>
+                          </td>
+                          <td className="hidden lg:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">
+                            <span className="text-xs text-slate-500 font-mono">{product.barcode || '—'}</span>
+                          </td>
+                          <td className="hidden md:table-cell px-2 sm:px-4 md:px-6 py-3 sm:py-4">
+                            {category ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">
+                                {category.name}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-slate-300">—</span>
+                            )}
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-right">
+                            <span className="text-xs sm:text-sm font-bold text-slate-900">
+                              ₹{price.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-right">
+                            <span className={`text-xs sm:text-sm font-semibold ${
+                              isOutOfStock
+                                ? 'text-rose-600'
+                                : stock <= 10
+                                ? 'text-amber-600'
+                                : 'text-emerald-600'
                             }`}>
                               {stock}
                             </span>
-                          </div>
-                          <div className="flex items-center justify-center space-x-1 rounded bg-emerald-50 py-1.5 text-[9px] font-bold uppercase tracking-widest text-emerald-700">
-                            <Plus size={10} />
-                            <span>Add</span>
-                          </div>
-                        </button>
+                          </td>
+                          <td className="px-2 sm:px-4 md:px-6 py-3 sm:py-4 text-center">
+                            <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => handleAddProductToCart(product)}
+                                disabled={isOutOfStock}
+                                className={`inline-flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                                  isOutOfStock
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm hover:shadow-md'
+                                }`}
+                              >
+                                <Plus size={11} className="sm:hidden" />
+                                <Plus size={13} className="hidden sm:block" />
+                                <span className="hidden sm:inline">Add</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddProductToCart(product)}
+                                disabled={isOutOfStock}
+                                className={`inline-flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                                  isOutOfStock
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-amber-600 text-white hover:bg-amber-700 shadow-sm hover:shadow-md'
+                                }`}
+                              >
+                                <Clock size={11} className="sm:hidden" />
+                                <Clock size={13} className="hidden sm:block" />
+                                <span className="hidden sm:inline">Hold</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       );
                     })}
-                  </div>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center p-4 text-xs text-slate-500">
-                    No products available
-                  </div>
-                )}
+                  </tbody>
+                </table>
               </div>
-            ) : (
-              // Display cart table when items exist
-              <table className="w-full text-sm">
-                <thead className="bg-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Item</th>
-                    <th className="px-2 py-2 text-center w-32">Qty</th>
-                    <th className="px-4 py-2 text-right w-24">@Price</th>
-                    <th className="px-4 py-2 text-right w-28">Line Total</th>
-                    <th className="px-2 py-2 w-8"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.map((item) => (
-                    <tr key={item.id} className="border-t border-slate-100">
-                      <td className="px-4 py-2">
-                        <div className="text-[13px] font-semibold text-slate-900">
-                          {item.name}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <div className="inline-flex items-center rounded-full border border-slate-200 bg-white">
-                          <button
-                            type="button"
-                            onClick={() => handleQuantityChange(item.id, -1)}
-                            className="p-1 text-slate-500 hover:text-emerald-500"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-8 text-center text-xs font-bold">
-                            {item.quantity}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleQuantityChange(item.id, 1)}
-                            className="p-1 text-slate-500 hover:text-emerald-500"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2 text-right text-[13px] font-semibold text-slate-700">
-                        ₹{item.price.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right text-[13px] font-bold text-slate-900">
-                        ₹{(item.price * item.quantity).toFixed(2)}
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="p-1 text-slate-400 hover:text-red-500"
-                        >
-                          <X size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             )}
           </div>
 
-          <div className="mt-3 flex justify-between items-center">
-            <button
-              type="button"
-              onClick={handleClearCart}
-              className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-100"
-            >
-              <Trash2 size={14} />
-              <span>Clear All Items</span>
-            </button>
+          {/* Cart Items Display */}
+          <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
+                <ShoppingCart size={15} className="text-emerald-600" />
+                <span>Cart ({cart.length})</span>
+              </h3>
+              {cart.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearCart}
+                  className="text-[10px] font-bold text-red-600 hover:text-red-700 uppercase tracking-wider"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {cart.length === 0 ? (
+              <div className="py-8 text-center">
+                <ShoppingCart size={28} className="text-slate-300 mx-auto mb-2" />
+                <p className="text-xs text-slate-500">Cart is empty</p>
+              </div>
+            ) : (
+              <div className="max-h-40 overflow-y-auto space-y-2">
+                {cart.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs hover:bg-white hover:border-slate-300 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        ₹{item.price.toFixed(0)} x{item.quantity}
+                      </p>
+                    </div>
+
+                    {/* Quantity Controls */}
+                    <div className="flex items-center space-x-2 ml-3">
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(item.id, -1)}
+                        className="p-1 rounded hover:bg-red-100 text-slate-500 hover:text-red-600 transition-colors"
+                      >
+                        <Minus size={13} />
+                      </button>
+                      <span className="w-5 text-center text-[10px] font-bold text-slate-700">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleQuantityChange(item.id, 1)}
+                        className="p-1 rounded hover:bg-emerald-100 text-slate-500 hover:text-emerald-600 transition-colors"
+                      >
+                        <Plus size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="p-1 rounded hover:bg-red-100 text-slate-400 hover:text-red-600 ml-1 transition-colors"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -795,6 +897,19 @@ const POSInterface: React.FC = () => {
             </div>
           </div>
 
+          {/* Hold Order Button */}
+          <div className="p-4 border-t border-slate-200 space-y-2">
+            <button
+              type="button"
+              onClick={handleHoldOrder}
+              disabled={!cart.length}
+              className="w-full rounded-xl border-2 border-amber-500 bg-amber-50 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-amber-700 hover:bg-amber-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 flex items-center justify-center space-x-2 transition-all"
+            >
+              <Clock size={16} />
+              <span>Hold Current Order</span>
+            </button>
+          </div>
+
           {/* Bottom action bar */}
           <div className="p-4 space-y-3 border-t border-slate-200 bg-slate-50/80 mt-auto">
             <div className="flex items-center justify-between mb-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
@@ -865,6 +980,55 @@ const POSInterface: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Hold Orders Section */}
+          {holdOrders.length > 0 && (
+            <div className="p-4 border-t border-slate-200 space-y-3">
+              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-2">
+                <Clock size={16} className="text-amber-600" />
+                <span>Hold Orders ({holdOrders.length})</span>
+              </h3>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {holdOrders.map((order) => (
+                  <div
+                    key={order.id}
+                    className="p-3 rounded-lg border border-amber-200 bg-amber-50 space-y-2 hover:bg-amber-100 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-amber-900">{order.id}</span>
+                      <span className="text-xs font-semibold text-amber-700">
+                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-slate-600">
+                        {order.timestamp.toLocaleTimeString()}
+                      </span>
+                      <span className="text-sm font-bold text-amber-900">
+                        ₹{order.total.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleResumeOrder(order.id)}
+                        className="flex-1 rounded-lg bg-amber-600 text-white px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all"
+                      >
+                        Resume
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteHoldOrder(order.id)}
+                        className="rounded-lg border border-red-300 bg-red-50 text-red-600 px-2 py-1.5 text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
         </div>
       </div>
