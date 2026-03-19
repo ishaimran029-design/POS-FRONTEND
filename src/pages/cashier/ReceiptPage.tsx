@@ -67,12 +67,9 @@ const ReceiptPage: React.FC = () => {
     ? new Date(sale.createdAt)
     : new Date();
 
-  // Backend returns flat fields, not nested in totals
+  // Backend returns saleItems with product info
   const items = sale?.saleItems || sale?.items || [];
-  const subtotal = Number(sale?.subtotal || sale?.totals?.subtotal || 0);
-  const discountAmount = Number(sale?.discountAmount || sale?.totals?.discountAmount || 0);
-  const totalTax = Number(sale?.totalTax || sale?.totals?.tax || 0);
-  const totalAmount = Number(sale?.totalAmount || sale?.totals?.total || 0);
+  const totals = sale?.totals || {};
 
   return (
     <div className="min-h-[520px] flex flex-col bg-white border border-slate-200 rounded-3xl overflow-hidden">
@@ -142,7 +139,7 @@ const ReceiptPage: React.FC = () => {
               <tr>
                 <th className="px-3 py-2 text-left">Item</th>
                 <th className="px-3 py-2 text-center w-16">Qty</th>
-                <th className="px-3 py-2 text-right w-20">Unit</th>
+                <th className="px-3 py-2 text-right w-20">Unit Price</th>
                 <th className="px-3 py-2 text-right w-24">Total</th>
               </tr>
             </thead>
@@ -158,22 +155,19 @@ const ReceiptPage: React.FC = () => {
                 </tr>
               ) : (
                 items.map((item: any, idx: number) => {
-                  // Backend returns prices as strings (Prisma Decimal), convert to numbers
-                  const unitPrice = Number(item.price || 0);
+                  // Backend returns: item.product.name, item.price, item.quantity
+                  const productName = item.product?.name || item.name || 'Unknown Product';
+                  const unitPrice = Number(item.price || item.unitPrice || 0);
                   const quantity = Number(item.quantity || 1);
                   const lineTotal = unitPrice * quantity;
-                  
-                  // Get product name from nested product object or fallback fields
-                  const productName = item.product?.name || item.name || item.productName || 'Unknown Product';
-                  
-                  console.log(`🏷️ [ReceiptPage] Rendering item ${idx}:`, {
+
+                  console.log(`🧾 Receipt item ${idx}:`, {
                     productName,
                     unitPrice,
                     quantity,
                     lineTotal,
                     item,
                   });
-                  
                   return (
                     <tr
                       key={idx}
@@ -204,25 +198,25 @@ const ReceiptPage: React.FC = () => {
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>
-                ₹{subtotal.toFixed(2)}
+                ₹{(Number(sale?.subtotal) || Number(totals.subtotal) || Number(totals.total) || 0).toFixed(2)}
               </span>
             </div>
-            {discountAmount > 0 && (
+            {typeof sale?.discountAmount === 'number' && sale.discountAmount > 0 && (
               <div className="flex justify-between">
                 <span>Discount</span>
-                <span>-₹{discountAmount.toFixed(2)}</span>
+                <span>-₹{sale.discountAmount.toFixed(2)}</span>
               </div>
             )}
-            {totalTax > 0 && (
+            {typeof sale?.totalTax === 'number' && sale.totalTax > 0 && (
               <div className="flex justify-between">
-                <span>Tax (GST)</span>
-                <span>₹{totalTax.toFixed(2)}</span>
+                <span>Tax</span>
+                <span>₹{sale.totalTax.toFixed(2)}</span>
               </div>
             )}
             <hr className="my-2 border-dashed border-slate-200" />
             <div className="flex justify-between font-bold text-slate-900">
               <span>TOTAL</span>
-              <span>₹{totalAmount.toFixed(2)}</span>
+              <span>₹{(Number(sale?.totalAmount) || Number(totals.total) || Number(totals.subtotal) || 0).toFixed(2)}</span>
             </div>
           </div>
 
