@@ -36,6 +36,8 @@ const StockLevelsPage = lazy(() => import('./pages/store-admin/inventory/StockLe
 const SettingsPage = lazy(() => import('./pages/store-admin/settings/SettingsPage'));
 const StockAdjustmentPage = lazy(() => import('./pages/store-admin/inventory/StockAdjustmentPage'));
 const ReportsPage = lazy(() => import('./pages/store-admin/reports/ReportsPage'));
+const AuditLogsPage = lazy(() => import('./pages/store-admin/audit-logs/AuditLogsPage'));
+const StaffDetailPage = lazy(() => import('./pages/store-admin/staff-management/StaffDetailPage'));
 
 const App: React.FC = () => {
   const { hydrate, isLoading } = useAuthStore();
@@ -61,6 +63,7 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']} />}>
             <Route path="/store-admin/dashboard" element={<StoreAdminDashboard />} />
             <Route path="/store-admin/staff" element={<StaffManagementPage />} />
+            <Route path="/store-admin/staff/:id" element={<StaffDetailPage />} />
             <Route path="/store-admin/inventory" element={<InventoryManagement />} />
             <Route path="/store-admin/inventory/stocks" element={<StockLevelsPage />} />
             <Route path="/store-admin/inventory/adjustments" element={<StockAdjustmentPage />} />
@@ -71,6 +74,7 @@ const App: React.FC = () => {
             <Route path="/store-admin/sales" element={<SalesHistoryPage />} />
             <Route path="/store-admin/categories" element={<ProductCategories />} />
             <Route path="/store-admin/reports" element={<ReportsPage />} />
+            <Route path="/store-admin/logs" element={<AuditLogsPage />} />
             <Route path="/store-admin" element={<Navigate to="/store-admin/dashboard" replace />} />
           </Route>
 

@@ -5,6 +5,10 @@ export const fetchStaffMembers = () => {
     return axios.get<StaffMember[]>("/users");
 };
 
+export const fetchStaffMemberById = (id: string) => {
+    return axios.get(`/users/${id}`);
+};
+
 export const createStaffMember = (data: CreateStaffInput) => {
     const payload = {
         name: data.name,
