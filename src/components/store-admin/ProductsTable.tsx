@@ -4,28 +4,21 @@ export default function ProductsTable({ data }: any) {
 
     return (
 
-        <div className="bg-white rounded-[40px] shadow-xl shadow-slate-200/50 border border-slate-50 overflow-hidden animate-fade-in">
-
+        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden animate-fade-in hover:shadow-lg transition-all duration-300">
             <div className="overflow-x-auto">
-
                 <table className="w-full text-sm">
-
                     <thead>
-
                         <tr className="bg-slate-50/50 border-b border-slate-100">
-
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-12">#</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Product Name</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">SKU</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Barcode</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Purchase</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Selling</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Stock</th>
-                            <th className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-24">Actions</th>
-
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-12">#</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Product Name</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">SKU/Code</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Barcode</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Category</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Buying</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Selling</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">In Stock</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-24">Actions</th>
                         </tr>
-
                     </thead>
 
                     <tbody className="divide-y divide-slate-50">

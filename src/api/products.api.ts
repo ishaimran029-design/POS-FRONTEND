@@ -3,24 +3,26 @@ import api from "./api";
 export const fetchProducts = async () => {
   console.log('📦 [Products API] Calling GET /products...');
   try {
+    console.log('🔗 Products API - Calling GET /products endpoint...');
     const response = await api.get("/products");
-    console.log('📦 [Products API] Response:', response);
+    console.log('🔗 Products API - Response received:', response);
     return response;
   } catch (error: any) {
-    console.error('❌ [Products API] Error:', error);
-    throw error;
-  }
+    console.error('🔗 Products API - Error calling /products:', error);
+  throw error;
+}
 };
+
 
 export const fetchTopProducts = () => {
   return api.get("/products/top");
 };
 
-export const createProduct = (data: any) => {
+export const createProduct = (data: FormData) => {
   return api.post("/products", data);
 };
 
-export const updateProduct = (id: string, data: any) => {
+export const updateProduct = (id: string, data: FormData) => {
   return api.patch(`/products/${id}`, data);
 };
 

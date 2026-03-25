@@ -1,61 +1,81 @@
-import { Edit2, Trash2, Mail } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
+import { FaUserClock } from 'react-icons/fa';
 import type { StaffMember } from '../../pages/store-admin/staff-management/types/staff.types';
 import { StaffStatusBadge, RoleBadge } from './StaffStatusBadge';
 
 interface StaffRowProps {
     member: StaffMember;
-    onEdit: () => void;
-    onDelete: () => void;
+    onToggleStatus: (id: string, active: boolean) => void;
+    onEdit: (member: StaffMember) => void;
+    onViewDetails: (member: StaffMember) => void;
 }
 
-export default function StaffRow({ member, onEdit, onDelete }: StaffRowProps) {
+export default function StaffRow({ member, onToggleStatus, onEdit, onViewDetails }: StaffRowProps) {
+    const nextStateLabel = member.status === 'active' ? 'Set Inactive' : 'Set Active';
+
     return (
-        <tr className="hover:bg-blue-50/50 transition-colors group">
-            <td className="px-6 py-4">
-                <span className="text-sm font-black text-slate-300 group-hover:text-blue-200 transition-colors">
-                    #{member.id}
+        <tr className="hover:bg-[#2563EB]/5 transition-all duration-300 group cursor-pointer border-b border-slate-50/50 last:border-0">
+            <td className="px-6 py-5 text-center">
+                <span className="text-[10px] font-black text-slate-300 group-hover:text-[#2563EB]/40 transition-colors uppercase tracking-widest">
+                    #{member.id.slice(-4)}
                 </span>
             </td>
-            <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-all">
-                        {member.name.charAt(0)}
-                    </div>
-                    <span className="text-sm font-black text-slate-900">{member.name}</span>
+            <td className="px-6 py-5 text-center">
+                <div className="flex flex-col items-center">
+                    <p className="text-sm font-black text-slate-900 leading-none">{member.name}</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Employee</p>
                 </div>
             </td>
-            <td className="px-6 py-4">
-                <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                    <Mail className="w-4 h-4 text-slate-300" />
-                    {member.email}
+            <td className="px-6 py-5 text-center">
+                <div className="text-slate-500 font-black text-[10px] lowercase tracking-widest">
+                    {member.email.toLowerCase()}
                 </div>
             </td>
-            <td className="px-6 py-4">
-                <RoleBadge role={member.role} />
+            <td className="px-6 py-5">
+                <div className="flex justify-center">
+                    <RoleBadge role={member.role} />
+                </div>
             </td>
-            <td className="px-6 py-4">
-                <StaffStatusBadge status={member.status} />
+            <td className="px-6 py-5">
+                <div className="flex justify-center">
+                    <StaffStatusBadge 
+                        status={member.status} 
+                        onClick={() => onToggleStatus(member.id, member.status !== 'active')} 
+                    />
+                </div>
             </td>
-            <td className="px-6 py-4">
-                <span className="text-xs font-black uppercase tracking-widest text-slate-400">
-                    {member.lastLogin}
-                </span>
+            <td className="px-6 py-5">
+                <div className="flex flex-col items-center gap-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        Login: {member.lastLogin}
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Logout: {member.lastLogout}
+                    </span>
+                </div>
             </td>
-            <td className="px-6 py-4 text-right">
-                <div className="flex items-center justify-end gap-2">
+            <td className="px-6 py-5">
+                <div className="flex items-center justify-center gap-3">
                     <button
-                        onClick={onEdit}
-                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-100 rounded-xl transition-all active:scale-90"
-                        title="Edit Member"
+                        onClick={() => onViewDetails(member)}
+                        className="w-10 h-10 flex items-center justify-center text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl transition-all active:scale-90 border border-transparent hover:border-indigo-100 shadow-sm hover:shadow-md"
+                        title="View Staff Activity"
                     >
-                        <Edit2 className="w-4 h-4" />
+                        <FaUserClock className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={onDelete}
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-90"
-                        title="Delete Member"
+                        onClick={() => onToggleStatus(member.id, member.status !== 'active')}
+                        className="px-3 h-10 inline-flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 hover:bg-slate-50 rounded-2xl transition-all active:scale-90 border border-slate-100"
+                        title={nextStateLabel}
                     >
-                        <Trash2 className="w-4 h-4" />
+                        {nextStateLabel}
+                    </button>
+                    <button
+                        onClick={() => onEdit(member)}
+                        className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-2xl transition-all active:scale-90 border border-transparent hover:border-slate-100 shadow-sm hover:shadow-md"
+                        title="Edit Details"
+                    >
+                        <MoreHorizontal className="w-4 h-4" />
                     </button>
                 </div>
             </td>

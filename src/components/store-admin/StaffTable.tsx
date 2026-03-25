@@ -1,43 +1,51 @@
+import { Users } from 'lucide-react';
 import StaffRow from './StaffRow';
 import type { StaffMember } from '../../pages/store-admin/staff-management/types/staff.types';
 
 interface StaffTableProps {
     staff: StaffMember[];
-    onEdit: (id: string) => void;
-    onDelete: (id: string) => void;
+    onToggleStatus: (id: string, active: boolean) => void;
+    onEdit: (member: StaffMember) => void;
+    onViewDetails: (member: StaffMember) => void;
 }
 
-export default function StaffTable({ staff, onEdit, onDelete }: StaffTableProps) {
+export default function StaffTable({ staff, onToggleStatus, onEdit, onViewDetails }: StaffTableProps) {
     return (
-        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden mb-6 animate-fade-in">
+        <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden mb-10 animate-fade-in hover:shadow-md transition-all duration-300">
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100">
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">#</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Name</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Email</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Role</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Status</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400">Last Login</th>
-                            <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                        <tr className="bg-slate-50/50 border-b border-slate-100">
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">ID</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Name</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Email Address</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Role</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Status</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Login / Logout</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-50/50">
                         {staff.map((member) => (
                             <StaffRow
                                 key={member.id}
                                 member={member}
-                                onEdit={() => onEdit(member.id)}
-                                onDelete={() => onDelete(member.id)}
+                                onToggleStatus={onToggleStatus}
+                                onEdit={onEdit}
+                                onViewDetails={onViewDetails}
                             />
                         ))}
                         {staff.length === 0 && (
                             <tr>
-                                <td colSpan={7} className="px-6 py-20 text-center">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No staff members found.</p>
-                                        <p className="text-slate-400 text-xs">Try adjusting your filters or search query.</p>
+                                <td colSpan={7} className="px-6 py-24 text-center">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="w-16 h-16 bg-slate-50 rounded-[20px] flex items-center justify-center text-slate-200 border border-slate-100">
+                                            <Users size={32} />
+                                        </div>
+                                        <div>
+                                            <p className="text-slate-900 font-extrabold text-sm tracking-tight leading-none mb-1">No Staff Members Found</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Try adjusting your filters or contact administrator</p>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

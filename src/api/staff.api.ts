@@ -2,7 +2,11 @@ import axios from "../service/api";
 import type { StaffMember, CreateStaffInput } from "../pages/store-admin/staff-management/types/staff.types";
 
 export const fetchStaffMembers = () => {
-    return axios.get<StaffMember[]>("/staff");
+    return axios.get<StaffMember[]>("/users");
+};
+
+export const fetchStaffMemberById = (id: string) => {
+    return axios.get(`/users/${id}`);
 };
 
 export const createStaffMember = (data: CreateStaffInput) => {
@@ -13,13 +17,13 @@ export const createStaffMember = (data: CreateStaffInput) => {
         password: data.password,
         ...(data.role === "CASHIER" && { assignedTerminalIds: Array.isArray(data.assignedTerminalIds) ? data.assignedTerminalIds : [] }),
     };
-    return axios.post<StaffMember>("/staff", payload);
+    return axios.post<StaffMember>("/users", payload);
 };
 
-export const updateStaffMember = (id: string, data: Partial<CreateStaffInput>) => {
-    return axios.patch<StaffMember>(`/staff/${id}`, data);
+export const updateStaffMember = (id: string, data: any) => {
+    return axios.patch<StaffMember>(`/users/${id}`, data);
 };
 
 export const deleteStaffMember = (id: string) => {
-    return axios.delete(`/staff/${id}`);
+    return axios.delete(`/users/${id}`);
 };

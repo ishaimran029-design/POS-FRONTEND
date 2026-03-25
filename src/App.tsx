@@ -29,6 +29,15 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ProductsManagementPage = lazy(() => import('./pages/store-admin/products-management/ProductsManagementPage'));
 const AddProductPage = lazy(() => import('./pages/store-admin/products-management/AddProductPage'));
 const DevicesManagementPage = lazy(() => import('./pages/store-admin/devices-management/DevicesManagementPage'));
+const SalesHistoryPage = lazy(() => import('./pages/store-admin/sales/SalesHistoryPage'));
+const ProductCategories = lazy(() => import('./pages/store-admin/products-management/ProductCategoriesPage'));
+const InventoryManagement = lazy(() => import('./pages/store-admin/inventory/InventoryManagementPage'));
+const StockLevelsPage = lazy(() => import('./pages/store-admin/inventory/StockLevelsPage'));
+const SettingsPage = lazy(() => import('./pages/store-admin/settings/SettingsPage'));
+const StockAdjustmentPage = lazy(() => import('./pages/store-admin/inventory/StockAdjustmentPage'));
+const ReportsPage = lazy(() => import('./pages/store-admin/reports/ReportsPage'));
+const AuditLogsPage = lazy(() => import('./pages/store-admin/audit-logs/AuditLogsPage'));
+const StaffDetailPage = lazy(() => import('./pages/store-admin/staff-management/StaffDetailPage'));
 
 const App: React.FC = () => {
   const { hydrate, isLoading } = useAuthStore();
@@ -54,9 +63,18 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']} />}>
             <Route path="/store-admin/dashboard" element={<StoreAdminDashboard />} />
             <Route path="/store-admin/staff" element={<StaffManagementPage />} />
+            <Route path="/store-admin/staff/:id" element={<StaffDetailPage />} />
+            <Route path="/store-admin/inventory" element={<InventoryManagement />} />
+            <Route path="/store-admin/inventory/stocks" element={<StockLevelsPage />} />
+            <Route path="/store-admin/inventory/adjustments" element={<StockAdjustmentPage />} />
             <Route path="/store-admin/inventory/products" element={<ProductsManagementPage />} />
             <Route path="/store-admin/inventory/products/add" element={<AddProductPage />} />
+            <Route path="/store-admin/settings" element={<SettingsPage />} />
             <Route path="/store-admin/devices" element={<DevicesManagementPage />} />
+            <Route path="/store-admin/sales" element={<SalesHistoryPage />} />
+            <Route path="/store-admin/categories" element={<ProductCategories />} />
+            <Route path="/store-admin/reports" element={<ReportsPage />} />
+            <Route path="/store-admin/logs" element={<AuditLogsPage />} />
             <Route path="/store-admin" element={<Navigate to="/store-admin/dashboard" replace />} />
           </Route>
 
