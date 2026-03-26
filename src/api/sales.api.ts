@@ -20,6 +20,12 @@ export const getSaleById = (saleId: string) => {
   return axios.get(`/sales/${saleId}`);
 };
 
+export const getSaleByInvoiceNumber = (invoiceNumber: string) => {
+  // Encode the invoice number to handle special characters like #
+  const encodedInvoiceNumber = encodeURIComponent(invoiceNumber);
+  return axios.get(`/sales/invoice/${encodedInvoiceNumber}`);
+};
+
 export const syncOfflineSales = (payload: { batchId: string; deviceId: string; sales: any[] }) => {
   return axios.post("/sync/sales", payload);
 };
@@ -37,4 +43,4 @@ export const cancelSale = (id: string, reason: string) => {
 
 export const refundSale = (id: string, reason: string) => {
   return axios.post(`/sales/${id}/refund`, { reason });
-};
+};
