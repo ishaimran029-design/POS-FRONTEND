@@ -1,6 +1,5 @@
 import { MoreVertical, Search } from 'lucide-react';
-
-
+import { formatCurrency } from '@/utils/format';
 import type { Product } from '../types';
 
 interface TopProductsTableProps {
@@ -53,7 +52,7 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
                                     </div>
                                 </td>
                                 <td className="px-8 py-5 font-mono text-xs font-black text-slate-400">{product.sku}</td>
-                                <td className="px-8 py-5 text-right font-black text-slate-900 text-sm tabular-nums">₹ {product.revenue.toLocaleString()}</td>
+                                <td className="px-8 py-5 text-right font-black text-slate-900 text-sm tabular-nums">{formatCurrency(product.revenue)}</td>
                                 <td className="px-8 py-5 min-w-[180px]">
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">

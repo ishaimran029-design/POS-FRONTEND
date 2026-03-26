@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, ShoppingBag, DollarSign, Percent, Receipt, CreditCard } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface MetricCardProps {
     title: string;
@@ -56,11 +57,11 @@ interface ReportsSummaryCardsProps {
 
 const ReportsSummaryCards: React.FC<ReportsSummaryCardsProps> = ({ summary = {} }) => {
     const metrics = [
-        { title: 'Total Revenue', value: `₹ ${Math.round(summary.totalRevenue || 0).toLocaleString()}`, trend: 0, icon: DollarSign, color: 'blue' },
+        { title: 'Total Revenue', value: formatCurrency(summary.totalRevenue || 0), trend: 0, icon: DollarSign, color: 'blue' },
         { title: 'Transactions', value: (summary.totalTransactions || 0).toLocaleString(), trend: 0, icon: ShoppingBag, color: 'purple' },
-        { title: 'Avg. Order Value', value: `₹ ${Math.round(summary.averageTicketSize || 0).toLocaleString()}`, trend: 0, icon: CreditCard, color: 'amber' },
-        { title: 'Total Tax', value: `₹ ${Math.round(summary.totalTax || 0).toLocaleString()}`, trend: 0, icon: Receipt, color: 'emerald' },
-        { title: 'Discounts', value: `₹ ${Math.round(summary.totalDiscount || 0).toLocaleString()}`, trend: 0, icon: Percent, color: 'rose' },
+        { title: 'Avg. Order Value', value: formatCurrency(summary.averageTicketSize || 0), trend: 0, icon: CreditCard, color: 'amber' },
+        { title: 'Total Tax', value: formatCurrency(summary.totalTax || 0), trend: 0, icon: Receipt, color: 'emerald' },
+        { title: 'Discounts', value: formatCurrency(summary.totalDiscount || 0), trend: 0, icon: Percent, color: 'rose' },
     ];
 
     return (

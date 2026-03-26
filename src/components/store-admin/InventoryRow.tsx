@@ -11,13 +11,17 @@ const InventoryRow = ({ movement }: Props) => {
       : "text-rose-600 bg-rose-50 border-rose-100"
 
   const changeTypeBadge = () => {
-    switch (movement.changeType) {
+    const type = movement.changeType.toLowerCase();
+    switch (type) {
       case "sale":
         return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Sale</span>;
+      case "purchase":
       case "restock":
-        return <span className="px-2.5 py-1 bg-[#2563EB]/5 text-[#2563EB] border border-[#2563EB]/10 rounded-lg text-[10px] font-black uppercase tracking-widest">Restock</span>;
+        return <span className="px-2.5 py-1 bg-[#2563EB]/5 text-[#2563EB] border border-[#2563EB]/10 rounded-lg text-[10px] font-black uppercase tracking-widest">Stock In</span>;
       case "adjustment":
         return <span className="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Adjustment</span>;
+      case "opening_stock":
+        return <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Opening</span>;
       default:
         return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest">{movement.changeType}</span>;
     }

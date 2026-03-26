@@ -22,6 +22,7 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
     const [purchasePrice, setPurchasePrice] = useState('0');
     const [sellingPrice, setSellingPrice] = useState('0');
     const [taxPercentage, setTaxPercentage] = useState('0');
+    const [discountPercentage, setDiscountPercentage] = useState('0');
     const [initialStock, setInitialStock] = useState('0');
     const [reorderLevel, setReorderLevel] = useState('10');
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -69,6 +70,7 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
         formData.append('purchasePrice', purchasePrice);
         formData.append('sellingPrice', sellingPrice);
         formData.append('taxPercentage', taxPercentage);
+        formData.append('discountPercentage', discountPercentage);
         formData.append('initialStock', initialStock);
         formData.append('reorderLevel', reorderLevel);
         
@@ -88,6 +90,7 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
             setPurchasePrice('0');
             setSellingPrice('0');
             setTaxPercentage('0');
+            setDiscountPercentage('0');
             setInitialStock('0');
             setReorderLevel('10');
             setImageFile(null);
@@ -248,20 +251,37 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-span-2">
-                                            <label className={labelClasses}>Tax Rate (%)</label>
-                                            <div className="relative group">
-                                                <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
-                                                <select
-                                                    value={taxPercentage}
-                                                    onChange={(e) => setTaxPercentage(e.target.value)}
-                                                    className={`${inputClasses} appearance-none cursor-pointer font-bold`}
-                                                >
-                                                    <option value="0">No Tax</option>
-                                                    <option value="5">5%</option>
-                                                    <option value="10">10%</option>
-                                                    <option value="15">15%</option>
-                                                </select>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className={labelClasses}>Tax Rate (%)</label>
+                                                <div className="relative group">
+                                                    <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                                    <select
+                                                        value={taxPercentage}
+                                                        onChange={(e) => setTaxPercentage(e.target.value)}
+                                                        className={`${inputClasses} appearance-none cursor-pointer font-bold`}
+                                                    >
+                                                        <option value="0">No Tax</option>
+                                                        <option value="5">5%</option>
+                                                        <option value="10">10%</option>
+                                                        <option value="15">15%</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className={labelClasses}>Default Discount (%)</label>
+                                                <div className="relative group">
+                                                    <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        max="100"
+                                                        value={discountPercentage}
+                                                        onChange={(e) => setDiscountPercentage(e.target.value)}
+                                                        placeholder="0" 
+                                                        className={inputClasses} 
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

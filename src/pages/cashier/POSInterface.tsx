@@ -9,7 +9,7 @@ import {
   Plus,
   X,
   Percent,
-  IndianRupee,
+  Banknote,
   Clock,
   UserCircle2,
   Wifi,
@@ -17,17 +17,20 @@ import {
   AlertCircle,
   Search,
   Package,
+  Banknote,
 } from 'lucide-react';
 import { fetchProducts, getProductByBarcode, searchProducts } from '../../api/products.api';
 import { createSale } from '../../api/sales.api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDeviceStore } from '../../store/useDeviceStore';
+import { formatCurrency } from '@/utils/format';
 
 type CartItem = {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  discountPercentage?: number;
 };
 
 type HoldOrder = {
@@ -46,6 +49,7 @@ type Product = {
   barcode?: string;
   stock?: number;
   taxPercentage?: number;
+  discountPercentage?: number;
 };
 
 type DiscountMode = 'amount' | 'percent';
@@ -142,12 +146,19 @@ const POSInterface: React.FC = () => {
     [cart]
   );
 
+  const automaticDiscount = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.price * (item.discountPercentage || 0) / 100) * item.quantity, 0),
+    [cart]
+  );
+  
   const discountAmount = useMemo(() => {
-    if (!discountValue) return 0;
-    if (discountMode === 'amount') return Math.min(discountValue, subtotal);
-    // Percent
-    return Math.min((subtotal * discountValue) / 100, subtotal);
-  }, [discountMode, discountValue, subtotal]);
+    let manual = 0;
+    if (discountValue) {
+      if (discountMode === 'amount') manual = Math.min(discountValue, subtotal);
+      else manual = Math.min((subtotal * discountValue) / 100, subtotal);
+    }
+    return Math.min(manual + automaticDiscount, subtotal);
+  }, [discountMode, discountValue, subtotal, automaticDiscount]);
 
   const taxableBase = Math.max(subtotal - discountAmount, 0);
   const tax = taxableBase * TAX_RATE;
@@ -181,6 +192,7 @@ const POSInterface: React.FC = () => {
           name: product.name,
           price: unitPrice,
           quantity: 1,
+          discountPercentage: product.discountPercentage || 0,
         },
       ];
     });
@@ -611,7 +623,7 @@ const POSInterface: React.FC = () => {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <span className="font-bold text-emerald-600 text-[12px]">
-                              ₹{price.toFixed(2)}
+                              {formatCurrency(price)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -699,7 +711,7 @@ const POSInterface: React.FC = () => {
                       <div className="mb-2">
                         <span className="text-[10px] text-slate-600">Price:</span>
                         <div className="text-xs font-bold text-emerald-600">
-                          ₹{item.price.toFixed(2)}
+                          {formatCurrency(item.price)}
                         </div>
                       </div>
 
@@ -728,7 +740,7 @@ const POSInterface: React.FC = () => {
                       <div className="mb-2 text-center">
                         <span className="text-[9px] text-slate-600">Subtotal:</span>
                         <div className="text-xs font-bold text-emerald-700">
-                          ₹{(item.price * item.quantity).toFixed(2)}
+                          {formatCurrency(item.price * item.quantity)}
                         </div>
                       </div>
 
@@ -796,10 +808,10 @@ const POSInterface: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-4 py-2 text-right text-[12px] font-semibold text-slate-700">
-                          ₹{item.price.toFixed(2)}
+                          {formatCurrency(item.price)}
                         </td>
                         <td className="px-4 py-2 text-right text-[12px] font-bold text-slate-900">
-                          ₹{(item.price * item.quantity).toFixed(2)}
+                          {formatCurrency(item.price * item.quantity)}
                         </td>
                         <td className="px-2 py-2 text-center">
                           <button
@@ -829,29 +841,29 @@ const POSInterface: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-slate-600">Subtotal</span>
                 <span className="font-semibold text-slate-800">
-                  ₹{subtotal.toFixed(2)}
+                  {formatCurrency(subtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Tax (GST)</span>
                 <span className="font-semibold text-slate-800">
-                  ₹{tax.toFixed(2)}
+                  {formatCurrency(tax)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Discount</span>
                 <span className="font-semibold text-emerald-600">
-                  -₹{discountAmount.toFixed(2)}
+                  -{formatCurrency(discountAmount)}
                 </span>
               </div>
               <hr className="my-2 border-dashed border-slate-200" />
               <div className="flex justify-between items-center text-lg font-black">
                 <span className="flex items-center space-x-1 text-slate-900">
-                  <IndianRupee size={18} />
+                  <Banknote size={18} />
                   <span>Total</span>
                 </span>
-                <span className="text-emerald-500">
-                  ₹{total.toFixed(2)}
+                <span className="text-emerald-500 text-xl font-bold">
+                  {formatCurrency(total)}
                 </span>
               </div>
             </div>
@@ -868,7 +880,7 @@ const POSInterface: React.FC = () => {
                       : 'border-slate-200 text-slate-600 bg-white'
                   }`}
                 >
-                  <IndianRupee size={13} />
+                  <span className="text-xs">Rs.</span>
                   <span>Amount</span>
                 </button>
                 <button
@@ -891,7 +903,7 @@ const POSInterface: React.FC = () => {
                   value={discountValue || ''}
                   onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
                   className="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-                  placeholder={discountMode === 'amount' ? '₹ amount' : '% value'}
+                  placeholder={discountMode === 'amount' ? 'Rs. amount' : '% value'}
                 />
                 <span className="text-[11px] text-slate-500 font-semibold">
                   APPLY DISCOUNT
@@ -901,8 +913,8 @@ const POSInterface: React.FC = () => {
                 <div className="text-[11px] text-emerald-700 font-medium">
                   Applied discount:{' '}
                   {discountMode === 'amount'
-                    ? `₹${discountAmount.toFixed(2)}`
-                    : `${discountValue}% (₹${discountAmount.toFixed(2)})`}
+                    ? formatCurrency(discountAmount)
+                    : `${discountValue}% (${formatCurrency(discountAmount)})`}
                 </div>
               )}
             </div>
@@ -1054,7 +1066,7 @@ const POSInterface: React.FC = () => {
                           {order.timestamp.toLocaleTimeString()}
                         </span>
                         <span className="text-sm font-bold text-amber-900">
-                          ₹{order.total.toFixed(2)}
+                          {formatCurrency(order.total)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -1151,9 +1163,7 @@ const POSInterface: React.FC = () => {
                             {p.sku || p.barcode || '-'}
                           </td>
                           <td className="px-3 py-2 text-right font-semibold text-slate-800">
-                            ₹{(
-                              (p as any).sellingPrice ?? (p as any).price ?? 0
-                            ).toFixed(2)}
+                            {formatCurrency((p as any).sellingPrice ?? (p as any).price ?? 0)}
                           </td>
                           <td className="px-3 py-2 text-right">
                             <button

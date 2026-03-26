@@ -13,6 +13,7 @@ import {
     RotateCcw, 
     XCircle 
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface SalesHistoryTableProps {
     transactions: any[];
@@ -124,7 +125,7 @@ const SalesHistoryTable: React.FC<SalesHistoryTableProps> = ({
                                     </td>
                                     <td className="px-6 py-5">
                                         <span className="text-sm font-black text-slate-900 tabular-nums">
-                                            ₹ {Number(tx.totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            {formatCurrency(Number(tx.totalAmount))}
                                         </span>
                                     </td>
                                     <td className="px-6 py-5">

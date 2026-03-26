@@ -1,5 +1,6 @@
 import ProductStockBadge from "./ProductStockBadge"
-import { Trash } from "lucide-react"
+import { Trash, Plus } from "lucide-react"
+import { formatCurrency } from "@/utils/format"
 
 export default function ProductRow({ product, index }: any) {
 
@@ -30,11 +31,11 @@ export default function ProductRow({ product, index }: any) {
             </td>
 
             <td className="px-6 py-4 text-slate-500 text-sm font-bold tabular-nums">
-                ₹{Number(product.purchasePrice).toLocaleString()}
+                {formatCurrency(Number(product.purchasePrice))}
             </td>
 
             <td className="px-6 py-4 font-black text-[#2563EB] text-sm tabular-nums">
-                ₹{Number(product.sellingPrice).toLocaleString()}
+                {formatCurrency(Number(product.sellingPrice))}
             </td>
 
             <td className="px-6 py-4 text-center">
@@ -42,7 +43,15 @@ export default function ProductRow({ product, index }: any) {
             </td>
 
             <td className="px-6 py-4">
-                <div className="flex gap-1 justify-end">
+                <div className="flex gap-2 justify-end">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); product.onAddStock?.(product); }}
+                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all active:scale-90 flex items-center gap-1.5"
+                        title="Add Stock"
+                    >
+                        <Plus size={16} />
+                        <span className="text-[10px] font-black uppercase">Stock</span>
+                    </button>
                     <button className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all active:scale-90">
                         <Trash size={16} />
                     </button>

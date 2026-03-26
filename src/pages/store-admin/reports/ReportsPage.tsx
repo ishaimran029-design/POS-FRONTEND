@@ -7,6 +7,7 @@ import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
 import { getStoreDashboardData, getInventoryReport } from "@/api/reports.api";
 import { AlertCircle, FileText } from "lucide-react";
+import { formatCurrency } from "@/utils/format";
 
 const ReportsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -103,11 +104,11 @@ const ReportsPage = () => {
                         <>
                             {(() => {
                                 const reportsStatsData = [
-                                    { name: 'Total Revenue', stat: `₹ ${Math.round(data.summary?.totalRevenue || 0).toLocaleString()}` },
+                                    { name: 'Total Revenue', stat: formatCurrency(data.summary?.totalRevenue || 0) },
                                     { name: 'Transactions', stat: (data.summary?.totalTransactions || 0).toLocaleString() },
-                                    { name: 'Avg. Order Value', stat: `₹ ${Math.round(data.summary?.averageTicketSize || 0).toLocaleString()}` },
-                                    { name: 'Total Tax', stat: `₹ ${Math.round(data.summary?.totalTax || 0).toLocaleString()}` },
-                                    { name: 'Discounts', stat: `₹ ${Math.round(data.summary?.totalDiscount || 0).toLocaleString()}` },
+                                    { name: 'Avg. Order Value', stat: formatCurrency(data.summary?.averageTicketSize || 0) },
+                                    { name: 'Total Tax', stat: formatCurrency(data.summary?.totalTax || 0) },
+                                    { name: 'Discounts', stat: formatCurrency(data.summary?.totalDiscount || 0) },
                                 ];
                                 return <StatsCards data={reportsStatsData} />;
                             })()}

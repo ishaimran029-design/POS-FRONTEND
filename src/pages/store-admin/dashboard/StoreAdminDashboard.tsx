@@ -13,6 +13,7 @@ import TopProductsTable from './components/TopProductsTable';
 
 import { getDashboardSummary } from '@/api/dashboard.api';
 import { getDevices } from '@/api/dashboard.api';
+import { formatCurrency } from '@/utils/format';
 
 interface DashboardView {
   metrics: { value: number }[];
@@ -61,6 +62,7 @@ export default function StoreAdminDashboard() {
             { value: today.transactions ?? s.totalTransactions ?? 0 },
             { value: inv.lowStockCount ?? 0 },
             { value: s.totalTransactions ?? 0 },
+            { value: s.totalDiscount ?? 0 },
           ],
           dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
           weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
@@ -123,10 +125,11 @@ export default function StoreAdminDashboard() {
     );
   }
   const statsData = [
-    { name: "Total Revenue", stat: `₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`, change: "+12.5%", changeType: "positive" as const },
+    { name: "Total Revenue", stat: formatCurrency(data.metrics?.[0]?.value ?? 0), change: "+12.5%", changeType: "positive" as const },
     { name: "Active Sales", stat: `${data.metrics?.[1]?.value ?? 0}`, change: "+5.1%", changeType: "positive" as const },
     { name: "Inventory Alerts", stat: `${data.metrics?.[2]?.value ?? 0}`, change: "0%", changeType: "positive" as const },
-    { name: "Total Orders", stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, change: "+8.4%", changeType: "positive" as const }
+    { name: "Total Orders", stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, change: "+8.4%", changeType: "positive" as const },
+    { name: "Total Discounts", stat: formatCurrency(data.metrics?.[4]?.value ?? 0), change: "+2.1%", changeType: "positive" as const }
   ];
 
   return (

@@ -27,7 +27,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" opacity={0.5} />
                         <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} dy={10} />
-                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `₹${v}`} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 900 }} tickFormatter={(v) => `Rs.${v}`} />
                         <Tooltip contentStyle={{ borderRadius: '24px', border: '1px solid #F1F5F9', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)', padding: '16px', background: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(8px)' }} itemStyle={{ fontWeight: 900, fontSize: '14px', color: '#0F172A' }} labelStyle={{ fontWeight: 900, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', color: '#94A3B8', marginBottom: '8px' }} />
                         <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" animationDuration={2000} />
                         <Line type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={4} dot={{ r: 6, fill: '#fff', stroke: '#1E1B4B', strokeWidth: 3 }} activeDot={{ r: 8, fill: '#2563EB', stroke: '#fff', strokeWidth: 4 }} />

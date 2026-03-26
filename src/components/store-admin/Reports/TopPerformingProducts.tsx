@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowUpRight, Award } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface TopPerformingProductsProps {
     products?: Array<{
@@ -54,7 +55,7 @@ const TopPerformingProducts: React.FC<TopPerformingProductsProps> = ({ products 
                                     </td>
                                     <td className="px-8 py-5 text-right">
                                         <span className="text-sm font-black text-slate-900 tabular-nums">
-                                            ₹ {Math.round(product.revenue || 0).toLocaleString()}
+                                            {formatCurrency(product.revenue || 0)}
                                         </span>
                                     </td>
                                     <td className="px-8 py-5 text-right">

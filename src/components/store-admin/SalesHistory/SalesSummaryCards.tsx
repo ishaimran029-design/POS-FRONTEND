@@ -1,5 +1,5 @@
-import React from 'react';
 import { TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 interface SalesSummaryCardsProps {
     data: {
@@ -29,7 +29,7 @@ const SalesSummaryCards: React.FC<SalesSummaryCardsProps> = ({ data, loading }) 
                             <div className="h-10 w-32 bg-slate-50 animate-pulse rounded-lg mt-1"></div>
                         ) : (
                             <h2 className="text-3xl font-black text-slate-900 tracking-tight mt-1 tabular-nums">
-                                ₹ {data.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                {formatCurrency(data.totalAmount)}
                             </h2>
                         )}
                     </div>
