@@ -1,36 +1,26 @@
 import api from "./api";
 
-console.log('📦 [Products API] Calling GET /products...');
-try {
-  const response = await api.get("/products");
-  console.log('📦 [Products API] Response:', response);
-  return response;
-} catch (error: any) {
-  console.error('❌ [Products API] Error:', error);
-=======
+export const fetchProducts = async () => {
+  console.log('📦 [Products API] Calling GET /products...');
   try {
-    console.log('🔗 Products API - Calling GET /products endpoint...');
     const response = await api.get("/products");
-    console.log('🔗 Products API - Response received:', response);
+    console.log('📦 [Products API] Response:', response);
     return response;
   } catch (error: any) {
-    console.error('🔗 Products API - Error calling /products:', error);
->>>>>>> main
-  throw error;
-}
->>>>>>> origin/main
+    console.error('❌ [Products API] Error:', error);
+    throw error;
+  }
 };
-
 
 export const fetchTopProducts = () => {
   return api.get("/products/top");
 };
 
-export const createProduct = (data: FormData) => {
+export const createProduct = (data: any) => {
   return api.post("/products", data);
 };
 
-export const updateProduct = (id: string, data: FormData) => {
+export const updateProduct = (id: string, data: any) => {
   return api.patch(`/products/${id}`, data);
 };
 

@@ -89,44 +89,28 @@ const POSInterface: React.FC = () => {
       setProductsLoading(true);
       setProductsError(null);
       try {
-        console.log('🔄 POSInterface - Component mounted, loading products from /products endpoint...');
-        
-        // Try to fetch all active products
+        console.log('� [POS] Loading products...');
         const res = await fetchProducts();
-        console.log('📦 POSInterface - Raw API Response:', res);
-        console.log('📦 POSInterface - Response data:', res.data);
-        console.log('📦 POSInterface - Response status:', res.status);
         
+        // Extract products from response
         let products: Product[] = [];
         
-        // Handle different response formats
-        if (res.data?.success && Array.isArray(res.data.data)) {
-          products = res.data.data as Product[];
-          console.log('✅ POSInterface - Found products in res.data.data:', products.length, 'products');
-        } else if (res.data?.data && Array.isArray(res.data.data)) {
-          products = res.data.data as Product[];
-          console.log('✅ POSInterface - Found products in res.data.data (nested):', products.length, 'products');
+        if (res.data?.data && Array.isArray(res.data.data)) {
+          products = res.data.data;
         } else if (Array.isArray(res.data)) {
-          products = res.data as Product[];
-          console.log('✅ POSInterface - Found products in res.data (direct array):', products.length, 'products');
+          products = res.data;
         } else {
-          console.warn('⚠️ POSInterface - Unexpected API response structure:', res.data);
+          console.warn('⚠️ [POS] Unexpected response format:', res.data);
           products = [];
         }
         
-        // Filter to only show active products if not already filtered by API
+        // Filter active products
         const activeProducts = products.filter((p: any) => p.isActive !== false);
-        console.log('✅ POSInterface - Active products after filtering:', activeProducts.length, activeProducts);
+        console.log('✅ [POS] Loaded', activeProducts.length, 'products:', activeProducts);
         
         setAllProducts(activeProducts);
       } catch (err: any) {
-        console.error('❌ POSInterface - Error fetching products:', err);
-        console.error('❌ POSInterface - Error details:', {
-          message: err.message,
-          status: err.response?.status,
-          statusText: err.response?.statusText,
-          data: err.response?.data,
-        });
+        console.error('❌ [POS] Failed to load products:', err.message);
         const errorMsg = err.response?.data?.message || err.message || 'Failed to load products';
         setProductsError(errorMsg);
         setAllProducts([]);
@@ -150,32 +134,6 @@ const POSInterface: React.FC = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
-
-  // Fetch all products on mount
-  useEffect(() => {
-    const loadProducts = async () => {
-      setProductsLoading(true);
-      setProductsError(null);
-      try {
-        const res = await fetchProducts();
-        if (res.data?.success && Array.isArray(res.data.data)) {
-          setAllProducts(res.data.data as Product[]);
-        } else if (Array.isArray(res.data)) {
-          setAllProducts(res.data as Product[]);
-        } else {
-          setAllProducts([]);
-        }
-      } catch (err: any) {
-        const msg = err.response?.data?.message || 'Failed to load products';
-        setProductsError(msg);
-        setAllProducts([]);
-      } finally {
-        setProductsLoading(false);
-      }
-    };
-
-    loadProducts();
   }, []);
 
   // Totals
