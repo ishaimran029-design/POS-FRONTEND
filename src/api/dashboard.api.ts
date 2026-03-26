@@ -41,6 +41,6 @@ export const getSalesReport = (params: { startDate: string; endDate: string }) =
 };
 
 // 8. Get Store Admin Specific Dashboard Metrics (Today's summary, top products, etc.)
-export const getDashboardSummary = () => {
-    return api.get('/reports/storeadmin/dashboard');
+export const getDashboardSummary = (params?: { startDate: string; endDate: string }) => {
+    return api.get('/reports/storeadmin/dashboard', { params });
 };

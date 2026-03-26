@@ -1,11 +1,12 @@
-import { Download, Plus } from 'lucide-react';
+import { Download, Plus, RotateCw } from 'lucide-react';
 
 interface StaffHeaderProps {
     onAddStaff: () => void;
     onExport: () => void;
+    onRefresh?: () => void;
 }
 
-export default function StaffHeader({ onAddStaff, onExport }: StaffHeaderProps) {
+export default function StaffHeader({ onAddStaff, onExport, onRefresh }: StaffHeaderProps) {
     return (
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 animate-fade-in px-2">
             <div>
@@ -16,6 +17,14 @@ export default function StaffHeader({ onAddStaff, onExport }: StaffHeaderProps) 
             </div>
 
             <div className="flex items-center gap-4">
+                <button
+                    onClick={onRefresh}
+                    className="flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-600 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all active:scale-95 shadow-sm group"
+                    title="Refresh Data"
+                >
+                    <RotateCw className="w-4 h-4 text-slate-400 group-hover:text-[#2563EB]" />
+                    Refresh
+                </button>
                 <button
                     onClick={onExport}
                     className="flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 rounded-2xl text-slate-600 font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all active:scale-95 shadow-sm group"

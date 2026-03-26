@@ -13,13 +13,15 @@ export default function StaffRow({ member, onToggleStatus, onEdit }: StaffRowPro
         <tr className="hover:bg-[#2563EB]/5 transition-all duration-300 group cursor-pointer border-b border-slate-50/50 last:border-0">
             <td className="px-6 py-5 text-center">
                 <span className="text-[10px] font-black text-slate-300 group-hover:text-[#2563EB]/40 transition-colors uppercase tracking-widest">
-                    #{member.id.slice(-4)}
+                    {member.id.toUpperCase().slice(-4)}
                 </span>
             </td>
             <td className="px-6 py-5 text-center">
                 <div className="flex flex-col items-center">
                     <p className="text-sm font-black text-slate-900 leading-none">{member.name}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Employee</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                        {member.role.replace('_', ' ')}
+                    </p>
                 </div>
             </td>
             <td className="px-6 py-5 text-center">

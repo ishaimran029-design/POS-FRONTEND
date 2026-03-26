@@ -11,8 +11,12 @@ api.interceptors.request.use((config) => {
   if (authStorage) {
     try {
       const { state } = JSON.parse(authStorage);
-      if (state.accessToken) {
-        config.headers.Authorization = `Bearer ${state.accessToken}`;
+      if (state?.accessToken) {
+        if (config.headers && typeof config.headers.set === 'function') {
+          config.headers.set('Authorization', `Bearer ${state.accessToken}`);
+        } else {
+          config.headers.Authorization = `Bearer ${state.accessToken}`;
+        }
       }
     } catch (e) {
       console.error('Error parsing auth-storage', e);
@@ -60,13 +64,16 @@ api.interceptors.response.use(
               const { accessToken, refreshToken: newRefreshToken } = response.data.data;
               console.log('[API] ✅ Token refreshed successfully');
 
-              // Update state in localStorage (Zustand will pick it up or we manually patch)
               const newState = { ...JSON.parse(authStorage), state: { ...state, accessToken } };
               localStorage.setItem('auth-storage', JSON.stringify(newState));
               localStorage.setItem('refresh-token', newRefreshToken);
 
-              originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-              return axios(originalRequest);
+              if (originalRequest.headers && typeof originalRequest.headers.set === 'function') {
+                originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
+              } else {
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+              }
+              return api(originalRequest);
             }
           } else {
             console.warn('[API] No refresh token available');

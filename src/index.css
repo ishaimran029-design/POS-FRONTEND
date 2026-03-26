@@ -23,6 +23,13 @@
   --foreground: #0F172A;
   --card: #FFFFFF;
   --border: #E2E8F0;
+
+  /* Chart Theme Colors */
+  --chart-1: #262255;      /* Brand Indigo (Matches Category Distribution) */
+  --chart-2: #24608F;      /* Ocean Blue */
+  --chart-3: #508CBB;      /* Sky Blue */
+  --chart-4: #6366F1;      /* Indigo */
+  --chart-5: #3B82F6;      /* Sky Blue */
 }
 
 /* Sliding Sidebar Label Visibility Rules */

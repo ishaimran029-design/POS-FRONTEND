@@ -7,7 +7,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, Line, LineChart, 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/Card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart"
 
-import GlobalPieChart from "@/components/global-components/PieChart";
+import GlobalPieChart from "@/components/global-components-temp/PieChart";
 
 type ChartConfig = Record<string, { label: string; color?: string }>
 

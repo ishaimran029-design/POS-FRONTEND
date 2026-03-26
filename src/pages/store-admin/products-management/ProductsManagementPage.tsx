@@ -47,6 +47,13 @@ export default function ProductsManagementPage() {
     }
 
 
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            void loadProducts();
+        }, 300); // Debounce search
+        return () => clearTimeout(timeoutId);
+    }, [search, categoryId, isActive]);
+
     const loadProducts = async () => {
         setLoading(true)
         try {

@@ -23,6 +23,26 @@ const InventoryManagementPage = () => {
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState("")
+  const [typeFilter, setTypeFilter] = useState("All Movements")
+  const [timeFilter, setTimeFilter] = useState("All Time")
+
+  const filteredMovements = movements.filter(m => {
+      const q = searchQuery.toLowerCase();
+      const matchesSearch = !q || 
+          m.productName.toLowerCase().includes(q) || 
+          m.sku.toLowerCase().includes(q) ||
+          m.referenceId.toLowerCase().includes(q);
+      
+      const matchesType = typeFilter === "All Movements" || 
+          (typeFilter.toLowerCase() === m.changeType.toLowerCase());
+      
+      // Time filter logic could be added here if needed, 
+      // but for now we focus on search and type.
+      return matchesSearch && matchesType;
+  });
+
   const fetchMovements = async () => {
     try {
       setLoading(true)
@@ -97,8 +117,15 @@ const InventoryManagementPage = () => {
 
         <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-10">
           <InventoryHeader />
-          <InventoryFilters />
-          <InventoryTable movements={movements} loading={loading} />
+          <InventoryFilters 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            typeFilter={typeFilter}
+            onTypeChange={setTypeFilter}
+            timeFilter={timeFilter}
+            onTimeChange={setTimeFilter}
+          />
+          <InventoryTable movements={filteredMovements} loading={loading} />
         </main>
       </div>
     </div>

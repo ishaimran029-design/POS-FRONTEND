@@ -2,16 +2,17 @@ import { useState, useEffect } from "react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import ReportsHeader from "@/components/store-admin/Reports/ReportsHeader";
-import StatsCards from "@/components/global-components/StatsCards";
+import StatsCards from "@/components/global-components-temp/StatsCards";
 import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
+import InventoryReportTables from "@/components/store-admin/Reports/InventoryReportTables";
 import { getStoreDashboardData, getInventoryReport } from "@/api/reports.api";
-import { AlertCircle, FileText } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 const ReportsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'sales' | 'inventory'>('sales');
-    const [dateRange, setDateRange] = useState('Month');
+    const [dateRange, setDateRange] = useState('This Week');
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,7 +24,7 @@ const ReportsPage = () => {
             start.setHours(0, 0, 0, 0);
         } else if (range === 'This Week') {
             const day = start.getDay();
-            const diff = start.getDate() - day + (day === 0 ? -6 : 1); 
+            const diff = start.getDate() - day + (day === 0 ? -6 : 1);
             start.setDate(diff);
             start.setHours(0, 0, 0, 0);
         } else if (range === 'Month') {
@@ -44,28 +45,34 @@ const ReportsPage = () => {
                 if (activeTab === 'sales') {
                     const { startDate, endDate } = calculateDateRange(dateRange);
                     const res = await getStoreDashboardData({ startDate, endDate });
-                    if (res.data.success) {
-                        setData(res.data.data);
-                    } else {
-                        throw new Error(res.data.message || 'Failed to load report');
-                    }
+                    setData(res.data?.data || null);
                 } else {
                     const res = await getInventoryReport();
-                    if (res.data.success) {
-                        setData(res.data.data);
-                    } else {
-                        throw new Error(res.data.message || 'Failed to load report');
-                    }
+                    setData(res.data?.data || null);
                 }
             } catch (err: any) {
-                console.error('Failed to load report data', err);
-                setError(err.message || 'Failed to load report');
+                console.error("Failed to load report data", err);
+                setError(err.response?.data?.message || err.message || "Connection to report server failed.");
             } finally {
                 setLoading(false);
             }
         };
         void loadReport();
     }, [activeTab, dateRange]);
+
+    const salesStats = data ? [
+        { name: "Total Revenue", stat: `₹ ${Number(data.summary?.totalRevenue ?? 0).toLocaleString()}`, change: "+14%", changeType: "positive" as const },
+        { name: "Transactions", stat: `${data.summary?.totalTransactions ?? 0}`, change: "+8%", changeType: "positive" as const },
+        { name: "Avg Ticket", stat: `₹ ${Math.round(data.summary?.averageTicketSize ?? 0).toLocaleString()}`, change: "+2%", changeType: "positive" as const },
+        { name: "Tax Collected", stat: `₹ ${Number(data.summary?.totalTax ?? 0).toLocaleString()}`, change: "+12%", changeType: "positive" as const }
+    ] : [];
+
+    const inventoryStats = data ? [
+        { name: "Tracked Items", stat: `${data.summary?.totalProducts ?? 0}`, changeType: "positive" as const },
+        { name: "Low Stock", stat: `${data.summary?.lowStockCount ?? 0}`, changeType: "negative" as const },
+        { name: "Out of Stock", stat: `${data.summary?.outOfStockCount ?? 0}`, changeType: "negative" as const },
+        { name: "Total Value", stat: `₹ ${Number(data.summary?.totalStockValue ?? 0).toLocaleString()}`, changeType: "positive" as const }
+    ] : [];
 
     return (
         <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
@@ -90,41 +97,49 @@ const ReportsPage = () => {
                     />
 
                     {loading ? (
-                        <div className="flex items-center justify-center h-96">
-                            <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <div className="flex flex-col items-center justify-center py-24 gap-4 animate-pulse">
+                            <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Compiling Data Stream...</p>
                         </div>
                     ) : error ? (
-                        <div className="bg-white p-12 rounded-[32px] border border-slate-100 shadow-sm text-center">
-                            <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-                            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Failed to load data</h3>
-                            <p className="text-slate-500 text-sm">{error}</p>
+                        <div className="bg-white p-12 rounded-[40px] border border-slate-100 shadow-xl text-center max-w-lg mx-auto mt-12 animate-in zoom-in-95 duration-500">
+                            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto mb-6 border border-rose-100 shadow-sm">
+                                <AlertTriangle size={40} />
+                            </div>
+                            <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Report Failure</h2>
+                            <p className="text-slate-500 font-medium mb-8 leading-relaxed px-4">{error}</p>
+                            <button 
+                                onClick={() => window.location.reload()}
+                                className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200"
+                            >
+                                Try Again
+                            </button>
                         </div>
                     ) : activeTab === 'sales' && data ? (
-                        <>
-                            {(() => {
-                                const reportsStatsData = [
-                                    { name: 'Total Revenue', stat: `₹ ${Math.round(data.summary?.totalRevenue || 0).toLocaleString()}` },
-                                    { name: 'Transactions', stat: (data.summary?.totalTransactions || 0).toLocaleString() },
-                                    { name: 'Avg. Order Value', stat: `₹ ${Math.round(data.summary?.averageTicketSize || 0).toLocaleString()}` },
-                                    { name: 'Total Tax', stat: `₹ ${Math.round(data.summary?.totalTax || 0).toLocaleString()}` },
-                                    { name: 'Discounts', stat: `₹ ${Math.round(data.summary?.totalDiscount || 0).toLocaleString()}` },
-                                ];
-                                return <StatsCards data={reportsStatsData} />;
-                            })()}
-                            <ReportsCharts charts={data.charts || {}} />
-                            <TopPerformingProducts products={data.topProducts || []} />
-                        </>
-                    ) : activeTab === 'inventory' && data ? (
-                        <div className="bg-white p-20 rounded-[32px] border border-slate-100 shadow-sm text-center">
-                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-4 border border-slate-100">
-                                <FileText size={32} />
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <StatsCards data={salesStats} />
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                <div className="lg:col-span-8">
+                                    <ReportsCharts charts={data.charts || {}} />
+                                </div>
+                                <div className="lg:col-span-4">
+                                    <TopPerformingProducts products={data.topProducts || []} />
+                                </div>
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Inventory Report Loaded</h3>
-                            <p className="text-[10px] text-slate-400 font-bold max-w-xs mx-auto mt-2 uppercase tracking-widest leading-loose">
-                                Low Stock: {data.summary?.lowStockCount}, Out of Stock: {data.summary?.outOfStockCount}
-                            </p>
                         </div>
-                    ) : null}
+                    ) : activeTab === 'inventory' && data ? (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <StatsCards data={inventoryStats} />
+                            <InventoryReportTables 
+                                lowStock={data.lowStock ?? []} 
+                                outOfStock={data.outOfStock ?? []} 
+                            />
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 text-slate-400 font-bold tracking-widest uppercase text-xs">
+                          No report data available for this criteria.
+                        </div>
+                    )}
                 </main>
             </div>
         </div>

@@ -34,28 +34,29 @@ export default function StaffManagementPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
+    const fetchStaff = async (isPoll = false) => {
+        if (!isPoll) setLoading(true);
+        try {
+            const response = await fetchStaffMembers();
+            const resData = response.data as { data?: unknown } | unknown[];
+            const users = Array.isArray(resData) ? resData : (resData && typeof resData === 'object' && 'data' in resData ? (resData as { data: unknown[] }).data : []);
+            if (Array.isArray(users)) {
+                setStaff(users.map((u) => mapApiUser(u as { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null })));
+            } else {
+                setStaff([]);
+            }
+        } catch (err) {
+            console.warn("Staff API failed", err);
+            if (!isPoll) setStaff([]);
+        } finally {
+            if (!isPoll) setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        let cancelled = false;
-        setLoading(true);
-        fetchStaffMembers()
-            .then((response) => {
-                if (cancelled) return;
-                const resData = response.data as { data?: unknown } | unknown[];
-                const users = Array.isArray(resData) ? resData : (resData && typeof resData === 'object' && 'data' in resData ? (resData as { data: unknown[] }).data : []);
-                if (Array.isArray(users)) {
-                    setStaff(users.map((u) => mapApiUser(u as { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null })));
-                } else {
-                    setStaff([]);
-                }
-            })
-            .catch((err) => {
-                if (!cancelled) setStaff([]);
-                console.warn("Staff API failed", err);
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
-            });
-        return () => { cancelled = true; };
+        fetchStaff();
+        const interval = setInterval(() => fetchStaff(true), 60000); // Poll every minute
+        return () => clearInterval(interval);
     }, []);
 
     const filteredStaff = staff.filter(member => {
@@ -140,6 +141,7 @@ export default function StaffManagementPage() {
                     <StaffHeader
                         onAddStaff={() => setIsModalOpen(true)}
                         onExport={() => alert('Export CSV feature coming soon!')}
+                        onRefresh={() => fetchStaff()}
                     />
 
                     <StaffFilters

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import GlobalPieChart from '@/components/global-components/PieChart';
-import StatsCards from "@/components/global-components/StatsCards";
+import GlobalPieChart from '@/components/global-components-temp/PieChart';
+import StatsCards from "@/components/global-components-temp/StatsCards";
 import {
     CalendarDays,
     Download,
