@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import InventoryHeader from "@/components/store-admin/InventoryHeader"
 import InventoryFilters from "@/components/store-admin/InventoryFilters"
 import InventoryTable from "@/components/store-admin/InventoryTable"
 import Sidebar from '@/components/store-admin/Sidebar'
 import TopNavbar from '@/components/store-admin/TopNavbar'
-import { fetchFullInventory } from "@/api/inventory.api"
+import { useInventory } from "@/hooks/useInventory"
 
 export interface InventoryMovement {
   id: string
@@ -20,13 +20,17 @@ export interface InventoryMovement {
 
 const InventoryManagementPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [movements, setMovements] = useState<InventoryMovement[]>([])
-  const [loading, setLoading] = useState(false)
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("All Movements")
   const [timeFilter, setTimeFilter] = useState("All Time")
+
+  // React Query Hook
+  const { data: inventoryDataRes, isLoading: loading } = useInventory();
+
+  const movementsRaw = (inventoryDataRes as any)?.data || (Array.isArray(inventoryDataRes) ? inventoryDataRes : []);
+  const movements: InventoryMovement[] = movementsRaw;
 
   const filteredMovements = movements.filter(m => {
       const q = searchQuery.toLowerCase();
@@ -38,68 +42,8 @@ const InventoryManagementPage = () => {
       const matchesType = typeFilter === "All Movements" || 
           (typeFilter.toLowerCase() === m.changeType.toLowerCase());
       
-      // Time filter logic could be added here if needed, 
-      // but for now we focus on search and type.
       return matchesSearch && matchesType;
   });
-
-  const fetchMovements = async () => {
-    try {
-      setLoading(true)
-      const res = await fetchFullInventory()
-      
-      // Handle the nested structure of the API response
-      const inventoryData = res.data?.data || res.data || []
-      
-      // Mapping or direct assignment based on the API response structure
-      // For now, assuming the API returns an array of inventory items
-      setMovements(inventoryData)
-    } catch (error) {
-      console.error("Failed to load inventory movements", error)
-      // Fallback data if API is not fully implemented yet 
-      setMovements([
-          {
-              id: "1",
-              productName: "Logitech MX Master 3S",
-              sku: "LOG-MX3S-GRY",
-              image: "",
-              quantityChange: 15,
-              changeType: "restock",
-              referenceId: "PO-2023-4589",
-              user: "Admin User",
-              timestamp: "2023-10-27 14:32"
-          },
-          {
-              id: "2",
-              productName: "Apple MacBook Pro 14\"",
-              sku: "APP-MBP14-M2",
-              image: "",
-              quantityChange: -1,
-              changeType: "sale",
-              referenceId: "ORD-9982-XS",
-              user: "Store Cashier",
-              timestamp: "2023-10-27 11:15"
-          },
-          {
-              id: "3",
-              productName: "Sony WH-1000XM5",
-              sku: "SON-WH5-BLK",
-              image: "",
-              quantityChange: -2,
-              changeType: "adjustment",
-              referenceId: "ADJ-001-2023",
-              user: "Inventory Manager",
-              timestamp: "2023-10-26 09:45"
-          }
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchMovements()
-  }, [])
 
   return (
     <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">

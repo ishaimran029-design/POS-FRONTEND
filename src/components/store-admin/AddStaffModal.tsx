@@ -1,4 +1,4 @@
-import { X, User, Mail, Shield, Lock, Monitor } from 'lucide-react';
+import { X, User, Mail, Shield, Lock, Monitor, Eye, EyeOff } from 'lucide-react';
 import type { StaffMember, CreateStaffInput } from '../../pages/store-admin/staff-management/types/staff.types';
 import { useState, useEffect } from 'react';
 import { terminalsApi } from '../../service/api';
@@ -27,6 +27,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
     const [terminals, setTerminals] = useState<Terminal[]>([]);
 
     useEffect(() => {
@@ -111,14 +112,13 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={handleClose}></div>
-
-            <div className="bg-white w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
-                <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50 shrink-0">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
+                <div className="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editMember ? 'Edit Staff Details' : 'Add New Staff'}</h2>
-                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest mt-1">{editMember ? 'Modify identity or permissions' : 'Onboard Cashier or Accountant'}</p>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{editMember ? 'Edit Staff Details' : 'Add New Staff'}</h2>
+                        <p className="text-slate-400 dark:text-slate-500 text-xs font-black uppercase tracking-widest mt-1">{editMember ? 'Modify identity or permissions' : 'Onboard Cashier or Accountant'}</p>
                     </div>
-                    <button onClick={handleClose} type="button" className="p-3 hover:bg-white rounded-2xl text-slate-400 transition-all active:scale-95">
+                    <button onClick={handleClose} type="button" className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 transition-all active:scale-95">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -140,7 +140,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                                     placeholder="e.g. Jane Doe"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -155,7 +155,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                                     placeholder="jane.doe@example.com"
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
                                 />
                             </div>
                         </div>
@@ -170,7 +170,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                                         const role = e.target.value as 'CASHIER' | 'ACCOUNTANT';
                                         setFormData({ ...formData, role, assignedTerminalIds: role === 'ACCOUNTANT' ? undefined : formData.assignedTerminalIds });
                                     }}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer text-slate-900 dark:text-white"
                                 >
                                     <option value="CASHIER">Cashier</option>
                                     <option value="ACCOUNTANT">Accountant</option>
@@ -207,16 +207,23 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
 
                         <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Password {editMember ? '(Leave blank to keep same)' : '(required)'}</label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
                                 <input
                                     required={!editMember}
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium"
+                                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white rounded-xl text-slate-400 hover:text-slate-600 transition-all active:scale-95"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
                             <p className="text-[10px] text-slate-400 font-medium ml-1">{PASSWORD_HINT}</p>
                         </div>
@@ -226,7 +233,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all active:scale-95"
+                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
                         >
                             Cancel
                         </button>

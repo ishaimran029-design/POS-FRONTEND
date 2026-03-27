@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Download, Plus } from "lucide-react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
@@ -7,14 +7,11 @@ import SalesHistoryTable from "@/components/store-admin/SalesHistory/SalesHistor
 import SalesSummaryCards from "@/components/store-admin/SalesHistory/SalesSummaryCards";
 import ChartTooltipFormatter from "@/components/global-components/ChartTooltipFormatter";
 
-import { getSalesTransactions } from "@/api/sales.api";
-import { getStoreDashboardData } from "@/api/reports.api";
+import { useSales } from "@/hooks/useSales";
+import { useDashboardSummary } from "@/hooks/useDashboard";
 
 const SalesHistoryPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [summaryLoading, setSummaryLoading] = useState(false);
     
     // Filters state
     const [search, setSearch] = useState("");
@@ -28,85 +25,44 @@ const SalesHistoryPage = () => {
     // Pagination state
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
-    const [total, setTotal] = useState(0);
 
-    // Summary data state
-    const [summary, setSummary] = useState({
-        totalAmount: 0,
-        completedCount: 0,
-        failedCount: 0,
-        refundedCount: 0,
-        avgTicket: 0
+    const params: any = {
+        page,
+        limit,
+        startDate: dateRange.start,
+        endDate: dateRange.end
+    };
+    
+    if (search) params.search = search;
+    if (status !== 'All Status') params.paymentStatus = status;
+    if (paymentMethod !== 'All Methods') params.paymentMethod = paymentMethod;
+
+    // React Query Hooks
+    const { data: salesDataRes, isLoading: salesLoading } = useSales(params);
+    const { data: dashboardDataRes, isLoading: summaryLoading } = useDashboardSummary({
+        startDate: dateRange.start,
+        endDate: dateRange.end
     });
 
-    const [chartsData, setChartsData] = useState<any[]>([]);
+    const transactions = salesDataRes?.data || (Array.isArray(salesDataRes) ? salesDataRes : []);
+    const total = salesDataRes?.total || transactions.length;
 
-    const fetchTransactions = useCallback(async () => {
-        try {
-            setLoading(true);
-            const params: any = {
-                page,
-                limit,
-                startDate: dateRange.start,
-                endDate: dateRange.end
-            };
-            
-            if (search) params.search = search;
-            if (status !== 'All Status') params.paymentStatus = status;
-            if (paymentMethod !== 'All Methods') params.paymentMethod = paymentMethod;
-            
-            const res = await getSalesTransactions(params);
-            const data = res.data?.data || (Array.isArray(res.data) ? res.data : []);
-            setTransactions(data);
-            setTotal(res.data?.total || data.length);
-        } catch (error) {
-            console.error("Failed to fetch sales transactions:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [page, limit, search, status, paymentMethod, dateRange]);
+    const reportData = dashboardDataRes?.data || dashboardDataRes;
+    
+    const summary = {
+        totalAmount: Number(reportData?.summary?.totalRevenue || 0),
+        completedCount: Number(reportData?.summary?.totalTransactions || 0),
+        failedCount: Number(reportData?.summary?.failedTransactions || 0),
+        refundedCount: Number(reportData?.summary?.totalRefunds || 0),
+        avgTicket: Number(reportData?.summary?.averageTicketSize || 0)
+    };
 
-    const fetchAnalytics = useCallback(async () => {
-        try {
-            setSummaryLoading(true);
-            const res = await getStoreDashboardData({
-                startDate: dateRange.start,
-                endDate: dateRange.end
-            });
-            
-            const reportData = res.data?.data || res.data;
-            if (reportData?.summary) {
-                const s = reportData.summary;
-                setSummary({
-                    totalAmount: Number(s.totalRevenue || 0),
-                    completedCount: Number(s.totalTransactions || 0),
-                    failedCount: Number(s.failedTransactions || 0),
-                    refundedCount: Number(s.totalRefunds || 0),
-                    avgTicket: Number(s.averageTicketSize || 0)
-                });
-            }
+    const chartsData = reportData?.charts?.revenueByDate?.map((d: any) => ({
+        date: d.date,
+        revenue: Number(d.revenue || 0)
+    })) || [];
 
-            if (reportData?.charts?.revenueByDate) {
-                const trendData = reportData.charts.revenueByDate.map((d: any) => ({
-                    date: d.date,
-                    revenue: Number(d.revenue || 0)
-                }));
-                setChartsData(trendData);
-            }
-        } catch (error) {
-            console.error("Failed to fetch sales analytics:", error);
-        } finally {
-            setSummaryLoading(false);
-        }
-    }, [dateRange]);
-
-    useEffect(() => {
-        fetchTransactions();
-    }, [fetchTransactions]);
-
-    useEffect(() => {
-        fetchAnalytics();
-    }, [fetchAnalytics]);
+    const loading = salesLoading;
 
     return (
         <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">

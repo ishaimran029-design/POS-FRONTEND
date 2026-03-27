@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import ReportsHeader from "@/components/store-admin/Reports/ReportsHeader";
@@ -6,16 +6,13 @@ import StatsCards from "@/components/global-components-temp/StatsCards";
 import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
 import InventoryReportTables from "@/components/store-admin/Reports/InventoryReportTables";
-import { getStoreDashboardData, getInventoryReport } from "@/api/reports.api";
+import { useStoreDashboardData, useInventoryReport } from "@/hooks/useReports";
 import { AlertTriangle } from "lucide-react";
 
 const ReportsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'sales' | 'inventory'>('sales');
-    const [dateRange, setDateRange] = useState('This Week');
-    const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [dateRangeFilter, setDateRangeFilter] = useState('This Week');
 
     const calculateDateRange = (range: string) => {
         const end = new Date();
@@ -37,28 +34,17 @@ const ReportsPage = () => {
         };
     };
 
-    useEffect(() => {
-        const loadReport = async () => {
-            setLoading(true);
-            setError(null);
-            try {
-                if (activeTab === 'sales') {
-                    const { startDate, endDate } = calculateDateRange(dateRange);
-                    const res = await getStoreDashboardData({ startDate, endDate });
-                    setData(res.data?.data || null);
-                } else {
-                    const res = await getInventoryReport();
-                    setData(res.data?.data || null);
-                }
-            } catch (err: any) {
-                console.error("Failed to load report data", err);
-                setError(err.response?.data?.message || err.message || "Connection to report server failed.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        void loadReport();
-    }, [activeTab, dateRange]);
+    const dateParams = calculateDateRange(dateRangeFilter);
+
+    // React Query Hooks
+    const salesReportQuery = useStoreDashboardData(dateParams);
+    const inventoryReportQuery = useInventoryReport();
+
+    const loading = activeTab === 'sales' ? salesReportQuery.isLoading : inventoryReportQuery.isLoading;
+    const error = activeTab === 'sales' ? (salesReportQuery.error as any)?.message : (inventoryReportQuery.error as any)?.message;
+    const reportRes = activeTab === 'sales' ? salesReportQuery.data : inventoryReportQuery.data;
+
+    const data = (reportRes as any)?.data || reportRes || null;
 
     const salesStats = data ? [
         { name: "Total Revenue", stat: `₹ ${Number(data.summary?.totalRevenue ?? 0).toLocaleString()}`, change: "+14%", changeType: "positive" as const },
@@ -92,8 +78,8 @@ const ReportsPage = () => {
                     <ReportsHeader 
                         activeTab={activeTab} 
                         onTabChange={setActiveTab}
-                        dateRange={dateRange}
-                        onDateRangeChange={setDateRange}
+                        dateRange={dateRangeFilter}
+                        onDateRangeChange={setDateRangeFilter}
                     />
 
                     {loading ? (

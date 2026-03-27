@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
@@ -11,7 +11,6 @@ import CategoryPieChart from './components/CategoryPieChart';
 import ActiveDevicesPanel from './components/ActiveDevicesPanel';
 import TopProductsTable from './components/TopProductsTable';
 
-import { getDashboardSummary, getDevices } from '@/api/dashboard.api';
 import { cn } from '@/lib/utils';
 
 interface DashboardView {
@@ -23,11 +22,11 @@ interface DashboardView {
   topProducts: { id: string; name: string; sku: string; unitsSold: number; revenue: number; stockLevel: number }[];
 }
 
+import { useDashboardSummary } from '@/hooks/useDashboard';
+import { useDevices } from '@/hooks/useDevices';
+
 export default function StoreAdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [data, setData] = useState<DashboardView | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState('7D'); // 7D, 30D, Today
 
   const calculateDateRange = (range: string) => {
@@ -48,70 +47,57 @@ export default function StoreAdminDashboard() {
     };
   };
 
-  useEffect(() => {
-    const loadDashboard = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { startDate, endDate } = calculateDateRange(dateRange);
-        const [dashRes, devicesRes] = await Promise.all([
-          getDashboardSummary({ startDate, endDate }),
-          getDevices()
-        ]);
+  const { startDate, endDate } = calculateDateRange(dateRange);
+  const { data: dashRes, isLoading: dashLoading, error: dashError } = useDashboardSummary({ startDate, endDate });
+  const { data: devicesRes, isLoading: devicesLoading } = useDevices();
 
-        const raw = dashRes.data?.data ?? null;
-        const deviceData = devicesRes.data?.data ?? [];
+  const loading = dashLoading || devicesLoading;
+  const error = dashError ? (dashError as any).message : null;
 
-        if (!raw) {
-          setData(null);
-          return;
-        }
-        const s = raw.summary ?? {};
-        const inv = raw.inventory ?? {};
-        const charts = raw.charts ?? {};
-        const revByDate = charts.revenueByDate ?? [];
-        const payBreakdown = charts.paymentBreakdown ?? [];
-        const topProducts = raw.topProducts ?? [];
+  const raw = (dashRes as any)?.data ?? null;
+  const deviceData = (devicesRes as any)?.data ?? [];
 
-        const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
-        setData({
-          metrics: [
-            { value: s.totalRevenue ?? 0 },
-            { value: s.totalTransactions ?? 0 }, // Active Sales (Period Total)
-            { value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0) }, // Inventory Alerts (Low + Out)
-            { value: s.totalTransactions ?? 0 }, // Total Orders
-          ],
-          dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
-          weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
-          categories: payBreakdown.map((p: { paymentMethod?: string; revenue?: number }, i: number) => ({
-            name: p.paymentMethod ?? 'Other',
-            value: p.revenue ?? 0,
-            color: colors[i % colors.length],
-          })),
-          devices: deviceData.map((d: any) => ({
-            id: d.id,
-            name: d.deviceName || d.name || 'Unknown Device',
-            location: d.location || 'Main Floor',
-            status: d.isActive ? 'online' : 'offline',
-          })),
-          topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
-            id: p.productId ?? p.id ?? '',
-            name: p.name ?? 'Unknown',
-            sku: p.sku ?? '',
-            unitsSold: p.quantitySold ?? 0,
-            revenue: p.revenue ?? 0,
-            stockLevel: 50,
-          })),
-        });
-      } catch (err: any) {
-        console.error('Failed to load store admin dashboard', err);
-        setError(err.response?.data?.message || 'Failed to load dashboard. Please check your connection.');
-      } finally {
-        setLoading(false);
-      }
+  const data: DashboardView | null = useMemo(() => {
+    if (!raw) return null;
+
+    const s = raw.summary ?? {};
+    const inv = raw.inventory ?? {};
+    const charts = raw.charts ?? {};
+    const revByDate = charts.revenueByDate ?? [];
+    const payBreakdown = charts.paymentBreakdown ?? [];
+    const topProducts = raw.topProducts ?? [];
+
+    const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
+    return {
+      metrics: [
+        { value: s.totalRevenue ?? 0 },
+        { value: s.totalTransactions ?? 0 },
+        { value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0) },
+        { value: s.totalTransactions ?? 0 },
+      ],
+      dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
+      weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
+      categories: payBreakdown.map((p: { paymentMethod?: string; revenue?: number }, i: number) => ({
+        name: p.paymentMethod ?? 'Other',
+        value: p.revenue ?? 0,
+        color: colors[i % colors.length],
+      })),
+      devices: deviceData.map((d: any) => ({
+        id: d.id,
+        name: d.deviceName || d.name || 'Unknown Device',
+        location: d.location || 'Main Floor',
+        status: d.isActive ? 'online' : 'offline',
+      })),
+      topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
+        id: p.productId ?? p.id ?? '',
+        name: p.name ?? 'Unknown',
+        sku: p.sku ?? '',
+        unitsSold: p.quantitySold ?? 0,
+        revenue: p.revenue ?? 0,
+        stockLevel: 50,
+      })),
     };
-    void loadDashboard();
-  }, [dateRange]);
+  }, [raw, deviceData]);
 
   if (loading && !data) {
     return (
@@ -171,7 +157,7 @@ export default function StoreAdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex">
+    <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in" onClick={() => setSidebarOpen(false)} />
       )}
@@ -181,10 +167,10 @@ export default function StoreAdminDashboard() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">Console Overview</h1>
-              <p className="text-slate-500 font-bold uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Console Overview</h1>
+              <p className="text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
             </div>
-            <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
               {['Today', '7D', '30D'].map((range) => (
                 <button
                   key={range}
@@ -192,8 +178,8 @@ export default function StoreAdminDashboard() {
                   className={cn(
                     "px-6 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
                     dateRange === range 
-                      ? "bg-slate-900 text-white shadow-lg shadow-slate-200" 
-                      : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                      ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none" 
+                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                   )}
                 >
                   {range}
@@ -210,15 +196,15 @@ export default function StoreAdminDashboard() {
             {/* Row 1: Charts & Pie Chart */}
             <div className="xl:col-span-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl dark:hover:shadow-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Daily Sales Revenue</h3>
-                      <p className="text-xs text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Daily trend in period</p>
+                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">Daily Sales Revenue</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Daily trend in period</p>
                     </div>
                     <div className="flex items-center gap-2">
-                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100"></span>
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</span>
+                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100 dark:shadow-none"></span>
+                       <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
                     </div>
                   </div>
                   <div className="flex-1 min-h-[220px]">
@@ -229,13 +215,13 @@ export default function StoreAdminDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl dark:hover:shadow-none">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Revenue Trend</h3>
-                      <p className="text-xs text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Comparative performance</p>
+                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">Revenue Trend</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Comparative performance</p>
                     </div>
-                    <div className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 shadow-sm shadow-blue-50/50">
+                    <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full border border-blue-100 dark:border-blue-800 shadow-sm">
                       <span className="text-[10px] font-black uppercase tracking-widest">Bar View</span>
                     </div>
                   </div>

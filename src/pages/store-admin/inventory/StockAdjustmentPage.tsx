@@ -1,37 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StockAdjustmentForm from '@/components/store-admin/StockAdjustmentForm';
 import StockAdjustmentTable from '@/components/store-admin/StockAdjustmentTable';
-import { fetchProducts } from '@/api/products.api';
-import { fetchInventoryLogs } from '@/api/inventory.api';
+import { useProducts } from '@/hooks/useProducts';
+import { useInventoryLogs } from '@/hooks/useInventory';
 
 const StockAdjustmentPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [products, setProducts] = useState<any[]>([]);
-    const [logs, setLogs] = useState<any[]>([]);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const loadData = useCallback(async () => {
-        try {
-            const [prodRes, logRes] = await Promise.all([
-                fetchProducts(),
-                fetchInventoryLogs({ limit: 20 })
-            ]);
-            
-            setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
-            setLogs(logRes.data?.data || (Array.isArray(logRes.data) ? logRes.data : []));
-        } catch (error) {
-            console.error('Failed to load stock adjustment data:', error);
-        }
-    }, []);
+    // React Query Hooks
+    const { data: productsRes } = useProducts();
+    const { data: logsRes } = useInventoryLogs({ limit: 20 });
 
-    useEffect(() => {
-        loadData();
-    }, [loadData, refreshTrigger]);
+    const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
+    const logs = (logsRes as any)?.data || (Array.isArray(logsRes) ? logsRes : []);
 
     const handleSuccess = () => {
-        setRefreshTrigger(prev => prev + 1);
+        // React Query handles invalidation in the mutation hook onSuccess
     };
 
     return (

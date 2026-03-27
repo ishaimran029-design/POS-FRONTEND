@@ -1,76 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StockOverviewCards from '@/components/store-admin/StockOverviewCards';
 import StockTable from '@/components/store-admin/StockTable';
-import { fetchProducts } from '@/api/products.api';
-import { fetchFullInventory } from '@/api/inventory.api';
+import { useProducts } from '@/hooks/useProducts';
+import { useInventory } from '@/hooks/useInventory';
 import { Search, Download, Plus } from 'lucide-react';
 
 const StockLevelsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('All');
-    const [inventory, setInventory] = useState<any[]>([]);
-    const [filteredInventory, setFilteredInventory] = useState<any[]>([]);
 
-    const [stats, setStats] = useState({
-        totalItems: 0,
-        lowStockItems: 0,
-        outOfStockItems: 0
+    // React Query Hooks
+    const { data: productsDataRes, isLoading: productsLoading } = useProducts();
+    const { data: inventoryDataRes, isLoading: inventoryLoading } = useInventory();
+
+    const loading = productsLoading || inventoryLoading;
+
+    // Process data
+    const productsData = (productsDataRes as any)?.data || (Array.isArray(productsDataRes) ? productsDataRes : []);
+    const inventoryData = (inventoryDataRes as any)?.data || (Array.isArray(inventoryDataRes) ? inventoryDataRes : []);
+
+    // Map inventory by productId
+    const inventoryMap = inventoryData.reduce((acc: any, inv: any) => {
+        acc[inv.productId] = inv.totalQuantity || inv.stock || 0;
+        return acc;
+    }, {});
+    
+    const inventory = productsData.map((item: any) => {
+        const stock = inventoryMap[item.id] || 0;
+        return {
+            id: item.id || item._id,
+            productName: item.name || item.productName || 'Unnamed Product',
+            sku: item.sku || 'N/A',
+            currentStock: stock,
+            reorderLevel: item.reorderLevel || 10,
+            category: typeof item.category === 'object' ? item.category?.name : item.category || 'General',
+            image: item.image || item.imageUrl
+        };
     });
 
-    const loadData = useCallback(async () => {
-        try {
-            setLoading(true);
-            const [productsRes, inventoryRes] = await Promise.all([
-                fetchProducts(),
-                fetchFullInventory()
-            ]);
-            
-            const productsData = productsRes.data?.data || (Array.isArray(productsRes.data) ? productsRes.data : []);
-            const inventoryData = inventoryRes.data?.data || (Array.isArray(inventoryRes.data) ? inventoryRes.data : []);
+    const stats = {
+        totalItems: inventory.length,
+        lowStockItems: inventory.filter((i: any) => i.currentStock > 0 && i.currentStock <= i.reorderLevel).length,
+        outOfStockItems: inventory.filter((i: any) => i.currentStock === 0).length
+    };
 
-            // Map inventory by productId
-            const inventoryMap = inventoryData.reduce((acc: any, inv: any) => {
-                acc[inv.productId] = inv.totalQuantity || inv.stock || 0;
-                return acc;
-            }, {});
-            
-            const transformedData = productsData.map((item: any) => {
-                const stock = inventoryMap[item.id] || 0;
-                return {
-                    id: item.id || item._id,
-                    productName: item.name || item.productName || 'Unnamed Product',
-                    sku: item.sku || 'N/A',
-                    currentStock: stock,
-                    reorderLevel: item.reorderLevel || 10,
-                    category: typeof item.category === 'object' ? item.category?.name : item.category || 'General',
-                    image: item.image || item.imageUrl
-                };
-            });
-
-            setInventory(transformedData);
-            
-            // Calculate stats
-            setStats({
-                totalItems: transformedData.length,
-                lowStockItems: transformedData.filter((i: any) => i.currentStock > 0 && i.currentStock <= i.reorderLevel).length,
-                outOfStockItems: transformedData.filter((i: any) => i.currentStock === 0).length
-            });
-        } catch (error) {
-            console.error('Failed to load inventory:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
-
-    useEffect(() => {
+    const filteredInventory = (() => {
         let result = [...inventory];
 
         // Apply Search
@@ -90,8 +67,8 @@ const StockLevelsPage = () => {
             result = result.filter(item => item.currentStock > item.reorderLevel);
         }
 
-        setFilteredInventory(result);
-    }, [inventory, searchQuery, activeFilter]);
+        return result;
+    })();
 
     return (
         <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">

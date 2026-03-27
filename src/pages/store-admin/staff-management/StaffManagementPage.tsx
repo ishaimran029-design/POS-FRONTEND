@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StaffHeader from '@/components/store-admin/StaffHeader';
@@ -7,11 +7,11 @@ import StaffTable from '@/components/store-admin/StaffTable';
 import StaffPagination from '@/components/store-admin/StaffPagination';
 import AddStaffModal from '@/components/store-admin/AddStaffModal';
 import type { StaffMember, CreateStaffInput, StaffRole, StaffStatus } from './types/staff.types';
-import { fetchStaffMembers, createStaffMember, updateStaffMember } from '@/api/staff.api';
+import { useStaff, useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
 
-function mapApiUser(u: { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null }): StaffMember {
+function mapApiUser(u: any): StaffMember {
     return {
-        id: u.id,
+        id: u.id || u._id,
         name: u.name,
         email: u.email,
         role: u.role as StaffRole,
@@ -25,39 +25,19 @@ export default function StaffManagementPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStaffToEdit, setSelectedStaffToEdit] = useState<StaffMember | undefined>(undefined);
 
-    const [staff, setStaff] = useState<StaffMember[]>([]);
-    const [loading, setLoading] = useState(true);
-
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<StaffRole | 'All'>('All');
     const [statusFilter, setStatusFilter] = useState<StaffStatus | 'All'>('All');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
-    const fetchStaff = async (isPoll = false) => {
-        if (!isPoll) setLoading(true);
-        try {
-            const response = await fetchStaffMembers();
-            const resData = response.data as { data?: unknown } | unknown[];
-            const users = Array.isArray(resData) ? resData : (resData && typeof resData === 'object' && 'data' in resData ? (resData as { data: unknown[] }).data : []);
-            if (Array.isArray(users)) {
-                setStaff(users.map((u) => mapApiUser(u as { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null })));
-            } else {
-                setStaff([]);
-            }
-        } catch (err) {
-            console.warn("Staff API failed", err);
-            if (!isPoll) setStaff([]);
-        } finally {
-            if (!isPoll) setLoading(false);
-        }
-    };
+    // React Query Hooks
+    const { data: staffDataRes, isLoading: loading, refetch: refetchStaff } = useStaff();
+    const createStaffMutation = useCreateStaff();
+    const updateStaffMutation = useUpdateStaff();
 
-    useEffect(() => {
-        fetchStaff();
-        const interval = setInterval(() => fetchStaff(true), 60000); // Poll every minute
-        return () => clearInterval(interval);
-    }, []);
+    const staffRaw = (staffDataRes as any)?.data || (Array.isArray(staffDataRes) ? staffDataRes : []);
+    const staff: StaffMember[] = Array.isArray(staffRaw) ? staffRaw.map(mapApiUser) : [];
 
     const filteredStaff = staff.filter(member => {
         const q = searchQuery.toLowerCase();
@@ -76,51 +56,26 @@ export default function StaffManagementPage() {
 
     const handleAddStaff = async (data: CreateStaffInput): Promise<{ success: boolean; error?: string }> => {
         try {
-            const response = await createStaffMember(data);
-            const resData = response.data as { success?: boolean; data?: unknown };
-            const user = (resData?.data ?? resData) as { id: string; name: string; email: string; role: string; isActive: boolean; lastLoginAt?: string | null };
-            if (user?.id) {
-                setStaff(prev => [mapApiUser(user), ...prev]);
-                return { success: true };
-            }
-            return { success: false, error: 'Invalid response from server' };
-        } catch (err: unknown) {
-            const msg = err && typeof err === 'object' && 'response' in err
-                ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-                : null;
-            console.warn("Create staff failed", err);
-            return { success: false, error: msg || 'Failed to create staff' };
+            await createStaffMutation.mutateAsync(data);
+            return { success: true };
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || 'Failed to create staff';
+            return { success: false, error: msg };
         }
     };
 
     const handleToggleStatus = async (id: string, active: boolean) => {
-        try {
-            // Optimistic update for punchy feel
-            setStaff(prev => prev.map(s => s.id === id ? { ...s, status: active ? 'active' : 'inactive' } : s));
-            await updateStaffMember(id, { isActive: active });
-        } catch (err) {
-            console.warn("Toggle status failed", err);
-            // Rollback
-            setStaff(prev => prev.map(s => s.id === id ? { ...s, status: !active ? 'active' : 'inactive' } : s));
-        }
+        await updateStaffMutation.mutateAsync({ id, data: { isActive: active } });
     };
 
     const handleEditStaff = async (id: string, data: any): Promise<{ success: boolean; error?: string }> => {
         try {
-            await updateStaffMember(id, data);
-            setStaff(prev => prev.map(s => s.id === id ? { 
-                ...s, 
-                ...data, 
-                status: data.isActive !== undefined ? (data.isActive ? 'active' : 'inactive') : s.status 
-            } : s));
+            await updateStaffMutation.mutateAsync({ id, data });
             return { success: true };
         } catch (err) {
-            console.warn("Edit staff failed", err);
             return { success: false, error: 'Failed to update user details' };
         }
     };
-
-
 
     return (
         <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
@@ -141,7 +96,7 @@ export default function StaffManagementPage() {
                     <StaffHeader
                         onAddStaff={() => setIsModalOpen(true)}
                         onExport={() => alert('Export CSV feature coming soon!')}
-                        onRefresh={() => fetchStaff()}
+                        onRefresh={() => refetchStaff()}
                     />
 
                     <StaffFilters

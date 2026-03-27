@@ -25,11 +25,11 @@ export default function Stats03({ data }: Stats03Props) {
       <dl className={cn("grid grid-cols-1 gap-6 sm:grid-cols-2 w-full", gridCols)}>
         {data.map((item) => {
           const content = (
-            <Card className="p-6 py-4 shadow-2xs group-hover:shadow-md transition-shadow h-full">
+            <Card className="p-6 py-4 shadow-2xs dark:shadow-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 group-hover:shadow-md transition-shadow h-full">
               <CardContent className="p-0">
-                <dt className="text-sm font-medium text-muted-foreground group-hover:text-blue-600 transition-colors uppercase tracking-widest">{item.name}</dt>
+                <dt className="text-sm font-medium text-muted-foreground dark:text-slate-400 group-hover:text-blue-600 transition-colors uppercase tracking-widest">{item.name}</dt>
                 <dd className="mt-2 flex items-baseline space-x-2.5">
-                  <span className="tabular-nums text-3xl font-semibold text-foreground">
+                  <span className="tabular-nums text-3xl font-semibold text-foreground dark:text-white">
                     {item.stat}
                   </span>
                   {item.change && (
