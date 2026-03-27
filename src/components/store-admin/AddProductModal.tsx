@@ -103,8 +103,8 @@ export default function AddProductModal({ open, onClose, onSuccess }: AddProduct
         }
     };
 
-    const inputClasses = "w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300 text-sm";
-    const labelClasses = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 mb-1.5 block";
+    const inputClasses = "w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-100 dark:text-white placeholder:text-slate-300 dark:placeholder:text-gray-500 text-sm";
+    const labelClasses = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-gray-500 ml-1 mb-1.5 block";
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

@@ -59,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
             
             {/* Brand */}
-            <div className="p-6 border-b border-slate-100/50">
+            <div className="p-6 border-b border-slate-100/10 dark:border-slate-800/50">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#262255] rounded-xl flex items-center justify-center shadow-indigo-100 shadow-xl border border-indigo-500/20">
                         <LayoutDashboard size={24} className="text-white" />
@@ -129,7 +129,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </nav>
 
             {/* User */}
-            <div className="p-4 border-t border-slate-100/50">
+            <div className="p-4 border-t border-slate-100/10 dark:border-slate-800/50">
                 <div className="bg-[#2A2760] rounded-2xl p-4 flex items-center gap-3 border border-[#2A2760]/20">
                     <div className="w-10 h-10 rounded-full bg-[#262255] flex items-center justify-center text-white font-black shadow-indigo-100 shadow-md border-2 border-white">
                         AM

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, ArrowLeft, Cpu, Network, Info, Shield, Printer } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
-import { registerDevice } from '@/api/devices.api';
 
 type ScannerConnection = 'USB' | 'Bluetooth' | 'Network' | 'None';
 type FormData = {
@@ -24,49 +23,57 @@ const initialForm: FormData = {
   printerType: 'None',
 };
 
+import { useRegisterDevice } from '@/hooks/useDevices';
+
 export default function RegisterDevicePage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>(initialForm);
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  const { mutate: register, isPending: loading, error: mutationError } = useRegisterDevice();
+  const error = localError || (mutationError as any)?.message;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
+
     if (!formData.deviceName) {
-      setError('Device name is required');
+      setLocalError('Device name is required');
       return;
     }
     if (!formData.serialNumber) {
-      setError('Serial number is required');
+      setLocalError('Serial number is required');
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const payload = {
-        deviceName: formData.deviceName,
-        deviceType: formData.deviceType,
-        serialNumber: formData.serialNumber,
-        ipAddress: formData.ipAddress,
-        barcodeScanner: formData.scannerConnection !== 'None',
-        scannerType:
-          formData.scannerConnection === 'Bluetooth' ? 'BLUETOOTH' : formData.scannerConnection === 'USB' ? 'USB' : null,
-        userAgent: window.navigator.userAgent,
-      };
-      const res = await registerDevice(payload);
-      if (res.data.success) navigate('/store-admin/devices');
-      else setError(res.data.message || 'Registration failed');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during registration');
-    } finally {
-      setLoading(false);
-    }
+    const payload = {
+      deviceName: formData.deviceName,
+      deviceType: formData.deviceType,
+      serialNumber: formData.serialNumber,
+      ipAddress: formData.ipAddress,
+      barcodeScanner: formData.scannerConnection !== 'None',
+      scannerType:
+        formData.scannerConnection === 'Bluetooth' ? 'BLUETOOTH' : formData.scannerConnection === 'USB' ? 'USB' : null,
+      userAgent: window.navigator.userAgent,
+    };
+
+    register(payload, {
+      onSuccess: (res) => {
+        if (res.data?.success || res.success) {
+          navigate('/store-admin/devices');
+        } else {
+          setLocalError(res.data?.message || res.message || 'Registration failed');
+        }
+      },
+      onError: (err: any) => {
+        setLocalError(err.response?.data?.message || 'An error occurred during registration');
+      }
+    });
   };
 
   const inputCls =

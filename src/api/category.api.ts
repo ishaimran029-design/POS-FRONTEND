@@ -39,18 +39,18 @@ export function enrichWithHierarchy(categories: Category[]): Category[] {
 
 // ----------- API calls -----------
 export const getCategories = () => {
-  return api.get("/categories")
+  return api.get("/categories").then(res => res.data)
 }
 
 export const createCategory = (data: { name: string; description?: string; parentId?: string | null }) => {
   const { parentId, ...apiData } = data
-  return api.post("/categories", apiData)
+  return api.post("/categories", apiData).then(res => res.data)
 }
 
 export const updateCategory = (id: string, data: any) => {
-  return api.patch(`/categories/${id}`, data)
+  return api.patch(`/categories/${id}`, data).then(res => res.data)
 }
 
 export const deleteCategory = (id: string) => {
-  return api.delete(`/categories/${id}`)
+  return api.delete(`/categories/${id}`).then(res => res.data)
 }

@@ -9,7 +9,7 @@
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    @apply bg-[#F7F9FC] text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900;
+    @apply bg-[#F7F9FC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors duration-300;
   }
 }
 
@@ -23,6 +23,20 @@
   --foreground: #0F172A;
   --card: #FFFFFF;
   --border: #E2E8F0;
+
+  /* Chart Theme Colors */
+  --chart-1: #262255;      /* Brand Indigo (Matches Category Distribution) */
+  --chart-2: #24608F;      /* Ocean Blue */
+  --chart-3: #508CBB;      /* Sky Blue */
+  --chart-4: #6366F1;      /* Indigo */
+  --chart-5: #3B82F6;      /* Sky Blue */
+}
+
+.dark {
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --border: #334155;
 }
 
 /* Sliding Sidebar Label Visibility Rules */

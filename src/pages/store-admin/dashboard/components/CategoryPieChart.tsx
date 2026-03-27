@@ -1,4 +1,4 @@
-import GlobalPieChart from '@/components/global-components/PieChart';
+import GlobalPieChart from '@/components/global-components-temp/PieChart';
 
 interface CategoryPieChartProps {
     data: { name: string; value: number; color: string }[];

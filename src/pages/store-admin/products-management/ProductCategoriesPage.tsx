@@ -7,33 +7,18 @@ import CategoriesSearch from "@/components/store-admin/CategoriesSearch"
 import CategoriesTable from "@/components/store-admin/CategoriesTable"
 import AddCategoryModal from "@/components/store-admin/AddCategoryModal"
 
-import { getCategories } from "@/api/category.api"
-import type { Category } from "@/types/category"
 import { CheckCircle2 } from "lucide-react"
+
+import { useCategories } from "@/hooks/useProducts"
 
 const ProductCategoriesPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
 
-  const fetchCategories = async () => {
-    try {
-      setLoading(true)
-      const res = await getCategories()
-      setCategories(res.data.data)
-    } catch (error) {
-      console.error("Failed to fetch categories", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchCategories()
-  }, [])
+  const { data: categoriesRes, isLoading: loading, refetch: fetchCategories } = useCategories();
+  const categories = (categoriesRes as any)?.data || (Array.isArray(categoriesRes) ? categoriesRes : []);
 
   // Auto-dismiss success toast after 3 seconds
   useEffect(() => {

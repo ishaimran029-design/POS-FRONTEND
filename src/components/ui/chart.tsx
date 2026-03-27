@@ -53,21 +53,29 @@ export function ChartTooltipContent({
   className,
   indicator = "dot",
   hideLabel = false,
-  formatter: _formatter,
+  formatter,
 }: any) {
   if (!active || !payload || !payload.length) {
     return null
   }
 
   return (
-    <div className={cn("rounded-lg border bg-white p-3 shadow-sm", className)}>
+    <div className={cn("rounded-lg border bg-white p-3 shadow-sm min-w-[150px]", className)}>
       {!hideLabel && (
-        <div className="mb-2 text-[13px] font-medium text-slate-500">
+        <div className="mb-2 text-[11px] font-black text-slate-400 uppercase tracking-widest">
           {label}
         </div>
       )}
       <div className="grid gap-1.5">
         {payload.map((item: any, index: number) => {
+          if (formatter) {
+            return (
+              <div key={index}>
+                {formatter(item.value, item.name, item, index, payload)}
+              </div>
+            )
+          }
+
           return (
             <div
               key={index}
@@ -86,11 +94,11 @@ export function ChartTooltipContent({
                     style={{ backgroundColor: item.color }}
                   />
                 )}
-                <span className="font-medium text-slate-500 capitalize">
+                <span className="font-bold text-slate-500 capitalize text-xs">
                   {item.name}
                 </span>
               </div>
-              <span className="font-bold text-slate-900">{item.value}</span>
+              <span className="font-black text-slate-900 tabular-nums text-sm">₹{Number(item.value).toLocaleString()}</span>
             </div>
           )
         })}

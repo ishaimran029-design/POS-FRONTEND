@@ -1,15 +1,19 @@
-import axios from "../service/api";
+import api from "./api";
+
+export const getSuperAdminOverview = () => {
+  return api.get('/reports/superadmin/overview').then(res => res.data);
+};
 
 export const getSalesReport = (params: { startDate: string; endDate: string }) => {
-  return axios.get("/reports/sales", { params });
+  return api.get('/reports/sales', { params }).then(res => res.data);
+};
+
+export const getStoreDashboardData = (params: { startDate: string; endDate: string }) => {
+  return api.get('/reports/storeadmin/dashboard', { params }).then(res => res.data);
 };
 
 export const getInventoryReport = () => {
-  return axios.get("/reports/inventory");
-};
-
-export const getStoreDashboardData = (params?: { startDate?: string; endDate?: string }) => {
-  return axios.get("/reports/storeadmin/dashboard", { params });
+  return api.get('/reports/inventory').then(res => res.data);
 };
 
 export const getAuditLogs = (params?: {
@@ -21,5 +25,5 @@ export const getAuditLogs = (params?: {
   startDate?: string;
   endDate?: string;
 }) => {
-  return axios.get("/reports/audit-logs", { params });
+  return api.get("/reports/audit-logs", { params }).then(res => res.data);
 };
