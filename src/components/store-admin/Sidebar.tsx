@@ -8,6 +8,7 @@ import {
     Monitor,
     BarChart3,
     Settings,
+    ClipboardList,
     LogOut,
     ChevronDown,
     ChevronRight,
@@ -34,6 +35,7 @@ const menuItems = [
     { name: 'Sales History', icon: ShoppingCart, path: '/store-admin/sales' },
     { name: 'Devices', icon: Monitor, path: '/store-admin/devices' },
     { name: 'Reports', icon: BarChart3, path: '/store-admin/reports' },
+    { name: 'Audit Logs', icon: ClipboardList, path: '/store-admin/logs' },
     { name: 'Store Settings', icon: Settings, path: '/store-admin/settings' },
 ];
 
@@ -47,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [inventoryOpen, setInventoryOpen] = React.useState(true);
 
     return (
-        <aside className={`w-64 bg-[#262255] border-r border-[#262255]/20 text-slate-200 h-screen fixed top-0 flex flex-col z-[60] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} left-0 shadow-sm lg:shadow-none`}>
+        <aside className={`w-64 bg-[#262255] border-r border-[#262255]/20 text-slate-200 h-screen fixed top-0 flex flex-col z-60 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} left-0 shadow-sm lg:shadow-none`}>
             {/* Close button (Mobile only) */}
             <button
                 onClick={onClose}

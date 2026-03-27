@@ -12,6 +12,9 @@ import ActiveDevicesPanel from './components/ActiveDevicesPanel';
 import TopProductsTable from './components/TopProductsTable';
 
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/format';
+import { useDashboardSummary } from '@/hooks/useDashboard';
+import { useDevices } from '@/hooks/useDevices';
 
 interface DashboardView {
   metrics: { value: number }[];
@@ -21,9 +24,6 @@ interface DashboardView {
   devices: { id: string; name: string; location: string; status: 'online' | 'offline' }[];
   topProducts: { id: string; name: string; sku: string; unitsSold: number; revenue: number; stockLevel: number }[];
 }
-
-import { useDashboardSummary } from '@/hooks/useDashboard';
-import { useDevices } from '@/hooks/useDevices';
 
 export default function StoreAdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -74,6 +74,7 @@ export default function StoreAdminDashboard() {
         { value: s.totalTransactions ?? 0 },
         { value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0) },
         { value: s.totalTransactions ?? 0 },
+        { value: s.totalDiscount ?? 0 },
       ],
       dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
       weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
@@ -101,7 +102,7 @@ export default function StoreAdminDashboard() {
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
           <p className="text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Console...</p>
@@ -112,12 +113,12 @@ export default function StoreAdminDashboard() {
 
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-center p-12 bg-white rounded-[40px] shadow-xl max-w-md border border-slate-100">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="text-center p-12 bg-white dark:bg-slate-900 rounded-[40px] shadow-xl max-w-md border border-slate-100 dark:border-slate-800">
           <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">System Error</h2>
-          <p className="text-slate-500 font-medium mb-8">{error || 'Failed to establish connection to POS core.'}</p>
-          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">System Error</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">{error || 'Failed to establish connection to POS core.'}</p>
+          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95">
             Emergency Reload
           </button>
         </div>
@@ -128,7 +129,7 @@ export default function StoreAdminDashboard() {
   const statsData = [
     { 
       name: "Total Revenue", 
-      stat: `₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`, 
+      stat: formatCurrency(data.metrics?.[0]?.value ?? 0), 
       change: "+12.5%", 
       changeType: "positive" as const,
       linkTo: "/store-admin/reports"
@@ -153,6 +154,13 @@ export default function StoreAdminDashboard() {
       change: "+8.4%", 
       changeType: "positive" as const,
       linkTo: "/store-admin/sales"
+    },
+    { 
+      name: "Total Discounts", 
+      stat: formatCurrency(data.metrics?.[4]?.value ?? 0), 
+      change: "+2.1%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/reports" 
     }
   ];
 

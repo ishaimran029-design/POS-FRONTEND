@@ -37,3 +37,7 @@ export const getProductByBarcode = (barcode: string, deviceId?: string | null) =
 export const searchProducts = (query: string) => {
   return api.get(`/products`, { params: { search: query } }).then(res => res.data);
 };
+
+export const addBatch = (id: string, data: any) => {
+  return api.post(`/products/${id}/batch`, data);
+};

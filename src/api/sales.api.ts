@@ -1,11 +1,11 @@
 import api from "./api";
 
-// Use reports API for these as the backend /sales routes don't exist for daily/weekly
-export const fetchDailySales = (params: { startDate: string; endDate: string }) => {
+// Use reports API for these as the backend /sales routes don't exist for daily/weekly in some versions
+export const fetchDailySales = (params?: { startDate: string; endDate: string }) => {
   return api.get("/reports/sales", { params }).then(res => res.data);
 };
 
-export const fetchWeeklyRevenue = (params: { startDate: string; endDate: string }) => {
+export const fetchWeeklyRevenue = (params?: { startDate: string; endDate: string }) => {
   return api.get("/reports/sales", { params }).then(res => res.data);
 };
 
@@ -19,6 +19,11 @@ export const createSale = (payload: any, idempotencyKey: string) => {
 
 export const getSaleById = (saleId: string) => {
   return api.get(`/sales/${saleId}`).then(res => res.data);
+};
+
+export const getSaleByInvoiceNumber = (invoiceNumber: string) => {
+  const encodedInvoiceNumber = encodeURIComponent(invoiceNumber);
+  return api.get(`/sales/invoice/${encodedInvoiceNumber}`).then(res => res.data);
 };
 
 export const syncOfflineSales = (payload: { batchId: string; deviceId: string; sales: any[] }) => {
@@ -35,4 +40,4 @@ export const cancelSale = (id: string, reason: string) => {
 
 export const refundSale = (id: string, reason: string) => {
   return api.post(`/sales/${id}/refund`, { reason }).then(res => res.data);
-};
+};

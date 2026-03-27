@@ -16,3 +16,14 @@ export const getInventoryReport = () => {
   return api.get('/reports/inventory').then(res => res.data);
 };
 
+export const getAuditLogs = (params?: {
+  page?: number;
+  limit?: number;
+  userId?: string;
+  entity?: string;
+  action?: string;
+  startDate?: string;
+  endDate?: string;
+}) => {
+  return api.get("/reports/audit-logs", { params }).then(res => res.data);
+};

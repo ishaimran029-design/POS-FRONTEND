@@ -6,9 +6,10 @@ interface StaffTableProps {
     staff: StaffMember[];
     onToggleStatus: (id: string, active: boolean) => void;
     onEdit: (member: StaffMember) => void;
+    onViewDetails: (member: StaffMember) => void;
 }
 
-export default function StaffTable({ staff, onToggleStatus, onEdit }: StaffTableProps) {
+export default function StaffTable({ staff, onToggleStatus, onEdit, onViewDetails }: StaffTableProps) {
     return (
         <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-10 animate-fade-in hover:shadow-md dark:shadow-none transition-all duration-300">
             <div className="overflow-x-auto">
@@ -20,7 +21,7 @@ export default function StaffTable({ staff, onToggleStatus, onEdit }: StaffTable
                             <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Email Address</th>
                             <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Role</th>
                             <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Status</th>
-                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Activity</th>
+                            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Login / Logout</th>
                             <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -31,6 +32,7 @@ export default function StaffTable({ staff, onToggleStatus, onEdit }: StaffTable
                                 member={member}
                                 onToggleStatus={onToggleStatus}
                                 onEdit={onEdit}
+                                onViewDetails={onViewDetails}
                             />
                         ))}
                         {staff.length === 0 && (

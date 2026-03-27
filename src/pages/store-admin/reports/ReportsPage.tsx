@@ -7,7 +7,8 @@ import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
 import InventoryReportTables from "@/components/store-admin/Reports/InventoryReportTables";
 import { useStoreDashboardData, useInventoryReport } from "@/hooks/useReports";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, FileText } from "lucide-react";
+import { formatCurrency } from "@/utils/format";
 
 const ReportsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,21 +48,22 @@ const ReportsPage = () => {
     const data = (reportRes as any)?.data || reportRes || null;
 
     const salesStats = data ? [
-        { name: "Total Revenue", stat: `₹ ${Number(data.summary?.totalRevenue ?? 0).toLocaleString()}`, change: "+14%", changeType: "positive" as const },
+        { name: "Total Revenue", stat: formatCurrency(data.summary?.totalRevenue ?? 0), change: "+14%", changeType: "positive" as const },
         { name: "Transactions", stat: `${data.summary?.totalTransactions ?? 0}`, change: "+8%", changeType: "positive" as const },
-        { name: "Avg Ticket", stat: `₹ ${Math.round(data.summary?.averageTicketSize ?? 0).toLocaleString()}`, change: "+2%", changeType: "positive" as const },
-        { name: "Tax Collected", stat: `₹ ${Number(data.summary?.totalTax ?? 0).toLocaleString()}`, change: "+12%", changeType: "positive" as const }
+        { name: "Avg Ticket", stat: formatCurrency(Math.round(data.summary?.averageTicketSize ?? 0)), change: "+2%", changeType: "positive" as const },
+        { name: "Tax Collected", stat: formatCurrency(Number(data.summary?.totalTax ?? 0)), change: "+12%", changeType: "positive" as const },
+        { name: "Discounts", stat: formatCurrency(data.summary?.totalDiscount ?? 0), change: "+2%", changeType: "positive" as const }
     ] : [];
 
     const inventoryStats = data ? [
         { name: "Tracked Items", stat: `${data.summary?.totalProducts ?? 0}`, changeType: "positive" as const },
         { name: "Low Stock", stat: `${data.summary?.lowStockCount ?? 0}`, changeType: "negative" as const },
         { name: "Out of Stock", stat: `${data.summary?.outOfStockCount ?? 0}`, changeType: "negative" as const },
-        { name: "Total Value", stat: `₹ ${Number(data.summary?.totalStockValue ?? 0).toLocaleString()}`, changeType: "positive" as const }
+        { name: "Total Value", stat: formatCurrency(Number(data.summary?.totalStockValue ?? 0)), changeType: "positive" as const }
     ] : [];
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
@@ -88,15 +90,15 @@ const ReportsPage = () => {
                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Compiling Data Stream...</p>
                         </div>
                     ) : error ? (
-                        <div className="bg-white p-12 rounded-[40px] border border-slate-100 shadow-xl text-center max-w-lg mx-auto mt-12 animate-in zoom-in-95 duration-500">
-                            <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto mb-6 border border-rose-100 shadow-sm">
+                        <div className="bg-white dark:bg-slate-900 p-12 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl text-center max-w-lg mx-auto mt-12 animate-in zoom-in-95 duration-500">
+                            <div className="w-20 h-20 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center text-rose-500 mx-auto mb-6 border border-rose-100 dark:border-rose-800 shadow-sm">
                                 <AlertTriangle size={40} />
                             </div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Report Failure</h2>
-                            <p className="text-slate-500 font-medium mb-8 leading-relaxed px-4">{error}</p>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Report Failure</h2>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed px-4">{error}</p>
                             <button 
                                 onClick={() => window.location.reload()}
-                                className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200"
+                                className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-slate-200 dark:shadow-none"
                             >
                                 Try Again
                             </button>
@@ -122,7 +124,7 @@ const ReportsPage = () => {
                             />
                         </div>
                     ) : (
-                        <div className="text-center py-20 text-slate-400 font-bold tracking-widest uppercase text-xs">
+                        <div className="text-center py-20 text-slate-400 font-black tracking-widest uppercase text-xs">
                           No report data available for this criteria.
                         </div>
                     )}

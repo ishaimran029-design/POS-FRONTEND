@@ -1,6 +1,15 @@
+import { useState } from "react"
 import ProductRow from "./ProductRow"
+import AddStockModal from "./AddStockModal"
 
-export default function ProductsTable({ data }: any) {
+export default function ProductsTable({ data, onRefresh }: any) {
+    const [selectedProduct, setSelectedProduct] = useState<any>(null);
+    const [isStockModalOpen, setIsStockModalOpen] = useState(false);
+
+    const handleAddStock = (product: any) => {
+        setSelectedProduct(product);
+        setIsStockModalOpen(true);
+    };
 
     return (
 
@@ -17,7 +26,7 @@ export default function ProductsTable({ data }: any) {
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Buying</th>
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Selling</th>
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">In Stock</th>
-                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-24">Actions</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-24 text-right">Actions</th>
                         </tr>
                     </thead>
 
@@ -25,7 +34,11 @@ export default function ProductsTable({ data }: any) {
 
                         {data.length > 0 ? (
                             data.map((p: any, i: number) => (
-                                <ProductRow key={p.id} product={p} index={i + 1} />
+                                <ProductRow 
+                                    key={p.id} 
+                                    product={{...p, onAddStock: handleAddStock}} 
+                                    index={i + 1} 
+                                />
                             ))
                         ) : (
                             <tr>
@@ -40,6 +53,13 @@ export default function ProductsTable({ data }: any) {
                 </table>
 
             </div>
+
+            <AddStockModal 
+                open={isStockModalOpen} 
+                onClose={() => setIsStockModalOpen(false)} 
+                product={selectedProduct} 
+                onSuccess={onRefresh}
+            />
 
         </div>
 

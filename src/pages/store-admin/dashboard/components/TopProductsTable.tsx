@@ -1,6 +1,5 @@
 import { MoreVertical, Search } from 'lucide-react';
-
-
+import { formatCurrency } from '@/utils/format';
 import type { Product } from '../types';
 
 interface TopProductsTableProps {
@@ -16,7 +15,7 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
             <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Top Selling Inventory</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Most popular products this week</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium font-bold uppercase tracking-widest mt-1">Most popular products this week</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative group">
@@ -53,7 +52,7 @@ export default function TopProductsTable({ products }: TopProductsTableProps) {
                                     </div>
                                 </td>
                                 <td className="px-8 py-5 font-mono text-xs font-black text-slate-400 dark:text-slate-500">{product.sku}</td>
-                                <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-white text-sm tabular-nums">₹ {product.revenue.toLocaleString()}</td>
+                                <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-white text-sm tabular-nums">{formatCurrency(product.revenue)}</td>
                                 <td className="px-8 py-5 min-w-[180px]">
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
