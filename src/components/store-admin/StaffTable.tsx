@@ -4,12 +4,10 @@ import type { StaffMember } from '../../pages/store-admin/staff-management/types
 
 interface StaffTableProps {
     staff: StaffMember[];
-    onToggleStatus: (id: string, active: boolean) => void;
     onEdit: (member: StaffMember) => void;
-    onViewDetails: (member: StaffMember) => void;
 }
 
-export default function StaffTable({ staff, onToggleStatus, onEdit, onViewDetails }: StaffTableProps) {
+export default function StaffTable({ staff, onEdit }: StaffTableProps) {
     return (
         <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-10 animate-fade-in hover:shadow-md dark:shadow-none transition-all duration-300">
             <div className="overflow-x-auto">
@@ -26,14 +24,13 @@ export default function StaffTable({ staff, onToggleStatus, onEdit, onViewDetail
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50/50 dark:divide-slate-800/50">
-                        {staff.map((member) => (
-                            <StaffRow
-                                key={member.id}
-                                member={member}
-                                onToggleStatus={onToggleStatus}
-                                onEdit={onEdit}
-                                onViewDetails={onViewDetails}
-                            />
+                        {staff.map((member, idx) => (
+                             <StaffRow
+                                 key={member.id}
+                                 member={member}
+                                 index={idx + 1}
+                                 onEdit={onEdit}
+                             />
                         ))}
                         {staff.length === 0 && (
                             <tr>
@@ -43,8 +40,8 @@ export default function StaffTable({ staff, onToggleStatus, onEdit, onViewDetail
                                             <Users size={32} />
                                         </div>
                                         <div>
-                                            <p className="text-slate-900 dark:text-white font-extrabold text-sm tracking-tight leading-none mb-1">No Staff Members Found</p>
-                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Try adjusting your filters or contact administrator</p>
+                                            <p className="text-slate-900 dark:text-white font-bold text-sm tracking-tight leading-none mb-1">No Staff Members Found</p>
+                                            <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Try adjusting your filters or contact administrator</p>
                                         </div>
                                     </div>
                                 </td>

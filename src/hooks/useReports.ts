@@ -21,3 +21,10 @@ export const useSuperAdminOverview = () => {
     queryFn: reportsApi.getSuperAdminOverview,
   });
 };
+
+export const useAuditLogs = (params?: any) => {
+  return useQuery({
+    queryKey: ['audit-logs', params],
+    queryFn: () => reportsApi.getAuditLogs(params),
+  });
+};

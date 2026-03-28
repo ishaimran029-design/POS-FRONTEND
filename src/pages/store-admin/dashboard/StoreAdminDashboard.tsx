@@ -105,7 +105,7 @@ export default function StoreAdminDashboard() {
       <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Console...</p>
+          <p className="text-sm font-medium text-slate-400 uppercase tracking-widest animate-pulse">Initializing Console...</p>
         </div>
       </div>
     );
@@ -116,9 +116,9 @@ export default function StoreAdminDashboard() {
       <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="text-center p-12 bg-white dark:bg-slate-900 rounded-[40px] shadow-xl max-w-md border border-slate-100 dark:border-slate-800">
           <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">System Error</h2>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">System Error</h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">{error || 'Failed to establish connection to POS core.'}</p>
-          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95">
+          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-bold uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95">
             Emergency Reload
           </button>
         </div>
@@ -175,8 +175,8 @@ export default function StoreAdminDashboard() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Console Overview</h1>
-              <p className="text-slate-500 dark:text-slate-500 font-bold uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Console Overview</h1>
+              <p className="text-slate-500 dark:text-slate-500 font-medium uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
             </div>
             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
               {['Today', '7D', '30D'].map((range) => (
@@ -184,7 +184,7 @@ export default function StoreAdminDashboard() {
                   key={range}
                   onClick={() => setDateRange(range)}
                   className={cn(
-                    "px-6 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
+                    "px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all",
                     dateRange === range 
                       ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none" 
                       : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -212,7 +212,7 @@ export default function StoreAdminDashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100 dark:shadow-none"></span>
-                       <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
+                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
                     </div>
                   </div>
                   <div className="flex-1 min-h-[220px]">
@@ -230,7 +230,7 @@ export default function StoreAdminDashboard() {
                       <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Comparative performance</p>
                     </div>
                     <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full border border-blue-100 dark:border-blue-800 shadow-sm">
-                      <span className="text-[10px] font-black uppercase tracking-widest">Bar View</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Bar View</span>
                     </div>
                   </div>
                   {data?.weeklyRevenue && data.weeklyRevenue.length > 0 ? (

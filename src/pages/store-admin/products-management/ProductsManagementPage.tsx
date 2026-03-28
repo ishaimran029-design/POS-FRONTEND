@@ -72,7 +72,7 @@ export default function ProductsManagementPage() {
 
     return (
 
-        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div
@@ -112,7 +112,7 @@ export default function ProductsManagementPage() {
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[2px] animate-pulse mt-6">Syncing Inventory Assets...</p>
                             </div>
                         ) : (
-                            <ProductsTable data={paginated} onRefresh={() => loadProducts()} />
+                            <ProductsTable data={paginated} onRefresh={() => refetchProducts()} />
                         )}
                     </div>
 

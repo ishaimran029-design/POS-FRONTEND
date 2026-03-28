@@ -1,4 +1,4 @@
-import { X, Plus, DollarSign, Archive, Calendar, Tag } from 'lucide-react';
+import { X, Plus, Archive, Calendar, Tag } from 'lucide-react';
 import { useState } from 'react';
 import { addBatch } from '@/api/products.api';
 
@@ -49,22 +49,22 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
         }
     };
 
-    const inputClasses = "w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300 text-sm";
-    const labelClasses = "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 mb-1.5 block";
+    const inputClasses = "w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300 text-sm";
+    const labelClasses = "text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400 ml-1 mb-1.5 block";
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8">
             <div 
-                className="fixed inset-0 bg-black/30 backdrop-blur-sm animate-fade-in transition-all duration-300" 
+                className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in transition-all duration-300" 
                 onClick={onClose}
             ></div>
 
-            <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col animate-scale-up">
+            <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-scale-up">
                 {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-50 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900">
                     <div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Add New Stock Batch</h2>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{product.name}</p>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Add New Stock Batch</h2>
+                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">{product.name}</p>
                     </div>
                     <button 
                         onClick={onClose} 
@@ -84,30 +84,30 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className={labelClasses}>New Purchase Price (Rs.)</label>
+                            <label className={labelClasses}>New Purchase Price</label>
                             <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-[10px] group-focus-within:text-indigo-600 transition-colors">Rs</span>
                                 <input 
                                     required 
                                     type="number" 
                                     step="0.01" 
                                     value={purchasePrice}
                                     onChange={(e) => setPurchasePrice(e.target.value)}
-                                    className={inputClasses} 
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300 text-sm" 
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className={labelClasses}>New Selling Price (Rs.)</label>
+                            <label className={labelClasses}>New Selling Price</label>
                             <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-[10px] group-focus-within:text-indigo-600 transition-colors">Rs</span>
                                 <input 
                                     required 
                                     type="number" 
                                     step="0.01" 
                                     value={sellingPrice}
                                     onChange={(e) => setSellingPrice(e.target.value)}
-                                    className={inputClasses} 
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300 text-sm" 
                                 />
                             </div>
                         </div>
@@ -116,7 +116,7 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
                     <div>
                         <label className={labelClasses}>Quantity to Add</label>
                         <div className="relative group">
-                            <Archive className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                            <Archive className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                             <input 
                                 required 
                                 type="number" 
@@ -132,7 +132,7 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
                         <div>
                             <label className={labelClasses}>Batch # (Optional)</label>
                             <div className="relative group">
-                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                 <input 
                                     type="text" 
                                     value={batchNumber}
@@ -145,7 +145,7 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
                         <div>
                             <label className={labelClasses}>Expiry Date (Optional)</label>
                             <div className="relative group">
-                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
+                                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-indigo-600 transition-colors" />
                                 <input 
                                     type="date" 
                                     value={expiryDate}
@@ -167,7 +167,7 @@ export default function AddStockModal({ open, onClose, onSuccess, product }: Add
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-[2] px-6 py-3 bg-[#1E1B4B] text-white rounded-xl font-bold text-xs hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                            className="flex-[2] px-6 py-3 bg-indigo-900 text-white rounded-xl font-bold text-xs hover:bg-indigo-600 shadow-lg shadow-indigo-900/20 transition-all flex items-center justify-center gap-2"
                         >
                             {loading ? 'Adding Stock...' : <><Plus size={16} /> Add Stock</>}
                         </button>

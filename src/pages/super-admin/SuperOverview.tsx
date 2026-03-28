@@ -211,7 +211,7 @@ const SuperOverview: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
+              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 <th className="py-4 px-6 min-w-[150px]">Store ID</th>
                 <th className="py-4 px-6 min-w-[200px]">Device Type</th>
                 <th className="py-4 px-6 min-w-[150px]">Region</th>

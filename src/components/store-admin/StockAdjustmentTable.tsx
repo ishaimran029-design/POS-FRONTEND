@@ -12,6 +12,7 @@ const StockAdjustmentTable = ({ adjustments = [] }: { adjustments?: any[] }) => 
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50/50">
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 w-12 text-center">ID</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Product</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Type</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Quantity</th>
@@ -23,7 +24,12 @@ const StockAdjustmentTable = ({ adjustments = [] }: { adjustments?: any[] }) => 
                     <tbody className="divide-y divide-gray-50">
                         {adjustments.length > 0 ? (
                             adjustments.map((adj, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                <tr key={idx} className="hover:bg-gray-50 transition-colors group">
+                                    <td className="px-6 py-4 text-center">
+                                        <span className="text-[10px] font-mono text-gray-400 group-hover:text-blue-600 transition-colors">
+                                            {(idx + 1).toString().padStart(2, '0')}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
                                             <span className="text-sm font-bold text-gray-800">{adj.product?.name || 'Deleted Product'}</span>
@@ -58,11 +64,18 @@ const StockAdjustmentTable = ({ adjustments = [] }: { adjustments?: any[] }) => 
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600 uppercase">
-                                                {adj.user?.name?.substring(0, 2) || 'S'}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600 uppercase">
+                                                    {adj.user?.name?.substring(0, 2) || 'S'}
+                                                </div>
+                                                <span className="text-xs font-bold text-gray-800">{adj.user?.name || 'System'}</span>
                                             </div>
-                                            <span className="text-xs font-bold text-gray-800">{adj.user?.name || 'System'}</span>
+                                            {adj.user?.role && adj.user.role !== 'SYSTEM' && (
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-8">
+                                                    {adj.user.role.replace('_', ' ')}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

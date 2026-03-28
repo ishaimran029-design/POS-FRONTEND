@@ -9,7 +9,7 @@ export default function DevicesTable({ data, onDelete }: { data: Device[]; onDel
                 <table className="w-full text-left border-collapse min-w-[1200px]">
                     <thead>
                         <tr className="bg-slate-50/50 border-b border-slate-100 uppercase tracking-[2px] text-[10px] font-black text-slate-400">
-                            <th className="py-6 pl-8 font-black">#</th>
+                            <th className="py-6 pl-8 font-black">ID</th>
                             <th className="py-6 font-black">Terminal Hub</th>
                             <th className="py-6 font-black">Hardware ID</th>
                             <th className="py-6 font-black">State</th>
@@ -22,7 +22,7 @@ export default function DevicesTable({ data, onDelete }: { data: Device[]; onDel
                     </thead>
                     <tbody className="divide-y divide-slate-50/50">
                         {data.map((device, idx) => (
-                            <DeviceRow key={device.id} device={device} index={idx} onDelete={onDelete} />
+                            <DeviceRow key={device.id} device={device} index={idx + 1} onDelete={onDelete} />
                         ))}
                     </tbody>
                 </table>

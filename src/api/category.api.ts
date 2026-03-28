@@ -25,6 +25,33 @@ export function removeFromHierarchy(categoryId: string) {
   localStorage.setItem(HIERARCHY_KEY, JSON.stringify(map))
 }
 
+const SUBCATEGORIES_KEY = "pos_category_subcategories"
+
+export function getSubcategoriesMap(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(SUBCATEGORIES_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function getSubcategories(categoryId: string): string[] {
+  return getSubcategoriesMap()[categoryId] || []
+}
+
+export function setSubcategories(categoryId: string, subcategories: string[]) {
+  const map = getSubcategoriesMap()
+  map[categoryId] = subcategories
+  localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(map))
+}
+
+export function removeSubcategories(categoryId: string) {
+  const map = getSubcategoriesMap()
+  delete map[categoryId]
+  localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(map))
+}
+
 /** Enriches a list of API categories with parentId/parentName from localStorage */
 export function enrichWithHierarchy(categories: Category[]): Category[] {
   const map = getHierarchyMap()

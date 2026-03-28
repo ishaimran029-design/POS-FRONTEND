@@ -25,7 +25,7 @@ const SalesFilters: React.FC<Props> = ({
   return (
     <div className="flex flex-col xl:flex-row gap-6 bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300">
       <div className="relative flex-1 group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#2563EB] transition-colors">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors">
           <Search className="w-5 h-5" />
         </div>
         <input
@@ -33,7 +33,7 @@ const SalesFilters: React.FC<Props> = ({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search by Invoice, Customer or Item..."
-          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:bg-white focus:border-[#2563EB]/30 focus:ring-4 focus:ring-[#2563EB]/5 transition-all font-bold text-slate-700 placeholder:text-slate-400"
+          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm outline-none focus:bg-white focus:border-indigo-600/30 focus:ring-4 focus:ring-indigo-600/5 transition-all font-medium text-slate-700 placeholder:text-slate-400"
         />
       </div>
       
@@ -44,14 +44,14 @@ const SalesFilters: React.FC<Props> = ({
              type="date"
              value={dateRange.start}
              onChange={(e) => onDateRangeChange(e.target.value, dateRange.end)}
-             className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-slate-600 px-2 cursor-pointer"
+             className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-slate-600 px-2 cursor-pointer"
            />
            <span className="text-slate-300 font-bold">-</span>
            <input 
              type="date"
              value={dateRange.end}
              onChange={(e) => onDateRangeChange(dateRange.start, e.target.value)}
-             className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest text-slate-600 px-2 cursor-pointer"
+             className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-slate-600 px-2 cursor-pointer"
            />
         </div>
 
@@ -59,7 +59,7 @@ const SalesFilters: React.FC<Props> = ({
           <select 
             value={status} 
             onChange={(e) => onStatusChange(e.target.value)}
-            className="pl-5 pr-10 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-[#2563EB]/30 focus:ring-4 focus:ring-[#2563EB]/5 transition-all cursor-pointer appearance-none min-w-[150px]"
+            className="pl-5 pr-10 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-indigo-600/30 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer appearance-none min-w-[150px]"
           >
             <option value="All Status">All Status</option>
             <option value="COMPLETED">Completed</option>
@@ -76,7 +76,7 @@ const SalesFilters: React.FC<Props> = ({
           <select 
             value={paymentMethod}
             onChange={(e) => onPaymentMethodChange(e.target.value)}
-            className="pl-5 pr-10 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-[#2563EB]/30 focus:ring-4 focus:ring-[#2563EB]/5 transition-all cursor-pointer appearance-none min-w-[150px]"
+            className="pl-5 pr-10 py-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-indigo-600/30 focus:ring-4 focus:ring-indigo-600/5 transition-all cursor-pointer appearance-none min-w-[150px]"
           >
             <option value="All Methods">All Methods</option>
             <option value="CASH">Cash</option>

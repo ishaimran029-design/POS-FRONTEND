@@ -18,12 +18,17 @@ interface AddStaffModalProps {
 
 const PASSWORD_HINT = '8+ chars, uppercase, lowercase, digit, special character';
 
+interface FormState extends CreateStaffInput {
+    isActive: boolean;
+}
+
 export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEdit }: AddStaffModalProps) {
-    const [formData, setFormData] = useState<CreateStaffInput>({
+    const [formData, setFormData] = useState<FormState>({
         name: '',
         email: '',
         role: 'CASHIER',
-        password: ''
+        password: '',
+        isActive: true
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -37,10 +42,11 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                     name: editMember.name,
                     email: editMember.email,
                     role: editMember.role as any,
-                    password: ''
+                    password: '',
+                    isActive: editMember.status === 'active'
                 });
             } else {
-                setFormData({ name: '', email: '', role: 'CASHIER', password: '' });
+                setFormData({ name: '', email: '', role: 'CASHIER', password: '', isActive: true });
             }
             setError(null);
             setShowPassword(false);
@@ -64,7 +70,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
 
     const handleClose = () => {
         setError(null);
-        setFormData({ name: '', email: '', role: 'CASHIER', password: '' });
+        setFormData({ name: '', email: '', role: 'CASHIER', password: '', isActive: true });
         setShowPassword(false);
         onClose();
     };
@@ -92,6 +98,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
             ? await onEdit(editMember.id, { 
                 name: formData.name, 
                 role: formData.role, 
+                isActive: (formData as any).isActive,
                 ...(formData.password ? { password: formData.password } : {}),
                 ...(formData.role === "CASHIER" ? { assignedTerminalIds: formData.assignedTerminalIds } : {})
               }) 
@@ -106,13 +113,13 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={handleClose}></div>
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[40px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={handleClose}></div>
+            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[32px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-fade-in">
                 <div className="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{editMember ? 'Edit Staff Details' : 'Add New Staff'}</h2>
-                        <p className="text-slate-400 dark:text-slate-500 text-xs font-black uppercase tracking-widest mt-1">{editMember ? 'Modify identity or permissions' : 'Onboard Cashier or Accountant'}</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{editMember ? 'Edit Staff Details' : 'Add New Staff'}</h2>
+                        <p className="text-slate-400 dark:text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">{editMember ? 'Modify identity or permissions' : 'Onboard Cashier or Accountant'}</p>
                     </div>
                     <button onClick={handleClose} type="button" className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 transition-all active:scale-95">
                         <X className="w-6 h-6" />
@@ -127,7 +134,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                     )}
                     <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                 <input
@@ -142,7 +149,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                 <input
@@ -157,7 +164,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
+                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Role</label>
                             <div className="relative">
                                 <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
                                 <select
@@ -175,7 +182,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                         </div>
                         {formData.role === 'CASHIER' && (
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
+                                <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
                                     <Monitor className="w-4 h-4" /> Assign Terminal
                                 </label>
                                 <div className="relative">
@@ -199,7 +206,7 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
 
 
                         <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Password {editMember ? '(Leave blank to keep same)' : '(required)'}</label>
+                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Password {editMember ? '(Leave blank to keep same)' : '(required)'}</label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
                                 <input
@@ -220,20 +227,37 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
                             </div>
                             <p className="text-[10px] text-slate-400 font-medium ml-1">{PASSWORD_HINT}</p>
                         </div>
+
+                        {editMember && (
+                            <div className="space-y-2">
+                                <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Account Status</label>
+                                <div className="relative">
+                                    <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
+                                    <select
+                                        value={formData.isActive ? "active" : "inactive"}
+                                        onChange={e => setFormData({ ...formData, isActive: e.target.value === "active" })}
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer text-slate-900 dark:text-white"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-4 pt-4">
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
+                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-[20px] font-bold uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-4 bg-[#1E1B4B] text-white rounded-[20px] font-black uppercase tracking-widest text-xs hover:bg-[#2563EB] shadow-lg shadow-[#1E1B4B]/25 transition-all active:scale-95 disabled:opacity-50"
+                            className="flex-1 py-4 bg-indigo-900 text-white rounded-[20px] font-bold uppercase tracking-widest text-xs hover:bg-indigo-600 shadow-lg shadow-indigo-900/25 transition-all active:scale-95 disabled:opacity-50"
                         >
                             {loading ? (editMember ? 'Saving...' : 'Creating...') : (editMember ? 'Save Changes' : 'Create Staff')}
                         </button>
