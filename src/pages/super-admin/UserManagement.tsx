@@ -103,7 +103,7 @@ const UserManagement: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   <th className="py-4 px-6 min-w-[250px]">User Details</th>
                   <th className="py-4 px-6 min-w-[200px]">Email Address</th>
                   <th className="py-4 px-6 min-w-[150px]">Role</th>
@@ -138,7 +138,7 @@ const UserManagement: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest bg-slate-50">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest bg-slate-50">
                   <th className="py-4 px-6 min-w-[250px]">Admin Name</th>
                   <th className="py-4 px-6 min-w-[200px]">Email Address</th>
                   <th className="py-4 px-6 min-w-[150px]">Store ID</th>

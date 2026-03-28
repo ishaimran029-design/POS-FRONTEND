@@ -13,10 +13,20 @@ import {
 } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
+import { cn } from '@/lib/utils';
+
+const subcategoryMapping: Record<string, string[]> = {
+    electronics: ['Mobiles', 'Laptops', 'Audio', 'Cameras', 'Accessories'],
+    fashion: ['Men\'s Wear', 'Women\'s Wear', 'Footwear', 'Watches', 'Bags'],
+    home: ['Kitchenware', 'Furniture', 'Decor', 'Appliances', 'Gardening'],
+    other: ['Books', 'Toys', 'Stationery', 'Sports', 'Misc'],
+};
 
 export default function AddProductPage() {
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [category, setCategory] = useState('');
+    const [subcategory, setSubcategory] = useState('');
 
     return (
         <div className="min-h-screen bg-[#F7F8FA] flex">
@@ -91,17 +101,57 @@ export default function AddProductPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Category</label>
-                                        <div className="relative">
-                                            <Layers size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <select className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none text-gray-900 cursor-pointer">
-                                                <option value="">Select a category</option>
-                                                <option value="electronics">Electronics</option>
-                                                <option value="fashion">Fashion</option>
-                                                <option value="home">Home & Kitchen</option>
-                                                <option value="other">Other</option>
-                                            </select>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Category</label>
+                                            <div className="relative">
+                                                <Layers size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <select 
+                                                    value={category}
+                                                    onChange={(e) => {
+                                                        setCategory(e.target.value);
+                                                        setSubcategory('');
+                                                    }}
+                                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all appearance-none text-gray-900 cursor-pointer"
+                                                >
+                                                    <option value="">Select a category</option>
+                                                    <option value="electronics">Electronics</option>
+                                                    <option value="fashion">Fashion</option>
+                                                    <option value="home">Home & Kitchen</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={cn(
+                                                "block text-xs font-black uppercase tracking-widest mb-2 transition-colors",
+                                                category ? "text-gray-500" : "text-gray-400/60"
+                                            )}>
+                                                Subcategory
+                                            </label>
+                                            <div className="relative">
+                                                <Layers size={16} className={cn(
+                                                    "absolute left-4 top-1/2 -translate-y-1/2 transition-colors",
+                                                    category ? "text-gray-400" : "text-gray-300"
+                                                )} />
+                                                <select 
+                                                    value={subcategory}
+                                                    onChange={(e) => setSubcategory(e.target.value)}
+                                                    disabled={!category}
+                                                    className={cn(
+                                                        "w-full pl-11 pr-4 py-3 border rounded-xl text-sm outline-none transition-all appearance-none text-gray-900",
+                                                        category 
+                                                            ? "bg-gray-50 border-gray-100 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" 
+                                                            : "bg-gray-50/30 border-gray-50 text-gray-400/50 cursor-not-allowed"
+                                                    )}
+                                                >
+                                                    <option value="">{category ? "Choose Subcategory" : "Pick Category First"}</option>
+                                                    {category && subcategoryMapping[category]?.map((sub) => (
+                                                        <option key={sub} value={sub.toLowerCase()}>{sub}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -120,35 +170,48 @@ export default function AddProductPage() {
                                         <div>
                                             <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Purchase Price</label>
                                             <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs</span>
                                                 <input
                                                     type="number"
                                                     placeholder="0.00"
-                                                    className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
+                                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
                                                 />
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Selling Price</label>
                                             <div className="relative">
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs</span>
                                                 <input
                                                     type="number"
                                                     placeholder="0.00"
-                                                    className="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
+                                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Tax Rate</label>
-                                        <div className="relative">
-                                            <Percent size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                            <input
-                                                type="number"
-                                                placeholder="0"
-                                                className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
-                                            />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Tax Rate (%)</label>
+                                            <div className="relative">
+                                                <Percent size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Default Discount (%)</label>
+                                            <div className="relative">
+                                                <Percent size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                <input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400 font-bold"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -18,7 +18,7 @@ export default function ProductsTable({ data, onRefresh }: any) {
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="bg-slate-50/50 border-b border-slate-100">
-                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-12">#</th>
+                            <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400 w-12">ID</th>
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Product Name</th>
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">SKU/Code</th>
                             <th className="px-6 py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Barcode</th>

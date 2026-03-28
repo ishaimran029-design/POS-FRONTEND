@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3003/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3005/api/v1',
   withCredentials: true,
 });
 
@@ -145,6 +145,8 @@ export const reportsApi = {
   getSuperAdminOverview: () => api.get('/reports/superadmin/overview'),
   getSalesReport: (params: { startDate: string; endDate: string }) =>
     api.get('/reports/sales', { params }),
+  getAuditLogs: (params: { entity?: string; action?: string; limit?: number }) =>
+    api.get('/reports/audit-logs', { params }),
 };
 
 export default api;

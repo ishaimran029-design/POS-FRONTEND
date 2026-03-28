@@ -381,22 +381,22 @@ const ReturnRefundPage: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-xs font-black text-slate-600 uppercase tracking-wider">
                         Product
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-black text-slate-600 uppercase tracking-wider">
                         SKU / Barcode
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-black text-slate-600 uppercase tracking-wider">
                         Unit Price
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-black text-slate-600 uppercase tracking-wider">
                         Purchased
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-black text-slate-600 uppercase tracking-wider">
                         Return Qty
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-center text-xs font-black text-slate-600 uppercase tracking-wider">
                         Return Value
                       </th>
                     </tr>

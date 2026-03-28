@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
-import { Menu, X, Bell } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -55,10 +55,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="p-2 text-slate-400 hover:text-slate-900 relative">
-                            <Bell size={20} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
-                        </button>
                         <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
                         <div className="flex items-center gap-3 cursor-pointer group">
                             <div className="text-right hidden sm:block">

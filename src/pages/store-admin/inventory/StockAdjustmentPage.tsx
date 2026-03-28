@@ -5,16 +5,40 @@ import StockAdjustmentForm from '@/components/store-admin/StockAdjustmentForm';
 import StockAdjustmentTable from '@/components/store-admin/StockAdjustmentTable';
 import { useProducts } from '@/hooks/useProducts';
 import { useInventoryLogs } from '@/hooks/useInventory';
+import { useAuditLogs } from '@/hooks/useReports';
 
 const StockAdjustmentPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // React Query Hooks
     const { data: productsRes } = useProducts();
-    const { data: logsRes } = useInventoryLogs({ limit: 20 });
+    const { data: logsRes } = useInventoryLogs({ limit: 40 });
+    const { data: auditLogsRes } = useAuditLogs({ limit: 100 });
 
     const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
     const logs = (logsRes as any)?.data || (Array.isArray(logsRes) ? logsRes : []);
+    const auditLogs = (auditLogsRes as any)?.data?.logs || (Array.isArray(auditLogsRes?.logs) ? auditLogsRes.logs : []);
+
+    // Merge Audit Logs into Inventory Logs to get User Attribution
+    const enrichedLogs = logs.map((log: any) => {
+        // 1. Try to find the direct AuditLog for this inventory log
+        let audit = auditLogs.find((a: any) => a.entity === 'inventory_logs' && a.entityId === log.id);
+        
+        // 2. If not found, check if it's a SALE and find the sale's AuditLog
+        if (!audit && log.changeType === 'SALE' && log.referenceId) {
+            audit = auditLogs.find((a: any) => a.entity === 'sales' && a.entityId === log.referenceId);
+        }
+
+        // 3. If still not found, check if it's an OPENING_STOCK and find the product's AuditLog
+        if (!audit && log.changeType === 'OPENING_STOCK') {
+            audit = auditLogs.find((a: any) => a.entity === 'products' && a.entityId === log.productId && a.action === 'CREATE_PRODUCT');
+        }
+
+        return {
+            ...log,
+            user: audit?.user || { name: 'System', role: 'SYSTEM' }
+        };
+    });
 
     const handleSuccess = () => {
         // React Query handles invalidation in the mutation hook onSuccess
@@ -53,7 +77,7 @@ const StockAdjustmentPage = () => {
                         </div>
 
                         {/* Recent Adjustments Table */}
-                        <StockAdjustmentTable adjustments={logs} />
+                        <StockAdjustmentTable adjustments={enrichedLogs} />
                     </div>
                 </main>
             </div>

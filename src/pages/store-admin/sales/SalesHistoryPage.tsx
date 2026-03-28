@@ -65,7 +65,7 @@ const SalesHistoryPage = () => {
     const loading = salesLoading;
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"

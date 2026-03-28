@@ -65,8 +65,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         <LayoutDashboard size={24} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="font-extrabold text-xl text-white tracking-tight leading-none">Hybrid POS</h1>
-                        <p className="text-[10px] font-black text-slate-300 mt-1 uppercase tracking-widest">STORE ADMIN</p>
+                        <h1 className="font-bold text-xl text-white tracking-tight leading-none">Hybrid POS</h1>
+                        <p className="text-[10px] font-medium text-slate-300 mt-1 uppercase tracking-widest">STORE ADMIN</p>
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 >
                                     <div className="flex items-center gap-3">
                                         <item.icon size={20} className="text-slate-400 group-hover:text-white transition-colors" />
-                                        <span className="font-bold text-sm tracking-tight">{item.name}</span>
+                                        <span className="font-medium text-sm tracking-tight">{item.name}</span>
                                     </div>
                                     {inventoryOpen ? <ChevronDown size={14} className="text-slate-400 group-hover:text-[#262255]" /> : <ChevronRight size={14} className="text-slate-400 group-hover:text-[#262255]" />}
                                 </button>
@@ -94,7 +94,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                 key={cIdx}
                                                 to={child.path}
                                                 className={({ isActive }) =>
-                                                    `block py-2 px-2 text-sm font-bold rounded-lg transition-all hover:text-white hover:bg-[#2A2760] ${isActive ? 'text-white bg-[#2A2760]' : 'text-slate-400'}`
+                                                    `block py-2 px-2 text-sm font-medium rounded-lg transition-all hover:text-white hover:bg-[#2A2760] ${isActive ? 'text-white bg-[#2A2760]' : 'text-slate-400'}`
                                                 }
                                             >
                                                 {child.name}
@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             {({ isActive }) => (
                                 <>
                                     <item.icon size={20} className={isActive ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-                                    <span className="font-bold text-sm tracking-tight">{item.name}</span>
+                                    <span className="font-medium text-sm tracking-tight">{item.name}</span>
                                 </>
                             )}
                         </NavLink>
@@ -135,8 +135,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         AM
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">Anzal Manager</p>
-                        <p className="text-[10px] text-slate-300 font-bold uppercase truncate">KARACHI BRANCH</p>
+                        <p className="text-sm font-semibold text-white truncate">Anzal Manager</p>
+                        <p className="text-[10px] text-slate-300 font-medium uppercase truncate">KARACHI BRANCH</p>
                     </div>
                     <button
                         onClick={logout}

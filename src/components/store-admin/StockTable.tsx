@@ -1,5 +1,4 @@
 import React from 'react';
-import { MoreHorizontal, History } from 'lucide-react';
 
 interface InventoryItem {
     id: string;
@@ -55,13 +54,12 @@ const StockTable: React.FC<Props> = ({ items, loading }) => {
                 <table className="w-full text-left">
                     <thead className="bg-gray-50/50 border-b border-gray-100">
                         <tr>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">#</th>
+                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">ID</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Product Details</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Category</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Stock</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Reorder Level</th>
                             <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Status</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -100,16 +98,6 @@ const StockTable: React.FC<Props> = ({ items, loading }) => {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     {getStatusBadge(item.currentStock, item.reorderLevel)}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <button className="p-2 text-gray-400 hover:text-[#2563EB] hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-[#2563EB]/10" title="View History">
-                                            <History size={16} />
-                                        </button>
-                                        <button className="p-2 text-gray-400 hover:text-[#2563EB] hover:bg-white rounded-lg transition-all shadow-sm border border-transparent hover:border-[#2563EB]/10" title="Log Adjustment">
-                                            <MoreHorizontal size={16} />
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                         ))}

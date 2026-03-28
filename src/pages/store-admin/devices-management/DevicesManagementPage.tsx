@@ -77,7 +77,7 @@ export default function DevicesManagementPage() {
     const total = filtered.length
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] flex text-slate-900 transition-all duration-500">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 flex text-slate-900 dark:text-slate-100 transition-all duration-500">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div

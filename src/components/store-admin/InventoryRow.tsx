@@ -2,9 +2,10 @@ import type { InventoryMovement } from "@/pages/store-admin/inventory/InventoryM
 
 interface Props {
   movement: InventoryMovement
+  index: number
 }
 
-const InventoryRow = ({ movement }: Props) => {
+const InventoryRow = ({ movement, index }: Props) => {
   const quantityColor =
     movement.quantityChange > 0
       ? "text-emerald-600 bg-emerald-50 border-emerald-100"
@@ -14,21 +15,24 @@ const InventoryRow = ({ movement }: Props) => {
     const type = movement.changeType.toLowerCase();
     switch (type) {
       case "sale":
-        return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Sale</span>;
+        return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-medium uppercase tracking-widest">Sale</span>;
       case "purchase":
       case "restock":
-        return <span className="px-2.5 py-1 bg-[#2563EB]/5 text-[#2563EB] border border-[#2563EB]/10 rounded-lg text-[10px] font-black uppercase tracking-widest">Stock In</span>;
+        return <span className="px-2.5 py-1 bg-indigo-600/5 text-indigo-600 border border-indigo-600/10 rounded-lg text-[10px] font-medium uppercase tracking-widest">Stock In</span>;
       case "adjustment":
         return <span className="px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Adjustment</span>;
       case "opening_stock":
         return <span className="px-2.5 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[10px] font-black uppercase tracking-widest">Opening</span>;
       default:
-        return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-widest">{movement.changeType}</span>;
+        return <span className="px-2.5 py-1 bg-slate-50 text-slate-500 border border-slate-100 rounded-lg text-[10px] font-medium uppercase tracking-widest">{movement.changeType}</span>;
     }
   }
 
   return (
     <tr className="hover:bg-[#2563EB]/5 transition-all duration-300 group cursor-pointer">
+      <td className="px-6 py-4 text-slate-400 font-mono text-[10px]">
+        {index.toString().padStart(2, '0')}
+      </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-4">
            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm group-hover:border-[#2563EB]/20 transition-colors">
@@ -39,17 +43,17 @@ const InventoryRow = ({ movement }: Props) => {
             />
           </div>
           <div>
-            <div className="text-sm font-extrabold text-slate-900 group-hover:text-[#1E1B4B] transition-colors">
+            <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-900 transition-colors">
               {movement.productName}
             </div>
-            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+            <div className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">
               SKU: {movement.sku}
             </div>
           </div>
         </div>
       </td>
       <td className="px-6 py-4">
-        <span className={`px-3 py-1.5 rounded-xl text-xs font-black tabular-nums border ${quantityColor}`}>
+        <span className={`px-3 py-1.5 rounded-xl text-xs font-bold tabular-nums border ${quantityColor}`}>
           {movement.quantityChange > 0 ? "+" : ""}
           {movement.quantityChange}
         </span>
@@ -57,18 +61,18 @@ const InventoryRow = ({ movement }: Props) => {
       <td className="px-6 py-4 capitalize">
         {changeTypeBadge()}
       </td>
-      <td className="px-6 py-4 text-slate-500 font-extrabold text-[10px] tracking-widest uppercase">
+      <td className="px-6 py-4 text-slate-500 font-medium text-[10px] tracking-widest uppercase">
           {movement.referenceId}
       </td>
       <td className="px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#2563EB]/5 border border-[#2563EB]/10 text-[#2563EB] flex items-center justify-center text-[10px] font-black">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600/5 border border-indigo-600/10 text-indigo-600 flex items-center justify-center text-[10px] font-medium">
                 {movement.user.charAt(0)}
             </div>
-            <span className="text-[11px] font-bold text-slate-700 uppercase tracking-tight">{movement.user}</span>
+            <span className="text-[11px] font-medium text-slate-700 uppercase tracking-tight">{movement.user}</span>
           </div>
       </td>
-      <td className="px-6 py-4 text-[11px] font-bold text-slate-400 tabular-nums">
+      <td className="px-6 py-4 text-[11px] font-medium text-slate-400 tabular-nums">
           {movement.timestamp}
       </td>
       <td className="px-6 py-4 text-right">

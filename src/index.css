@@ -1,14 +1,15 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@variant dark (&:where(.dark, .dark *));
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-inter: 'Inter', sans-serif;
 }
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     @apply bg-[#F7F9FC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors duration-300;
   }
 }
