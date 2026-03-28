@@ -1,19 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Download, Plus } from "lucide-react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
-import SalesFilters from "@/components/store-admin/SalesHistory/SalesFilters";
+import SalesFilters from "@/components/store-admin/SalesFilters";
 import SalesHistoryTable from "@/components/store-admin/SalesHistory/SalesHistoryTable";
 import SalesSummaryCards from "@/components/store-admin/SalesHistory/SalesSummaryCards";
+import ChartTooltipFormatter from "@/components/global-components/ChartTooltipFormatter";
 
-import { getSalesTransactions } from "@/api/sales.api";
-import { getSalesReport } from "@/api/reports.api";
+import { useSales } from "@/hooks/useSales";
+import { useDashboardSummary } from "@/hooks/useDashboard";
 
 const SalesHistoryPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [transactions, setTransactions] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [summaryLoading, setSummaryLoading] = useState(false);
     
     // Filters state
     const [search, setSearch] = useState("");
@@ -27,73 +25,47 @@ const SalesHistoryPage = () => {
     // Pagination state
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
-    const [total, setTotal] = useState(0);
 
-    // Summary data state
-    const [summary, setSummary] = useState({
-        totalAmount: 0,
-        completedCount: 0,
-        failedCount: 0
+    const params: any = {
+        page,
+        limit,
+        startDate: dateRange.start,
+        endDate: dateRange.end
+    };
+    
+    if (search) params.search = search;
+    if (status !== 'All Status') params.paymentStatus = status;
+    if (paymentMethod !== 'All Methods') params.paymentMethod = paymentMethod;
+
+    // React Query Hooks
+    const { data: salesDataRes, isLoading: salesLoading } = useSales(params);
+    const { data: dashboardDataRes, isLoading: summaryLoading } = useDashboardSummary({
+        startDate: dateRange.start,
+        endDate: dateRange.end
     });
 
-    const fetchTransactions = useCallback(async () => {
-        try {
-            setLoading(true);
-            const params: any = {
-                page,
-                limit,
-                startDate: dateRange.start,
-                endDate: dateRange.end
-            };
-            
-            if (search) params.search = search;
-            if (status !== 'All Status') params.paymentStatus = status;
-            if (paymentMethod !== 'All Methods') params.paymentMethod = paymentMethod;
-            
-            const res = await getSalesTransactions(params);
-            const data = res.data?.data || (Array.isArray(res.data) ? res.data : []);
-            setTransactions(data);
-            setTotal(res.data?.total || data.length);
-        } catch (error) {
-            console.error("Failed to fetch sales transactions:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [page, limit, search, status, paymentMethod, dateRange]);
+    const transactions = salesDataRes?.data || (Array.isArray(salesDataRes) ? salesDataRes : []);
+    const total = salesDataRes?.total || transactions.length;
 
-    const fetchAnalytics = useCallback(async () => {
-        try {
-            setSummaryLoading(true);
-            const res = await getSalesReport({
-                startDate: dateRange.start,
-                endDate: dateRange.end
-            });
-            
-            if (res.data?.data?.summary || res.data?.summary) {
-                const s = res.data.summary || res.data.data.summary;
-                setSummary({
-                    totalAmount: Number(s.totalRevenue || 0),
-                    completedCount: Number(s.totalTransactions || 0),
-                    failedCount: 0 // Backend currently filters out cancelled/failed in report
-                });
-            }
-        } catch (error) {
-            console.error("Failed to fetch sales analytics:", error);
-        } finally {
-            setSummaryLoading(false);
-        }
-    }, [dateRange]);
+    const reportData = dashboardDataRes?.data || dashboardDataRes;
+    
+    const summary = {
+        totalAmount: Number(reportData?.summary?.totalRevenue || 0),
+        completedCount: Number(reportData?.summary?.totalTransactions || 0),
+        failedCount: Number(reportData?.summary?.failedTransactions || 0),
+        refundedCount: Number(reportData?.summary?.totalRefunds || 0),
+        avgTicket: Number(reportData?.summary?.averageTicketSize || 0)
+    };
 
-    useEffect(() => {
-        fetchTransactions();
-    }, [fetchTransactions]);
+    const chartsData = reportData?.charts?.revenueByDate?.map((d: any) => ({
+        date: d.date,
+        revenue: Number(d.revenue || 0)
+    })) || [];
 
-    useEffect(() => {
-        fetchAnalytics();
-    }, [fetchAnalytics]);
+    const loading = salesLoading;
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
@@ -126,30 +98,57 @@ const SalesHistoryPage = () => {
                         </div>
                     </div>
 
-                    {/* Filters Section */}
-                    <SalesFilters 
-                        search={search}
-                        onSearchChange={setSearch}
-                        status={status}
-                        onStatusChange={setStatus}
-                        paymentMethod={paymentMethod}
-                        onPaymentMethodChange={setPaymentMethod}
-                        dateRange={dateRange}
-                        onDateRangeChange={(start, end) => setDateRange({ start, end })}
-                    />
+                    {/* Stats & Charts Summary */}
+                    <div className="space-y-8">
+                        <SalesSummaryCards data={summary} loading={summaryLoading} />
+                        
+                        {/* Revenue Trend Chart */}
+                        <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:shadow-md">
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-900 tracking-tight">Revenue Trend</h3>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Daily sales performance for selected period</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</span>
+                                </div>
+                            </div>
+                            <div className="h-[300px] w-full">
+                                <ChartTooltipFormatter data={chartsData} height="h-[300px]" />
+                            </div>
+                        </div>
+                    </div>
 
-                    {/* Table Section */}
-                    <SalesHistoryTable 
-                        transactions={transactions}
-                        loading={loading}
-                        page={page}
-                        total={total}
-                        limit={limit}
-                        onPageChange={setPage}
-                    />
+                    {/* Filters & Detailed View */}
+                    <div className="space-y-8 pt-4 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Transaction Ledger</h2>
+                            <span className="px-4 py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                {total} Entries Found
+                            </span>
+                        </div>
+                        
+                        <SalesFilters 
+                            search={search}
+                            onSearchChange={setSearch}
+                            status={status}
+                            onStatusChange={setStatus}
+                            paymentMethod={paymentMethod}
+                            onPaymentMethodChange={setPaymentMethod}
+                            dateRange={dateRange}
+                            onDateRangeChange={(start: string, end: string) => setDateRange({ start, end })}
+                        />
 
-                    {/* Summary Section */}
-                    <SalesSummaryCards data={summary} loading={summaryLoading} />
+                        <SalesHistoryTable 
+                            transactions={transactions}
+                            loading={loading}
+                            page={page}
+                            total={total}
+                            limit={limit}
+                            onPageChange={setPage}
+                        />
+                    </div>
                 </main>
             </div>
         </div>

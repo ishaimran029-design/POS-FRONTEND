@@ -3,39 +3,41 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useAuthStore } from './store/useAuthStore';
 
 // UI Components
-import PageLoader from './components/ui/PageLoader';
-import HomeRedirect from './components/shared/HomeRedirect';
+import PageLoader from '@/components/ui/PageLoader';
+import HomeRedirect from '@/components/shared/HomeRedirect';
 
-// Lazy loading pages
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const StoreOverview = lazy(() => import('./pages/super-admin/StoreOverview'));
-const CreateStorePage = lazy(() => import('./pages/super-admin/CreateStorePage'));
-const EditStorePage = lazy(() => import('./pages/super-admin/EditStorePage'));
-const UserManagement = lazy(() => import('./pages/super-admin/UserManagement'));
-const EditUserPage = lazy(() => import('./pages/super-admin/EditUserPage'));
-const DeviceManagement = lazy(() => import('./pages/super-admin/DeviceManagement'));
+// Lazy loading pages 
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const StoreOverview = lazy(() => import('@/pages/super-admin/StoreOverview'));
+const CreateStorePage = lazy(() => import('@/pages/super-admin/CreateStorePage'));
+const EditStorePage = lazy(() => import('@/pages/super-admin/EditStorePage'));
+const UserManagement = lazy(() => import('@/pages/super-admin/UserManagement'));
+const EditUserPage = lazy(() => import('@/pages/super-admin/EditUserPage'));
+const DeviceManagement = lazy(() => import('@/pages/super-admin/DeviceManagement'));
 
-const StoreAdminDashboard = lazy(() => import('./pages/store-admin/dashboard/StoreAdminDashboard'));
-const StaffManagementPage = lazy(() => import('./pages/store-admin/staff-management/StaffManagementPage'));
-const CashierDashboard = lazy(() => import('./pages/cashier/CashierDashboard'));
-const AccountantDashboard = lazy(() => import('./pages/accountant/AccountantDashboard'));
+const StoreAdminDashboard = lazy(() => import('@/pages/store-admin/dashboard/StoreAdminDashboard'));
+const StaffManagementPage = lazy(() => import('@/pages/store-admin/staff-management/StaffManagementPage'));
+const CashierDashboard = lazy(() => import('@/pages/cashier/CashierDashboard'));
+const AccountantDashboard = lazy(() => import('@/pages/accountant/AccountantDashboard'));
 
-const Unauthorized = lazy(() => import('./pages/Unauthorized'));
-const ProtectedRoute = lazy(() => import('./components/shared/ProtectedRoute'));
+const Unauthorized = lazy(() => import('@/pages/Unauthorized'));
+const ProtectedRoute = lazy(() => import('@/components/shared/ProtectedRoute'));
 
 // New Admin Dashboard
-const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const ProductsManagementPage = lazy(() => import('./pages/store-admin/products-management/ProductsManagementPage'));
-const AddProductPage = lazy(() => import('./pages/store-admin/products-management/AddProductPage'));
-const DevicesManagementPage = lazy(() => import('./pages/store-admin/devices-management/DevicesManagementPage'));
-const SalesHistoryPage = lazy(() => import('./pages/store-admin/sales/SalesHistoryPage'));
-const ProductCategories = lazy(() => import('./pages/store-admin/products-management/ProductCategoriesPage'));
-const InventoryManagement = lazy(() => import('./pages/store-admin/inventory/InventoryManagementPage'));
-const StockLevelsPage = lazy(() => import('./pages/store-admin/inventory/StockLevelsPage'));
-const SettingsPage = lazy(() => import('./pages/store-admin/settings/SettingsPage'));
-const StockAdjustmentPage = lazy(() => import('./pages/store-admin/inventory/StockAdjustmentPage'));
-const ReportsPage = lazy(() => import('./pages/store-admin/reports/ReportsPage'));
+const AdminLayout = lazy(() => import('@/components/layout/AdminLayout'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const ProductsManagementPage = lazy(() => import('@/pages/store-admin/products-management/ProductsManagementPage'));
+const AddProductPage = lazy(() => import('@/pages/store-admin/products-management/AddProductPage'));
+const DevicesManagementPage = lazy(() => import('@/pages/store-admin/devices-management/DevicesManagementPage'));
+const SalesHistoryPage = lazy(() => import('@/pages/store-admin/sales/SalesHistoryPage'));
+const ProductCategories = lazy(() => import('@/pages/store-admin/products-management/ProductCategoriesPage'));
+const InventoryManagement = lazy(() => import('@/pages/store-admin/inventory/InventoryManagementPage'));
+const StockLevelsPage = lazy(() => import('@/pages/store-admin/inventory/StockLevelsPage'));
+const SettingsPage = lazy(() => import('@/pages/store-admin/settings/SettingsPage'));
+const StockAdjustmentPage = lazy(() => import('@/pages/store-admin/inventory/StockAdjustmentPage'));
+const ReportsPage = lazy(() => import('@/pages/store-admin/reports/ReportsPage'));
+const AuditLogsPage = lazy(() => import('@/pages/store-admin/audit-logs/AuditLogsPage'));
+const StaffDetailPage = lazy(() => import('@/pages/store-admin/staff-management/StaffDetailPage'));
 
 const App: React.FC = () => {
   const { hydrate, isLoading } = useAuthStore();
@@ -61,6 +63,7 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']} />}>
             <Route path="/store-admin/dashboard" element={<StoreAdminDashboard />} />
             <Route path="/store-admin/staff" element={<StaffManagementPage />} />
+            <Route path="/store-admin/staff/:id" element={<StaffDetailPage />} />
             <Route path="/store-admin/inventory" element={<InventoryManagement />} />
             <Route path="/store-admin/inventory/stocks" element={<StockLevelsPage />} />
             <Route path="/store-admin/inventory/adjustments" element={<StockAdjustmentPage />} />
@@ -71,6 +74,7 @@ const App: React.FC = () => {
             <Route path="/store-admin/sales" element={<SalesHistoryPage />} />
             <Route path="/store-admin/categories" element={<ProductCategories />} />
             <Route path="/store-admin/reports" element={<ReportsPage />} />
+            <Route path="/store-admin/logs" element={<AuditLogsPage />} />
             <Route path="/store-admin" element={<Navigate to="/store-admin/dashboard" replace />} />
           </Route>
 

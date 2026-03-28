@@ -1,37 +1,47 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StockAdjustmentForm from '@/components/store-admin/StockAdjustmentForm';
 import StockAdjustmentTable from '@/components/store-admin/StockAdjustmentTable';
-import { fetchProducts } from '@/api/products.api';
-import { fetchInventoryLogs } from '@/api/inventory.api';
+import { useProducts } from '@/hooks/useProducts';
+import { useInventoryLogs } from '@/hooks/useInventory';
+import { useAuditLogs } from '@/hooks/useReports';
 
 const StockAdjustmentPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [products, setProducts] = useState<any[]>([]);
-    const [logs, setLogs] = useState<any[]>([]);
-    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const loadData = useCallback(async () => {
-        try {
-            const [prodRes, logRes] = await Promise.all([
-                fetchProducts(),
-                fetchInventoryLogs({ limit: 20 })
-            ]);
-            
-            setProducts(prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []));
-            setLogs(logRes.data?.data || (Array.isArray(logRes.data) ? logRes.data : []));
-        } catch (error) {
-            console.error('Failed to load stock adjustment data:', error);
+    // React Query Hooks
+    const { data: productsRes } = useProducts();
+    const { data: logsRes } = useInventoryLogs({ limit: 40 });
+    const { data: auditLogsRes } = useAuditLogs({ limit: 100 });
+
+    const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
+    const logs = (logsRes as any)?.data || (Array.isArray(logsRes) ? logsRes : []);
+    const auditLogs = (auditLogsRes as any)?.data?.logs || (Array.isArray(auditLogsRes?.logs) ? auditLogsRes.logs : []);
+
+    // Merge Audit Logs into Inventory Logs to get User Attribution
+    const enrichedLogs = logs.map((log: any) => {
+        // 1. Try to find the direct AuditLog for this inventory log
+        let audit = auditLogs.find((a: any) => a.entity === 'inventory_logs' && a.entityId === log.id);
+        
+        // 2. If not found, check if it's a SALE and find the sale's AuditLog
+        if (!audit && log.changeType === 'SALE' && log.referenceId) {
+            audit = auditLogs.find((a: any) => a.entity === 'sales' && a.entityId === log.referenceId);
         }
-    }, []);
 
-    useEffect(() => {
-        loadData();
-    }, [loadData, refreshTrigger]);
+        // 3. If still not found, check if it's an OPENING_STOCK and find the product's AuditLog
+        if (!audit && log.changeType === 'OPENING_STOCK') {
+            audit = auditLogs.find((a: any) => a.entity === 'products' && a.entityId === log.productId && a.action === 'CREATE_PRODUCT');
+        }
+
+        return {
+            ...log,
+            user: audit?.user || { name: 'System', role: 'SYSTEM' }
+        };
+    });
 
     const handleSuccess = () => {
-        setRefreshTrigger(prev => prev + 1);
+        // React Query handles invalidation in the mutation hook onSuccess
     };
 
     return (
@@ -67,7 +77,7 @@ const StockAdjustmentPage = () => {
                         </div>
 
                         {/* Recent Adjustments Table */}
-                        <StockAdjustmentTable adjustments={logs} />
+                        <StockAdjustmentTable adjustments={enrichedLogs} />
                     </div>
                 </main>
             </div>

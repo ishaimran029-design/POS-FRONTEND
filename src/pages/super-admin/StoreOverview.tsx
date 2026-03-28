@@ -121,7 +121,7 @@ const StoreOverview: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   <th className="py-4 px-6 min-w-[120px]">Store ID</th>
                   <th className="py-4 px-6 min-w-[250px]">Store Name</th>
                   <th className="py-4 px-6 min-w-[200px]">Address</th>
@@ -163,7 +163,7 @@ const StoreOverview: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   <th className="py-4 px-6 min-w-[120px]">Store ID</th>
                   <th className="py-4 px-6 min-w-[250px]">Store Name</th>
                   <th className="py-4 px-6 min-w-[200px]">Address</th>

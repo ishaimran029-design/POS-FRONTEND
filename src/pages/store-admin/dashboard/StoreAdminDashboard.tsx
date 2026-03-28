@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import DashboardGrid from './components/DashboardGrid';
-import ChartLineDots from '@/components/global-components/chart-line-dots';
-import BarChartLabelCustom from '@/components/global-components/BarChartLabelCustom';
-import StatsCards from '@/components/global-components/StatsCards';
+import ChartTooltipFormatter from '@/components/global-components/ChartTooltipFormatter';
+import BarChartLabelCustom from '@/components/global-components-temp/BarChartLabelCustom';
+import StatsCards from '@/components/global-components-temp/StatsCards';
 
 import CategoryPieChart from './components/CategoryPieChart';
 import ActiveDevicesPanel from './components/ActiveDevicesPanel';
 import TopProductsTable from './components/TopProductsTable';
 
-import { getDashboardSummary } from '@/api/dashboard.api';
-import { getDevices } from '@/api/dashboard.api';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/format';
+import { useDashboardSummary } from '@/hooks/useDashboard';
+import { useDevices } from '@/hooks/useDevices';
 
 interface DashboardView {
   metrics: { value: number }[];
@@ -25,84 +27,85 @@ interface DashboardView {
 
 export default function StoreAdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [data, setData] = useState<DashboardView | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState('7D'); // 7D, 30D, Today
 
-  useEffect(() => {
-    const loadDashboard = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [dashRes, devicesRes] = await Promise.all([
-          getDashboardSummary(),
-          getDevices()
-        ]);
-
-        const raw = dashRes.data?.data ?? null;
-        const deviceData = devicesRes.data?.data ?? [];
-
-        if (!raw) {
-          setData(null);
-          return;
-        }
-        const s = raw.summary ?? {};
-        const today = raw.today ?? {};
-        const inv = raw.inventory ?? {};
-        const charts = raw.charts ?? {};
-        const revByDate = charts.revenueByDate ?? [];
-        const payBreakdown = charts.paymentBreakdown ?? [];
-        const topProducts = raw.topProducts ?? [];
-
-        const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
-        setData({
-          metrics: [
-            { value: s.totalRevenue ?? 0 },
-            { value: today.transactions ?? s.totalTransactions ?? 0 },
-            { value: inv.lowStockCount ?? 0 },
-            { value: s.totalTransactions ?? 0 },
-          ],
-          dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
-          weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
-          categories: payBreakdown.map((p: { paymentMethod?: string; revenue?: number }, i: number) => ({
-            name: p.paymentMethod ?? 'Other',
-            value: p.revenue ?? 0,
-            color: colors[i % colors.length],
-          })),
-          devices: deviceData.map((d: any) => ({
-            id: d.id,
-            name: d.deviceName || d.name || 'Unknown Device',
-            location: d.location || 'Main Floor',
-            status: d.isActive ? 'online' : 'offline',
-          })),
-          topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
-            id: p.productId ?? p.id ?? '',
-            name: p.name ?? 'Unknown',
-            sku: p.sku ?? '',
-            unitsSold: p.quantitySold ?? 0,
-            revenue: p.revenue ?? 0,
-            stockLevel: 50,
-          })),
-        });
-      } catch (err: unknown) {
-        console.error('Failed to load store admin dashboard', err);
-        const msg = err && typeof err === 'object' && 'response' in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : null;
-        setError(msg || 'Failed to load dashboard');
-      } finally {
-        setLoading(false);
-      }
+  const calculateDateRange = (range: string) => {
+    const end = new Date();
+    const start = new Date();
+    if (range === 'Today') {
+      start.setHours(0, 0, 0, 0);
+    } else if (range === '7D') {
+      start.setDate(start.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+    } else if (range === '30D') {
+      start.setDate(start.getDate() - 29);
+      start.setHours(0, 0, 0, 0);
+    }
+    return {
+      startDate: start.toISOString().split('T')[0],
+      endDate: end.toISOString().split('T')[0]
     };
-    void loadDashboard();
-  }, []);
+  };
 
-  if (loading) {
+  const { startDate, endDate } = calculateDateRange(dateRange);
+  const { data: dashRes, isLoading: dashLoading, error: dashError } = useDashboardSummary({ startDate, endDate });
+  const { data: devicesRes, isLoading: devicesLoading } = useDevices();
+
+  const loading = dashLoading || devicesLoading;
+  const error = dashError ? (dashError as any).message : null;
+
+  const raw = (dashRes as any)?.data ?? null;
+  const deviceData = (devicesRes as any)?.data ?? [];
+
+  const data: DashboardView | null = useMemo(() => {
+    if (!raw) return null;
+
+    const s = raw.summary ?? {};
+    const inv = raw.inventory ?? {};
+    const charts = raw.charts ?? {};
+    const revByDate = charts.revenueByDate ?? [];
+    const payBreakdown = charts.paymentBreakdown ?? [];
+    const topProducts = raw.topProducts ?? [];
+
+    const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
+    return {
+      metrics: [
+        { value: s.totalRevenue ?? 0 },
+        { value: s.totalTransactions ?? 0 },
+        { value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0) },
+        { value: s.totalTransactions ?? 0 },
+        { value: s.totalDiscount ?? 0 },
+      ],
+      dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
+      weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
+      categories: payBreakdown.map((p: { paymentMethod?: string; revenue?: number }, i: number) => ({
+        name: p.paymentMethod ?? 'Other',
+        value: p.revenue ?? 0,
+        color: colors[i % colors.length],
+      })),
+      devices: deviceData.map((d: any) => ({
+        id: d.id,
+        name: d.deviceName || d.name || 'Unknown Device',
+        location: d.location || 'Main Floor',
+        status: d.isActive ? 'online' : 'offline',
+      })),
+      topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
+        id: p.productId ?? p.id ?? '',
+        name: p.name ?? 'Unknown',
+        sku: p.sku ?? '',
+        unitsSold: p.quantitySold ?? 0,
+        revenue: p.revenue ?? 0,
+        stockLevel: 50,
+      })),
+    };
+  }, [raw, deviceData]);
+
+  if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-sm font-black text-slate-400 uppercase tracking-widest animate-pulse">Initializing Console...</p>
+          <p className="text-sm font-medium text-slate-400 uppercase tracking-widest animate-pulse">Initializing Console...</p>
         </div>
       </div>
     );
@@ -110,96 +113,159 @@ export default function StoreAdminDashboard() {
 
   if (error || !data) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-center p-12 bg-white rounded-[40px] shadow-xl max-w-md border border-slate-100">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
+        <div className="text-center p-12 bg-white dark:bg-slate-900 rounded-[40px] shadow-xl max-w-md border border-slate-100 dark:border-slate-800">
           <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-2">System Error</h2>
-          <p className="text-slate-500 font-medium mb-8">{error || 'Failed to establish connection to POS core.'}</p>
-          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">System Error</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">{error || 'Failed to establish connection to POS core.'}</p>
+          <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-bold uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95">
             Emergency Reload
           </button>
         </div>
       </div>
     );
   }
+
   const statsData = [
-    { name: "Total Revenue", stat: `₹ ${Number(data.metrics?.[0]?.value ?? 0).toLocaleString()}`, change: "+12.5%", changeType: "positive" as const },
-    { name: "Active Sales", stat: `${data.metrics?.[1]?.value ?? 0}`, change: "+5.1%", changeType: "positive" as const },
-    { name: "Inventory Alerts", stat: `${data.metrics?.[2]?.value ?? 0}`, change: "0%", changeType: "positive" as const },
-    { name: "Total Orders", stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, change: "+8.4%", changeType: "positive" as const }
+    { 
+      name: "Total Revenue", 
+      stat: formatCurrency(data.metrics?.[0]?.value ?? 0), 
+      change: "+12.5%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/reports"
+    },
+    { 
+      name: "Active Sales", 
+      stat: `${data.metrics?.[1]?.value ?? 0}`, 
+      change: "+5.1%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/sales"
+    },
+    { 
+      name: "Inventory Alerts", 
+      stat: `${data.metrics?.[2]?.value ?? 0}`, 
+      change: "0%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/inventory/stocks"
+    },
+    { 
+      name: "Total Orders", 
+      stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, 
+      change: "+8.4%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/sales"
+    },
+    { 
+      name: "Total Discounts", 
+      stat: formatCurrency(data.metrics?.[4]?.value ?? 0), 
+      change: "+2.1%", 
+      changeType: "positive" as const,
+      linkTo: "/store-admin/reports" 
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex">
+    <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in" onClick={() => setSidebarOpen(false)} />
       )}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
-        <DashboardGrid>
-          <div className="xl:col-span-12">
-            <StatsCards data={statsData} />
-          </div>
-          {/* Row 1: Charts & Pie Chart */}
-          <div className="xl:col-span-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Daily Sales Revenue</h3>
-                    <p className="text-xs text-slate-500 font-medium">Performance over the last 7 days</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100"></span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</span>
-                  </div>
-                </div>
-                <ChartLineDots noWrapper data={data?.dailySales ?? []} />
-
-              </div>
-              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">Weekly Revenue Trend</h3>
-                    <p className="text-xs text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Channel performance summary</p>
-                  </div>
-                  <div className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100 shadow-sm shadow-blue-50/50">
-                    <span className="text-[10px] font-black uppercase tracking-widest">+12% vs LY</span>
-                  </div>
-                </div>
-                {data.weeklyRevenue && data.weeklyRevenue.length > 0 ? (
-                  <BarChartLabelCustom
-                    data={data.weeklyRevenue.map((d: { week: string; revenue: number }) => ({ 
-                      label: new Date(d.week).toLocaleDateString('en-US', { weekday: 'short' }), 
-                      value: d.revenue 
-                    }))}
-                    dataKey="value"
-                    labelKey="label"
-                    config={{ value: { label: "Revenue", color: "#262255" } }}
-                    noWrapper
-                    height="min-h-[220px]"
-                  />
-                ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <p className="text-slate-400 font-bold text-sm">No revenue data found</p>
-                  </div>
-                )}
-              </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Console Overview</h1>
+              <p className="text-slate-500 dark:text-slate-500 font-medium uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+              {['Today', '7D', '30D'].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setDateRange(range)}
+                  className={cn(
+                    "px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all",
+                    dateRange === range 
+                      ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none" 
+                      : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  )}
+                >
+                  {range}
+                </button>
+              ))}
             </div>
           </div>
-          <div className="xl:col-span-4">
-            <CategoryPieChart data={data.categories ?? []} />
-          </div>
 
-          {/* Row 2: Top Selling Inventory & Active Devices */}
-          <div className="xl:col-span-8">
-            <TopProductsTable products={data.topProducts ?? []} />
-          </div>
-          <div className="xl:col-span-4">
-            <ActiveDevicesPanel devices={data.devices ?? []} />
-          </div>
-        </DashboardGrid>
+          <DashboardGrid>
+            <div className="xl:col-span-12">
+              <StatsCards data={statsData} />
+            </div>
+            
+            {/* Row 1: Charts & Pie Chart */}
+            <div className="xl:col-span-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl dark:hover:shadow-none">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">Daily Sales Revenue</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Daily trend in period</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100 dark:shadow-none"></span>
+                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-[220px]">
+                    <ChartTooltipFormatter 
+                      data={data?.dailySales.map(d => ({ date: d.date, revenue: d.sales })) ?? []} 
+                      height="h-[220px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm h-full flex flex-col group transition-all duration-500 hover:shadow-xl dark:hover:shadow-none">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">Revenue Trend</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Comparative performance</p>
+                    </div>
+                    <div className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full border border-blue-100 dark:border-blue-800 shadow-sm">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Bar View</span>
+                    </div>
+                  </div>
+                  {data?.weeklyRevenue && data.weeklyRevenue.length > 0 ? (
+                    <BarChartLabelCustom
+                      data={data.weeklyRevenue.map((d: { week: string; revenue: number }) => ({ 
+                        label: new Date(d.week).toLocaleDateString('en-US', { weekday: 'short' }), 
+                        value: d.revenue 
+                      }))}
+                      dataKey="value"
+                      labelKey="label"
+                      config={{ value: { label: "Revenue", color: "#262255" } }}
+                      noWrapper
+                      height="min-h-[220px]"
+                    />
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                      <p className="font-inter text-slate-400 font-bold text-sm">No revenue data found</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="xl:col-span-4">
+              <CategoryPieChart data={data?.categories ?? []} />
+            </div>
+
+            {/* Row 2: Top Selling Inventory & Active Devices */}
+            <div className="xl:col-span-8">
+              <TopProductsTable products={data?.topProducts ?? []} />
+            </div>
+            <div className="xl:col-span-4">
+              <ActiveDevicesPanel devices={data?.devices ?? []} />
+            </div>
+          </DashboardGrid>
+        </main>
       </div>
     </div>
   );

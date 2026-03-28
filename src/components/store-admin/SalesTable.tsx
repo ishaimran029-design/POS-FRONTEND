@@ -45,20 +45,21 @@ const SalesTable: React.FC<Props> = ({ transactions, loading, page, total, limit
         <table className="w-full text-sm">
           <thead className="border-b border-gray-100 bg-gray-50/50">
             <tr>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Sale ID</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Date</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Customer</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Total Amount</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Payment Method</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap">Status</th>
-              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-gray-500 whitespace-nowrap w-32">Actions</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">ID</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">Date</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">Customer</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">Total Amount</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">Payment Method</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap">Status</th>
+              <th className="p-4 text-left font-black uppercase tracking-widest text-xs text-slate-500 whitespace-nowrap w-32">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {transactions.map((tx) => (
+            {transactions.map((tx, idx) => (
               <SalesRow 
                 key={tx.id || tx.saleId} 
                 transaction={tx} 
+                index={(page - 1) * limit + idx + 1}
                 onCancel={() => onCancel(tx.id)}
                 onRefund={() => onRefund(tx.id)}
               />
@@ -81,7 +82,7 @@ const SalesTable: React.FC<Props> = ({ transactions, loading, page, total, limit
               >
                 &lt;
               </button>
-              <span className="min-w-[36px] h-9 flex items-center justify-center bg-[#1E1B4B] text-white text-xs font-black rounded-xl shadow-md shadow-[#1E1B4B]/20 border border-[#1E1B4B]/20 px-3">
+              <span className="min-w-[36px] h-9 flex items-center justify-center bg-indigo-900 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-900/20 border border-indigo-900/20 px-3">
                 {page}
               </span>
               <button

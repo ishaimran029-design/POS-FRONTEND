@@ -71,7 +71,7 @@ const DeviceManagement: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest bg-white">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white">
                   <th className="py-4 px-6 min-w-[200px]">Device Name</th>
                   <th className="py-4 px-6 min-w-[150px]">Store Reference</th>
                   <th className="py-4 px-6 min-w-[180px]">Serial Number</th>
@@ -107,7 +107,7 @@ const DeviceManagement: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-widest bg-white">
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white">
                   <th className="py-4 px-6 min-w-[200px]">Device Name</th>
                   <th className="py-4 px-6 min-w-[150px]">Store Reference</th>
                   <th className="py-4 px-6 min-w-[180px]">Serial Number</th>

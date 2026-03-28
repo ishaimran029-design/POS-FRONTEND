@@ -1,40 +1,43 @@
-import axios from "../service/api";
+import api from "./api";
 
-export const fetchDailySales = () => {
-  return axios.get("/sales/daily");
+// Use reports API for these as the backend /sales routes don't exist for daily/weekly in some versions
+export const fetchDailySales = (params?: { startDate: string; endDate: string }) => {
+  return api.get("/reports/sales", { params }).then(res => res.data);
 };
 
-export const fetchWeeklyRevenue = () => {
-  return axios.get("/sales/weekly");
+export const fetchWeeklyRevenue = (params?: { startDate: string; endDate: string }) => {
+  return api.get("/reports/sales", { params }).then(res => res.data);
 };
 
 export const createSale = (payload: any, idempotencyKey: string) => {
-  return axios.post("/sales", payload, {
+  return api.post("/sales", payload, {
     headers: {
       "x-idempotency-key": idempotencyKey,
     },
-  });
+  }).then(res => res.data);
 };
 
 export const getSaleById = (saleId: string) => {
-  return axios.get(`/sales/${saleId}`);
+  return api.get(`/sales/${saleId}`).then(res => res.data);
+};
+
+export const getSaleByInvoiceNumber = (invoiceNumber: string) => {
+  const encodedInvoiceNumber = encodeURIComponent(invoiceNumber);
+  return api.get(`/sales/invoice/${encodedInvoiceNumber}`).then(res => res.data);
 };
 
 export const syncOfflineSales = (payload: { batchId: string; deviceId: string; sales: any[] }) => {
-  return axios.post("/sync/sales", payload);
+  return api.post("/sync/sales", payload).then(res => res.data);
 };
 
 export const getSalesTransactions = (params?: any) => {
-  return axios.get("/sales", { params });
+  return api.get("/sales", { params }).then(res => res.data);
 };
 
-// getSaleById already exists above, updating slightly just in case
-// export const getSaleById = (saleId: string) => { return axios.get(`/sales/${saleId}`); };
-
 export const cancelSale = (id: string, reason: string) => {
-  return axios.patch(`/sales/${id}/cancel`, { reason });
+  return api.patch(`/sales/${id}/cancel`, { reason }).then(res => res.data);
 };
 
 export const refundSale = (id: string, reason: string) => {
-  return axios.post(`/sales/${id}/refund`, { reason });
-};
+  return api.post(`/sales/${id}/refund`, { reason }).then(res => res.data);
+};

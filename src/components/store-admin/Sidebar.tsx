@@ -8,6 +8,7 @@ import {
     Monitor,
     BarChart3,
     Settings,
+    ClipboardList,
     LogOut,
     ChevronDown,
     ChevronRight,
@@ -34,6 +35,7 @@ const menuItems = [
     { name: 'Sales History', icon: ShoppingCart, path: '/store-admin/sales' },
     { name: 'Devices', icon: Monitor, path: '/store-admin/devices' },
     { name: 'Reports', icon: BarChart3, path: '/store-admin/reports' },
+    { name: 'Audit Logs', icon: ClipboardList, path: '/store-admin/logs' },
     { name: 'Store Settings', icon: Settings, path: '/store-admin/settings' },
 ];
 
@@ -47,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const [inventoryOpen, setInventoryOpen] = React.useState(true);
 
     return (
-        <aside className={`w-64 bg-[#262255] border-r border-[#262255]/20 text-slate-200 h-screen fixed top-0 flex flex-col z-[60] transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} left-0 shadow-sm lg:shadow-none`}>
+        <aside className={`w-64 bg-[#262255] border-r border-[#262255]/20 text-slate-200 h-screen fixed top-0 flex flex-col z-60 transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} left-0 shadow-sm lg:shadow-none`}>
             {/* Close button (Mobile only) */}
             <button
                 onClick={onClose}
@@ -57,14 +59,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
             
             {/* Brand */}
-            <div className="p-6 border-b border-slate-100/50">
+            <div className="p-6 border-b border-slate-100/10 dark:border-slate-800/50">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-[#262255] rounded-xl flex items-center justify-center shadow-indigo-100 shadow-xl border border-indigo-500/20">
                         <LayoutDashboard size={24} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="font-extrabold text-xl text-white tracking-tight leading-none">Hybrid POS</h1>
-                        <p className="text-[10px] font-black text-slate-300 mt-1 uppercase tracking-widest">STORE ADMIN</p>
+                        <h1 className="font-bold text-xl text-white tracking-tight leading-none">Hybrid POS</h1>
+                        <p className="text-[10px] font-medium text-slate-300 mt-1 uppercase tracking-widest">STORE ADMIN</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 >
                                     <div className="flex items-center gap-3">
                                         <item.icon size={20} className="text-slate-400 group-hover:text-white transition-colors" />
-                                        <span className="font-bold text-sm tracking-tight">{item.name}</span>
+                                        <span className="font-medium text-sm tracking-tight">{item.name}</span>
                                     </div>
                                     {inventoryOpen ? <ChevronDown size={14} className="text-slate-400 group-hover:text-[#262255]" /> : <ChevronRight size={14} className="text-slate-400 group-hover:text-[#262255]" />}
                                 </button>
@@ -92,7 +94,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                                 key={cIdx}
                                                 to={child.path}
                                                 className={({ isActive }) =>
-                                                    `block py-2 px-2 text-sm font-bold rounded-lg transition-all hover:text-white hover:bg-[#2A2760] ${isActive ? 'text-white bg-[#2A2760]' : 'text-slate-400'}`
+                                                    `block py-2 px-2 text-sm font-medium rounded-lg transition-all hover:text-white hover:bg-[#2A2760] ${isActive ? 'text-white bg-[#2A2760]' : 'text-slate-400'}`
                                                 }
                                             >
                                                 {child.name}
@@ -118,7 +120,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                             {({ isActive }) => (
                                 <>
                                     <item.icon size={20} className={isActive ? "text-white" : "text-slate-400 group-hover:text-white transition-colors"} />
-                                    <span className="font-bold text-sm tracking-tight">{item.name}</span>
+                                    <span className="font-medium text-sm tracking-tight">{item.name}</span>
                                 </>
                             )}
                         </NavLink>
@@ -127,14 +129,14 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </nav>
 
             {/* User */}
-            <div className="p-4 border-t border-slate-100/50">
+            <div className="p-4 border-t border-slate-100/10 dark:border-slate-800/50">
                 <div className="bg-[#2A2760] rounded-2xl p-4 flex items-center gap-3 border border-[#2A2760]/20">
                     <div className="w-10 h-10 rounded-full bg-[#262255] flex items-center justify-center text-white font-black shadow-indigo-100 shadow-md border-2 border-white">
                         AM
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">Anzal Manager</p>
-                        <p className="text-[10px] text-slate-300 font-bold uppercase truncate">KARACHI BRANCH</p>
+                        <p className="text-sm font-semibold text-white truncate">Anzal Manager</p>
+                        <p className="text-[10px] text-slate-300 font-medium uppercase truncate">KARACHI BRANCH</p>
                     </div>
                     <button
                         onClick={logout}
