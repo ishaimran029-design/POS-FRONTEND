@@ -1,30 +1,17 @@
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Laptop2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
 import { devicesApi } from '../../service/api';
 
 const DeviceManagement: React.FC = () => {
-  const [devices, setDevices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDevices = async () => {
-      try {
-        const response = await devicesApi.getAll();
-        if (response.data.success) {
-          setDevices(response.data.data);
-        } else {
-          setError('Failed to load devices');
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Error communicating with server');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDevices();
-  }, []);
+  const { data: devicesRes, isLoading, error: devicesError } = useQuery({
+    queryKey: ['devices', 'all'],
+    queryFn: () => devicesApi.getAll(),
+  });
+
+  const devices = devicesRes?.data?.data || [];
+  const error = (devicesError as any)?.response?.data?.message || (devicesError as any)?.message;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -59,15 +46,15 @@ const DeviceManagement: React.FC = () => {
           <div className="flex items-center space-x-2 text-sm font-bold text-slate-500">
             <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
               <Activity className="w-4 h-4" />
-              <span>{devices.filter(d => d.isActive).length} Active</span>
+              <span>{devices.filter((d: any) => d.isActive).length} Active</span>
             </div>
             <div className="flex items-center space-x-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg">
-               <span>{devices.filter(d => !d.isActive).length} Offline</span>
+               <span>{devices.filter((d: any) => !d.isActive).length} Offline</span>
             </div>
           </div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>

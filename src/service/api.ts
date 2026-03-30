@@ -145,8 +145,16 @@ export const reportsApi = {
   getSuperAdminOverview: () => api.get('/reports/superadmin/overview'),
   getSalesReport: (params: { startDate: string; endDate: string }) =>
     api.get('/reports/sales', { params }),
-  getAuditLogs: (params: { entity?: string; action?: string; limit?: number }) =>
-    api.get('/reports/audit-logs', { params }),
+  getAuditLogs: (params: { 
+    entity?: string; 
+    action?: string; 
+    limit?: number; 
+    page?: number; 
+    startDate?: string; 
+    endDate?: string; 
+    storeId?: string;
+    userId?: string;
+  }) => api.get('/reports/audit-logs', { params }),
 };
 
 export default api;

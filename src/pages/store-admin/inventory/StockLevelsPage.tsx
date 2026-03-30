@@ -3,8 +3,9 @@ import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StockOverviewCards from '@/components/store-admin/StockOverviewCards';
 import StockTable from '@/components/store-admin/StockTable';
-import { useProducts } from '@/hooks/useProducts';
-import { useInventory } from '@/hooks/useInventory';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProducts } from '@/api/products.api';
+import { fetchFullInventory } from '@/api/inventory.api';
 import { Search, Download, Plus } from 'lucide-react';
 
 const StockLevelsPage = () => {
@@ -13,8 +14,14 @@ const StockLevelsPage = () => {
     const [activeFilter, setActiveFilter] = useState('All');
 
     // React Query Hooks
-    const { data: productsDataRes, isLoading: productsLoading } = useProducts();
-    const { data: inventoryDataRes, isLoading: inventoryLoading } = useInventory();
+    const { data: productsDataRes, isLoading: productsLoading } = useQuery({
+        queryKey: ['products'],
+        queryFn: () => fetchProducts(),
+    });
+    const { data: inventoryDataRes, isLoading: inventoryLoading } = useQuery({
+        queryKey: ['inventory', { lowStock: false }],
+        queryFn: fetchFullInventory,
+    });
 
     const loading = productsLoading || inventoryLoading;
 
@@ -27,7 +34,7 @@ const StockLevelsPage = () => {
         acc[inv.productId] = inv.totalQuantity || inv.stock || 0;
         return acc;
     }, {});
-    
+
     const inventory = productsData.map((item: any) => {
         const stock = inventoryMap[item.id] || 0;
         return {
@@ -52,7 +59,7 @@ const StockLevelsPage = () => {
 
         // Apply Search
         if (searchQuery) {
-            result = result.filter(item => 
+            result = result.filter(item =>
                 item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item.sku.toLowerCase().includes(searchQuery.toLowerCase())
             );
@@ -96,7 +103,7 @@ const StockLevelsPage = () => {
                             <h1 className="text-3xl font-black text-gray-900 tracking-tight">Stock Levels</h1>
                         </div>
                         <div className="flex items-center gap-3">
-                             <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold text-sm shadow-sm hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all">
+                            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold text-sm shadow-sm hover:bg-slate-50 hover:border-[#2563EB]/30 hover:text-[#2563EB] transition-all">
                                 <Download size={18} />
                                 Export CSV
                             </button>
@@ -131,11 +138,10 @@ const StockLevelsPage = () => {
                                     <button
                                         key={filter}
                                         onClick={() => setActiveFilter(filter)}
-                                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
-                                            activeFilter === filter
+                                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${activeFilter === filter
                                                 ? 'bg-white text-[#2563EB] shadow-sm border border-[#2563EB]/10'
                                                 : 'text-slate-400 hover:text-[#2563EB]'
-                                        }`}
+                                            }`}
                                     >
                                         {filter}
                                     </button>

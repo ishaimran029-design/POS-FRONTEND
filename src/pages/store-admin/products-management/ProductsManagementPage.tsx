@@ -7,9 +7,11 @@ import ProductsFilters from "@/components/store-admin/ProductsFilters"
 import ProductsTable from "@/components/store-admin/ProductsTable"
 import ProductPagination from "@/components/store-admin/ProductPagination"
 import AddProductModal from "@/components/store-admin/AddProductModal"
+import StatsCards from "@/components/global-components/StatsCards"
 
-import { useProducts } from "@/hooks/useProducts"
-import { useInventory } from "@/hooks/useInventory"
+import { useQuery } from '@tanstack/react-query';
+import { fetchProducts } from "@/api/products.api";
+import { fetchFullInventory } from "@/api/inventory.api";
 import { getCategories } from "@/api/category.api"
 
 export default function ProductsManagementPage() {
@@ -45,8 +47,14 @@ export default function ProductsManagementPage() {
     if (isActive !== 'all') queryParams.isActive = isActive === 'true';
 
     // React Query Hooks
-    const { data: productsDataRes, isLoading: productsLoading, refetch: refetchProducts } = useProducts(queryParams);
-    const { data: inventoryDataRes, isLoading: inventoryLoading } = useInventory();
+    const { data: productsDataRes, isLoading: productsLoading, refetch: refetchProducts } = useQuery({
+        queryKey: ['products', queryParams],
+        queryFn: () => fetchProducts(queryParams),
+    });
+    const { data: inventoryDataRes, isLoading: inventoryLoading } = useQuery({
+        queryKey: ['inventory', { lowStock: false }],
+        queryFn: fetchFullInventory,
+    });
 
     const loading = productsLoading || inventoryLoading;
 
@@ -84,15 +92,24 @@ export default function ProductsManagementPage() {
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 flex flex-col min-h-screen w-full lg:pl-64">
-                <TopNavbar 
-                    onMenuClick={() => setSidebarOpen(true)} 
+                <TopNavbar
+                    onMenuClick={() => setSidebarOpen(true)}
                 />
 
                 <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in">
                     <ProductsHeader openModal={() => setOpenModal(true)} />
 
+                    <div className="mt-8">
+                        <StatsCards data={[
+                            { name: "Total Products", stat: String(total), change: "+2.5%", changeType: "positive" },
+                            { name: "Categories", stat: String(categories.length), change: "0%", changeType: "positive" },
+                            { name: "Out of Stock", stat: String(products.filter((p: any) => p.stock <= 0).length), change: "-5%", changeType: "negative" },
+                            { name: "Low Stock", stat: String(products.filter((p: any) => p.stock > 0 && p.stock <= 10).length), change: "+1.2%", changeType: "negative" },
+                        ]} />
+                    </div>
+
                     <div className="mt-10">
-                        <ProductsFilters 
+                        <ProductsFilters
                             search={search}
                             setSearch={setSearch}
                             categoryId={categoryId}
@@ -122,9 +139,9 @@ export default function ProductsManagementPage() {
                 </main>
             </div>
 
-            <AddProductModal 
-                open={openModal} 
-                onClose={() => setOpenModal(false)} 
+            <AddProductModal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
                 onSuccess={() => refetchProducts()}
             />
 

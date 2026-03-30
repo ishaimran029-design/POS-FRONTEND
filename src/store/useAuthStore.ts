@@ -23,6 +23,27 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: !!user,
         isLoading: false
       }),
+
+      login: async (credentials) => {
+        set({ isLoading: true });
+        try {
+          const response = await authApi.login(credentials);
+          if (response.data.success) {
+            const { user, accessToken, refreshToken } = response.data.data;
+            localStorage.setItem('refresh-token', refreshToken);
+            set({ user, accessToken, isAuthenticated: true, isLoading: false });
+            return { success: true };
+          }
+          set({ isLoading: false });
+          return { success: false, message: response.data.message || 'Login failed' };
+        } catch (error: any) {
+          set({ isLoading: false });
+          return { 
+            success: false, 
+            message: error.response?.data?.message || 'Invalid email or password' 
+          };
+        }
+      },
       
       logout: async () => {
         try {

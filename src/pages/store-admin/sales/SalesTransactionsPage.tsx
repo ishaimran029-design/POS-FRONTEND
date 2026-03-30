@@ -6,8 +6,8 @@ import Sidebar from '@/components/store-admin/Sidebar'
 import TopNavbar from '@/components/store-admin/TopNavbar'
 
 import { useQueryClient } from "@tanstack/react-query"
-import { cancelSale, refundSale } from "@/api/sales.api"
-import { useSales } from "@/hooks/useSales"
+import { getSalesTransactions, cancelSale, refundSale } from "@/api/sales.api"
+import { useQuery } from "@tanstack/react-query";
 
 const SalesTransactionsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -19,7 +19,7 @@ const SalesTransactionsPage = () => {
   const [endDate, setEndDate] = useState("")
   const [paymentStatus, setPaymentStatus] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("")
-  
+
   // Pagination state
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
@@ -28,15 +28,18 @@ const SalesTransactionsPage = () => {
   if (search) params.search = search
   if (startDate) params.startDate = startDate
   if (endDate) params.endDate = endDate
-  
+
   if (paymentStatus && paymentStatus !== "All Statuses") {
     if (paymentStatus === "Completed") params.paymentStatus = "COMPLETED"
     if (paymentStatus === "Pending") params.paymentStatus = "FAILED"
     if (paymentStatus === "Refunded") params.paymentStatus = "REFUNDED"
   }
 
-  const { data: salesRes, isLoading: loading } = useSales(params);
-  
+  const { data: salesRes, isLoading: loading } = useQuery({
+    queryKey: ['sales', params],
+    queryFn: () => getSalesTransactions(params),
+  });
+
   const transactions = salesRes?.data || (Array.isArray(salesRes) ? salesRes : []);
   const total = salesRes?.total || transactions.length;
 
@@ -66,8 +69,8 @@ const SalesTransactionsPage = () => {
     <div className="min-h-screen bg-[#F7F8FA] dark:bg-slate-950 transition-colors duration-500 flex">
       {sidebarOpen && (
         <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
-            onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
+          onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
@@ -77,14 +80,14 @@ const SalesTransactionsPage = () => {
         <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-6">
-          <SalesHeader 
+          <SalesHeader
             onDateRangeChange={(start, end) => {
               setStartDate(start)
               setEndDate(end)
               setPage(1)
-            }} 
+            }}
           />
-          <SalesFilters 
+          <SalesFilters
             search={search}
             onSearchChange={(v) => { setSearch(v); setPage(1); }}
             status={paymentStatus}

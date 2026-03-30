@@ -1,4 +1,4 @@
-import GlobalPieChart from '@/components/global-components-temp/PieChart';
+import GlobalPieChart from '@/components/global-components/PieChart';
 
 interface CategoryPieChartProps {
     data: { name: string; value: number; color: string }[];
@@ -6,7 +6,7 @@ interface CategoryPieChartProps {
 
 export default function CategoryPieChart({ data }: CategoryPieChartProps) {
     return (
-        <GlobalPieChart 
+        <GlobalPieChart
             data={data}
             dataKey="value"
             nameKey="name"
