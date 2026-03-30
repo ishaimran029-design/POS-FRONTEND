@@ -2,11 +2,12 @@ import { useState } from "react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import ReportsHeader from "@/components/store-admin/Reports/ReportsHeader";
-import StatsCards from "@/components/global-components-temp/StatsCards";
+import StatsCards from "@/components/global-components/StatsCards";
 import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
 import InventoryReportTables from "@/components/store-admin/Reports/InventoryReportTables";
-import { useStoreDashboardData, useInventoryReport } from "@/hooks/useReports";
+import { useQuery } from "@tanstack/react-query";
+import * as reportsApi from "@/api/reports.api";
 import { AlertTriangle, FileText } from "lucide-react";
 import { formatCurrency } from "@/utils/format";
 
@@ -38,8 +39,14 @@ const ReportsPage = () => {
     const dateParams = calculateDateRange(dateRangeFilter);
 
     // React Query Hooks
-    const salesReportQuery = useStoreDashboardData(dateParams);
-    const inventoryReportQuery = useInventoryReport();
+    const salesReportQuery = useQuery({
+        queryKey: ['reports-dashboard', dateParams],
+        queryFn: () => reportsApi.getStoreDashboardData(dateParams),
+    });
+    const inventoryReportQuery = useQuery({
+        queryKey: ['reports-inventory'],
+        queryFn: reportsApi.getInventoryReport,
+    });
 
     const loading = activeTab === 'sales' ? salesReportQuery.isLoading : inventoryReportQuery.isLoading;
     const error = activeTab === 'sales' ? (salesReportQuery.error as any)?.message : (inventoryReportQuery.error as any)?.message;
@@ -77,8 +84,8 @@ const ReportsPage = () => {
                 <TopNavbar onMenuClick={() => setSidebarOpen(true)} />
 
                 <main className="p-4 md:p-8 lg:p-10 w-full animate-fade-in space-y-10">
-                    <ReportsHeader 
-                        activeTab={activeTab} 
+                    <ReportsHeader
+                        activeTab={activeTab}
                         onTabChange={setActiveTab}
                         dateRange={dateRangeFilter}
                         onDateRangeChange={setDateRangeFilter}
@@ -96,7 +103,7 @@ const ReportsPage = () => {
                             </div>
                             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Report Failure</h2>
                             <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed px-4">{error}</p>
-                            <button 
+                            <button
                                 onClick={() => window.location.reload()}
                                 className="w-full py-4 bg-slate-900 dark:bg-indigo-600 text-white rounded-3xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-slate-200 dark:shadow-none"
                             >
@@ -118,14 +125,14 @@ const ReportsPage = () => {
                     ) : activeTab === 'inventory' && data ? (
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <StatsCards data={inventoryStats} />
-                            <InventoryReportTables 
-                                lowStock={data.lowStock ?? []} 
-                                outOfStock={data.outOfStock ?? []} 
+                            <InventoryReportTables
+                                lowStock={data.lowStock ?? []}
+                                outOfStock={data.outOfStock ?? []}
                             />
                         </div>
                     ) : (
                         <div className="text-center py-20 text-slate-400 font-black tracking-widest uppercase text-xs">
-                          No report data available for this criteria.
+                            No report data available for this criteria.
                         </div>
                     )}
                 </main>

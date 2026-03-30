@@ -2,11 +2,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import {
     LayoutDashboard,
-    ShoppingCart,
     Users,
     Settings,
     Monitor,
-    ClipboardList,
     ChevronRight,
     LogOut,
     Store
@@ -17,8 +15,6 @@ const menu = [
     { name: "Stores", icon: Store, path: "/admin/stores" },
     { name: "Global Admins", icon: Users, path: "/admin/admins" },
     { name: "Manage Devices", icon: Monitor, path: "/admin/devices" },
-    { name: "Audit Logs", icon: ClipboardList, path: "/admin/logs" },
-    { name: "POS (Legacy)", icon: ShoppingCart, path: "/admin/pos" },
     { name: "Global Settings", icon: Settings, path: "/admin/settings" }
 ];
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import GlobalPieChart from '@/components/global-components-temp/PieChart';
-import StatsCards from "@/components/global-components-temp/StatsCards";
+import GlobalPieChart from '@/components/global-components/PieChart';
+import StatsCards from "@/components/global-components/StatsCards";
 import {
     CalendarDays,
     Download,
@@ -18,26 +18,24 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import { useDashboardSummary } from '@/hooks/useDashboard';
+import { useQuery } from '@tanstack/react-query';
+import { getSuperAdminOverview } from '@/api/dashboard.api';
 
 export default function Dashboard() {
     const today = new Date().toISOString().split('T')[0];
-    const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0];
-    
-    const [dateRange] = useState({
-        startDate: thirtyDaysAgo,
-        endDate: today
-    });
 
     // React Query Hook
-    const { data: dashboardRes, isLoading } = useDashboardSummary(dateRange);
+    const { data: dashboardRes, isLoading } = useQuery({
+        queryKey: ['superadmin', 'overview'],
+        queryFn: () => getSuperAdminOverview(),
+    });
 
     const statsRaw = dashboardRes?.data || dashboardRes;
     const stats = statsRaw;
 
     // Map existing revenue data to recharts format
-    const revenueData = stats?.charts?.revenueByDate?.map((s: any) => ({
-        name: s.date,
+    const revenueData = stats?.revenueByStore?.map((s: any) => ({
+        name: s.storeName,
         revenue: s.revenue
     })) || [];
 
@@ -48,10 +46,10 @@ export default function Dashboard() {
     ];
 
     const statsData = [
-      { name: "Total Stores", stat: stats?.totalStores?.toLocaleString() || "0", change: "+12.5%", changeType: "positive" as const },
-      { name: "Total Revenue", stat: `Rs ${stats?.totalRevenue?.toLocaleString() || "0"}`, change: "+8.2%", changeType: "positive" as const },
-      { name: "Active Devices", stat: stats?.activeDevices?.toLocaleString() || "0", change: "+4.1%", changeType: "positive" as const },
-      { name: "Active Trials", stat: stats?.activeTrials?.toLocaleString() || "0", change: "-2.4%", changeType: "negative" as const },
+        { name: "Total Stores", stat: stats?.totalStores?.toLocaleString() || "0", change: "+12.5%", changeType: "positive" as const },
+        { name: "Total Revenue", stat: `Rs ${stats?.totalRevenue?.toLocaleString() || "0"}`, change: "+8.2%", changeType: "positive" as const },
+        { name: "Active Devices", stat: stats?.activeDevices?.toLocaleString() || "0", change: "+4.1%", changeType: "positive" as const },
+        { name: "Active Trials", stat: stats?.activeTrials?.toLocaleString() || "0", change: "-2.4%", changeType: "negative" as const },
     ];
 
     return (
@@ -132,11 +130,11 @@ export default function Dashboard() {
                                     <p className="text-sm text-slate-500 font-medium">Geographical distribution</p>
                                 </div>
                             </div>
-                            <GlobalPieChart 
-                                noWrapper 
-                                data={densityData} 
-                                dataKey="value" 
-                                nameKey="name" 
+                            <GlobalPieChart
+                                noWrapper
+                                data={densityData}
+                                dataKey="value"
+                                nameKey="name"
                                 innerRadius={60}
                                 outerRadius={80}
                                 showLabels={false}

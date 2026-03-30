@@ -3,17 +3,27 @@ import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import StockAdjustmentForm from '@/components/store-admin/StockAdjustmentForm';
 import StockAdjustmentTable from '@/components/store-admin/StockAdjustmentTable';
-import { useProducts } from '@/hooks/useProducts';
-import { useInventoryLogs } from '@/hooks/useInventory';
-import { useAuditLogs } from '@/hooks/useReports';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProducts } from '@/api/products.api';
+import { fetchInventoryLogs } from '@/api/inventory.api';
+import { getAuditLogs } from '@/api/reports.api';
 
 const StockAdjustmentPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // React Query Hooks
-    const { data: productsRes } = useProducts();
-    const { data: logsRes } = useInventoryLogs({ limit: 40 });
-    const { data: auditLogsRes } = useAuditLogs({ limit: 100 });
+    const { data: productsRes } = useQuery({
+        queryKey: ['products'],
+        queryFn: () => fetchProducts(),
+    });
+    const { data: logsRes } = useQuery({
+        queryKey: ['inventory-logs', { limit: 40 }],
+        queryFn: () => fetchInventoryLogs({ limit: 40 }),
+    });
+    const { data: auditLogsRes } = useQuery({
+        queryKey: ['audit-logs', { limit: 100 }],
+        queryFn: () => getAuditLogs({ limit: 100 }),
+    });
 
     const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
     const logs = (logsRes as any)?.data || (Array.isArray(logsRes) ? logsRes : []);
@@ -23,7 +33,7 @@ const StockAdjustmentPage = () => {
     const enrichedLogs = logs.map((log: any) => {
         // 1. Try to find the direct AuditLog for this inventory log
         let audit = auditLogs.find((a: any) => a.entity === 'inventory_logs' && a.entityId === log.id);
-        
+
         // 2. If not found, check if it's a SALE and find the sale's AuditLog
         if (!audit && log.changeType === 'SALE' && log.referenceId) {
             audit = auditLogs.find((a: any) => a.entity === 'sales' && a.entityId === log.referenceId);

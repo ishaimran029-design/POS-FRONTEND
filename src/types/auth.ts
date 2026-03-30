@@ -36,6 +36,7 @@ export type AuthState = {
   
   setAuth: (user: User, token: string) => void;
   setUser: (user: User | null) => void;
+  login: (credentials: any) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   hydrate: () => Promise<void>;
 };

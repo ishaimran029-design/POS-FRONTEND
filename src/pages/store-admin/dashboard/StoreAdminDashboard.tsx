@@ -3,9 +3,9 @@ import { AlertCircle } from 'lucide-react';
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import DashboardGrid from './components/DashboardGrid';
-import ChartTooltipFormatter from '@/components/global-components/ChartTooltipFormatter';
-import BarChartLabelCustom from '@/components/global-components-temp/BarChartLabelCustom';
-import StatsCards from '@/components/global-components-temp/StatsCards';
+import ChartAreaAxes from '@/components/global-components/chart-line-dots';
+import BarChartLabelCustom from '@/components/global-components/BarChartLabelCustom';
+import StatsCards from '@/components/global-components/StatsCards';
 
 import CategoryPieChart from './components/CategoryPieChart';
 import ActiveDevicesPanel from './components/ActiveDevicesPanel';
@@ -13,8 +13,9 @@ import TopProductsTable from './components/TopProductsTable';
 
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/format';
-import { useDashboardSummary } from '@/hooks/useDashboard';
-import { useDevices } from '@/hooks/useDevices';
+import { useQuery } from '@tanstack/react-query';
+import { getDashboardSummary, getInventory } from '@/api/dashboard.api';
+import * as deviceApi from '@/api/devices.api';
 
 interface DashboardView {
   metrics: { value: number }[];
@@ -48,10 +49,20 @@ export default function StoreAdminDashboard() {
   };
 
   const { startDate, endDate } = calculateDateRange(dateRange);
-  const { data: dashRes, isLoading: dashLoading, error: dashError } = useDashboardSummary({ startDate, endDate });
-  const { data: devicesRes, isLoading: devicesLoading } = useDevices();
+  const { data: dashRes, isLoading: dashLoading, error: dashError } = useQuery({
+    queryKey: ['dashboard', 'summary', { startDate, endDate }],
+    queryFn: () => getDashboardSummary({ startDate, endDate }),
+  });
+  const { data: devicesRes, isLoading: devicesLoading } = useQuery({
+    queryKey: ['devices'],
+    queryFn: () => deviceApi.fetchDevices(),
+  });
+  const { data: invRes, isLoading: invLoading } = useQuery({
+    queryKey: ['inventory-all'],
+    queryFn: () => getInventory(),
+  });
 
-  const loading = dashLoading || devicesLoading;
+  const loading = dashLoading || devicesLoading || invLoading;
   const error = dashError ? (dashError as any).message : null;
 
   const raw = (dashRes as any)?.data ?? null;
@@ -65,7 +76,15 @@ export default function StoreAdminDashboard() {
     const charts = raw.charts ?? {};
     const revByDate = charts.revenueByDate ?? [];
     const payBreakdown = charts.paymentBreakdown ?? [];
-    const topProducts = raw.topProducts ?? [];
+    const topProductsRaw = raw.topProducts ?? [];
+    const invItems = (invRes as any)?.data ?? [];
+    const stockMap = invItems.reduce((acc: any, item: any) => {
+      acc[item.productId] = {
+        quantity: item.totalQuantity,
+        reorderLevel: item.product?.reorderLevel || 10
+      };
+      return acc;
+    }, {});
 
     const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
     return {
@@ -89,16 +108,29 @@ export default function StoreAdminDashboard() {
         location: d.location || 'Main Floor',
         status: d.isActive ? 'online' : 'offline',
       })),
-      topProducts: topProducts.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => ({
-        id: p.productId ?? p.id ?? '',
-        name: p.name ?? 'Unknown',
-        sku: p.sku ?? '',
-        unitsSold: p.quantitySold ?? 0,
-        revenue: p.revenue ?? 0,
-        stockLevel: 50,
-      })),
+      topProducts: topProductsRaw.map((p: { productId?: string; id?: string; name?: string; sku?: string; quantitySold?: number; revenue?: number }) => {
+        const productId = p.productId ?? p.id ?? '';
+        const invInfo = stockMap[productId];
+        const currentStock = invInfo?.quantity ?? 0;
+        const reorder = invInfo?.reorderLevel ?? 10;
+
+        // Calculate stock health percentage for UI progress bar
+        // 100% means currentStock >= reorder * 2 (Healthy)
+        // 50% means currentStock == reorder
+        // Below 50% means approaching reorder level
+        const stockLevel = Math.min(100, Math.round((currentStock / (reorder * 2 || 20)) * 100));
+
+        return {
+          id: productId,
+          name: p.name ?? 'Unknown',
+          sku: p.sku ?? '',
+          unitsSold: p.quantitySold ?? 0,
+          revenue: p.revenue ?? 0,
+          stockLevel,
+        };
+      }),
     };
-  }, [raw, deviceData]);
+  }, [raw, deviceData, invRes]);
 
   if (loading && !data) {
     return (
@@ -127,40 +159,40 @@ export default function StoreAdminDashboard() {
   }
 
   const statsData = [
-    { 
-      name: "Total Revenue", 
-      stat: formatCurrency(data.metrics?.[0]?.value ?? 0), 
-      change: "+12.5%", 
+    {
+      name: "Total Revenue",
+      stat: formatCurrency(data.metrics?.[0]?.value ?? 0),
+      change: "+12.5%",
       changeType: "positive" as const,
       linkTo: "/store-admin/reports"
     },
-    { 
-      name: "Active Sales", 
-      stat: `${data.metrics?.[1]?.value ?? 0}`, 
-      change: "+5.1%", 
+    {
+      name: "Active Sales",
+      stat: `${data.metrics?.[1]?.value ?? 0}`,
+      change: "+5.1%",
       changeType: "positive" as const,
       linkTo: "/store-admin/sales"
     },
-    { 
-      name: "Inventory Alerts", 
-      stat: `${data.metrics?.[2]?.value ?? 0}`, 
-      change: "0%", 
+    {
+      name: "Inventory Alerts",
+      stat: `${data.metrics?.[2]?.value ?? 0}`,
+      change: "0%",
       changeType: "positive" as const,
       linkTo: "/store-admin/inventory/stocks"
     },
-    { 
-      name: "Total Orders", 
-      stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`, 
-      change: "+8.4%", 
+    {
+      name: "Total Orders",
+      stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`,
+      change: "+8.4%",
       changeType: "positive" as const,
       linkTo: "/store-admin/sales"
     },
-    { 
-      name: "Total Discounts", 
-      stat: formatCurrency(data.metrics?.[4]?.value ?? 0), 
-      change: "+2.1%", 
+    {
+      name: "Total Discounts",
+      stat: formatCurrency(data.metrics?.[4]?.value ?? 0),
+      change: "+2.1%",
       changeType: "positive" as const,
-      linkTo: "/store-admin/reports" 
+      linkTo: "/store-admin/reports"
     }
   ];
 
@@ -185,8 +217,8 @@ export default function StoreAdminDashboard() {
                   onClick={() => setDateRange(range)}
                   className={cn(
                     "px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all",
-                    dateRange === range 
-                      ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none" 
+                    dateRange === range
+                      ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none"
                       : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
                   )}
                 >
@@ -200,7 +232,7 @@ export default function StoreAdminDashboard() {
             <div className="xl:col-span-12">
               <StatsCards data={statsData} />
             </div>
-            
+
             {/* Row 1: Charts & Pie Chart */}
             <div className="xl:col-span-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
@@ -211,14 +243,15 @@ export default function StoreAdminDashboard() {
                       <p className="text-xs text-slate-500 dark:text-slate-500 font-medium font-bold uppercase tracking-widest mt-1">Daily trend in period</p>
                     </div>
                     <div className="flex items-center gap-2">
-                       <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100 dark:shadow-none"></span>
-                       <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm shadow-blue-100 dark:shadow-none"></span>
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Revenue</span>
                     </div>
                   </div>
                   <div className="flex-1 min-h-[220px]">
-                    <ChartTooltipFormatter 
-                      data={data?.dailySales.map(d => ({ date: d.date, revenue: d.sales })) ?? []} 
-                      height="h-[220px]"
+                    <ChartAreaAxes
+                      data={data?.dailySales.map(d => ({ date: d.date, sales: d.sales })) ?? []}
+                      className="h-[220px]"
+                      noWrapper
                     />
                   </div>
                 </div>
@@ -235,9 +268,9 @@ export default function StoreAdminDashboard() {
                   </div>
                   {data?.weeklyRevenue && data.weeklyRevenue.length > 0 ? (
                     <BarChartLabelCustom
-                      data={data.weeklyRevenue.map((d: { week: string; revenue: number }) => ({ 
-                        label: new Date(d.week).toLocaleDateString('en-US', { weekday: 'short' }), 
-                        value: d.revenue 
+                      data={data.weeklyRevenue.map((d: { week: string; revenue: number }) => ({
+                        label: new Date(d.week).toLocaleDateString('en-US', { weekday: 'short' }),
+                        value: d.revenue
                       }))}
                       dataKey="value"
                       labelKey="label"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle } from 'lucide-react';
 import { storesApi, reportsApi } from '../../service/api';
@@ -6,41 +6,21 @@ import { StatsCard } from '../../components/ui/StatsCard';
 
 const StoreOverview: React.FC = () => {
   const navigate = useNavigate();
-  const [stores, setStores] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const [stats, setStats] = useState<any>(null);
+  const { data: storesRes, isLoading: storesLoading, error: storesError, refetch: refetchStores } = useQuery({
+    queryKey: ['stores', 'all'],
+    queryFn: () => storesApi.getAll(),
+  });
 
-  const fetchStores = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [storesRes, statsRes] = await Promise.all([
-        storesApi.getAll(),
-        reportsApi.getSuperAdminOverview()
-      ]);
-      
-      if (storesRes.data.success) {
-        setStores(storesRes.data.data);
-      } else {
-        setError(storesRes.data.message || 'Failed to fetch stores');
-      }
+  const { data: statsRes, isLoading: statsLoading } = useQuery({
+    queryKey: ['superadmin', 'overview'],
+    queryFn: () => reportsApi.getSuperAdminOverview(),
+  });
 
-      if (statsRes.data.success) {
-        setStats(statsRes.data.data);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Error connecting to server');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStores();
-  }, [fetchStores, refreshTrigger]);
+  const stores = storesRes?.data?.data || [];
+  const stats = statsRes?.data?.data || statsRes?.data || statsRes;
+  const loading = storesLoading || statsLoading;
+  const error = (storesError as any)?.response?.data?.message || (storesError as any)?.message || (storesRes?.data?.success === false ? storesRes?.data?.message : null);
 
   return (
     <div className="space-y-6 animate-fade-in relative z-0">
@@ -157,7 +137,7 @@ const StoreOverview: React.FC = () => {
             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
             <h3 className="text-lg font-bold text-slate-900">Unable to load stores</h3>
             <p className="text-slate-500 mt-2">{error}</p>
-            <button onClick={() => setRefreshTrigger(prev => prev+1)} className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg">Retry</button>
+            <button onClick={() => refetchStores()} className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg">Retry</button>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -181,7 +161,7 @@ const StoreOverview: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  stores.map((store: any, idx) => (
+                  stores.map((store: any, idx: number) => (
                     <tr key={store.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                       <td className="py-5 px-6 font-mono text-slate-400 text-xs">ST-{String(idx + 1).padStart(3, '0')}</td>
                       <td className="py-5 px-6">

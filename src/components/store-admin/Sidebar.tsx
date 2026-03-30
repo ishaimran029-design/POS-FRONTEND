@@ -8,7 +8,6 @@ import {
     Monitor,
     BarChart3,
     Settings,
-    ClipboardList,
     LogOut,
     ChevronDown,
     ChevronRight,
@@ -35,7 +34,6 @@ const menuItems = [
     { name: 'Sales History', icon: ShoppingCart, path: '/store-admin/sales' },
     { name: 'Devices', icon: Monitor, path: '/store-admin/devices' },
     { name: 'Reports', icon: BarChart3, path: '/store-admin/reports' },
-    { name: 'Audit Logs', icon: ClipboardList, path: '/store-admin/logs' },
     { name: 'Store Settings', icon: Settings, path: '/store-admin/settings' },
 ];
 

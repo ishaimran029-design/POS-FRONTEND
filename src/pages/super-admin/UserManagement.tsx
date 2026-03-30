@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Shield, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../service/api';
@@ -6,27 +7,14 @@ import { StatsCard } from '../../components/ui/StatsCard';
 
 const UserManagement: React.FC = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await usersApi.getAll();
-        if (response.data.success) {
-          setUsers(response.data.data);
-        } else {
-          setError('Failed to load users');
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Error communicating with server');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+  const { data: usersRes, isLoading, error: usersError } = useQuery({
+    queryKey: ['users', 'all'],
+    queryFn: () => usersApi.getAll(),
+  });
+
+  const users = usersRes?.data?.data || [];
+  const error = (usersError as any)?.response?.data?.message || (usersError as any)?.message;
 
   return (
     <div className="p-8 bg-white border border-slate-200 rounded-3xl overflow-hidden group min-h-[500px] relative z-0">
@@ -48,7 +36,7 @@ const UserManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatsCard 
           title="Total Admins"
-          value={users.filter(u => u.role !== 'SUPER_ADMIN').length}
+          value={users.filter((u: any) => u.role !== 'SUPER_ADMIN').length}
           icon={Users}
           iconColorClass="text-indigo-600"
           iconBgClass="bg-indigo-50"
@@ -57,7 +45,7 @@ const UserManagement: React.FC = () => {
         />
         <StatsCard 
           title="Store Owners"
-          value={users.filter(u => u.role === 'STORE_ADMIN').length}
+          value={users.filter((u: any) => u.role === 'STORE_ADMIN').length}
           icon={Shield}
           iconColorClass="text-blue-600"
           iconBgClass="bg-blue-50"
@@ -66,7 +54,7 @@ const UserManagement: React.FC = () => {
         />
         <StatsCard 
           title="Suspended"
-          value={users.filter(u => u.role !== 'SUPER_ADMIN' && !u.isActive).length}
+          value={users.filter((u: any) => u.role !== 'SUPER_ADMIN' && !u.isActive).length}
           icon={AlertCircle}
           iconColorClass="text-rose-600"
           iconBgClass="bg-rose-50"
@@ -99,7 +87,7 @@ const UserManagement: React.FC = () => {
           </div>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[800px]">
               <thead>
@@ -148,14 +136,14 @@ const UserManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="text-sm">
-                {users.filter(u => u.role !== 'SUPER_ADMIN').length === 0 ? (
+                {users.filter((u: any) => u.role !== 'SUPER_ADMIN').length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-slate-500 font-medium italic border-b border-slate-100">
                       No store admins found in the network.
                     </td>
                   </tr>
                 ) : (
-                  users.filter(u => u.role !== 'SUPER_ADMIN').map((user: any) => (
+                  users.filter((u: any) => u.role !== 'SUPER_ADMIN').map((user: any) => (
                     <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                       <td className="py-4 px-6">
                         <div className="flex items-center space-x-3">

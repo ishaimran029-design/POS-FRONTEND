@@ -7,16 +7,24 @@ import TaxSettingsForm from '@/components/store-admin/TaxSettingsForm';
 import { StoreHealthCard, StoreBrandingCard, QuickHelpCard } from '@/components/store-admin/SettingsUtilityCards';
 import { Save, X } from 'lucide-react';
 
-import { useCurrentUser, useStoreInfo } from '@/hooks/useDashboard';
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentUser, getStoreInfo } from '@/api/dashboard.api';
 
 const SettingsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('Store Profile');
 
-    const { data: userData } = useCurrentUser();
+    const { data: userData } = useQuery({
+        queryKey: ['auth', 'me'],
+        queryFn: getCurrentUser,
+    });
     const storeId = (userData as any)?.data?.storeId || (userData as any)?.storeId;
-    const { data: storeRes, isLoading } = useStoreInfo(storeId);
-    
+    const { data: storeRes, isLoading } = useQuery({
+        queryKey: ['store', storeId],
+        queryFn: () => getStoreInfo(storeId!),
+        enabled: !!storeId,
+    });
+
     const storeData = (storeRes as any)?.data || storeRes;
 
     return (
