@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import type { ColumnDef } from '@tanstack/react-table';
 import { reportsApi } from '../../service/api';
 import StatsCards from '@/components/global-components/StatsCards';
+import { DataTable } from '@/components/global-components/data-table';
+import { formatPKR } from '@/utils/format';
 import { 
     RefreshCcw, 
     Shield, 
@@ -26,7 +29,7 @@ const SuperAdminDashboard: React.FC = () => {
         },
         { 
             name: "Total Revenue", 
-            stat: `Rs ${statsRaw.totalRevenue?.toLocaleString() || "0"}`, 
+            stat: formatPKR(statsRaw.totalRevenue || 0), 
             change: "+12.1%", 
             changeType: "positive" as const 
         },
@@ -43,6 +46,21 @@ const SuperAdminDashboard: React.FC = () => {
             changeType: "positive" as const 
         },
     ];
+
+    const tableData = useMemo(
+        () => [{ id: 1, name: 'Ada' }],
+        []
+    );
+
+    const tableColumns = useMemo<ColumnDef<{ id: number; name: string }, any>[]>(
+        () => [
+            {
+                accessorKey: 'name',
+                header: 'Name',
+            },
+        ],
+        []
+    );
 
     if (isLoading) {
         return (
@@ -92,6 +110,17 @@ const SuperAdminDashboard: React.FC = () => {
             {/* Main Metrics */}
             <div className="w-full">
                 <StatsCards data={statsData} />
+            </div>
+
+            {/* Sample Dashboard Table */}
+            <div className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm transition-all dark:bg-slate-950 dark:border-slate-700">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Dashboard Preview Table</h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Table layout is ready for dynamic dashboard data.</p>
+                    </div>
+                </div>
+                <DataTable data={tableData} columns={tableColumns} showToolbar={false} />
             </div>
 
             {/* Global Infrastructure Status - Standard SaaS Style Card */}

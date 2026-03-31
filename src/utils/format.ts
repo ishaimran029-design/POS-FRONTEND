@@ -6,20 +6,35 @@
 /**
  * Formats a number as Pakistani Rupees (PKR)
  * @param amount - The numeric value to format
- * @returns Formatted string (e.g., "Rs. 1,234.56")
+ * @returns Formatted string (e.g., "₨ 1,234.56")
  */
 export const formatCurrency = (amount: number | string): string => {
     const value = typeof amount === 'string' ? parseFloat(amount) : amount;
     
-    if (isNaN(value)) return 'Rs. 0.00';
+    if (isNaN(value)) return '₨ 0.00';
 
     return new Intl.NumberFormat('en-PK', {
         style: 'currency',
-        currencyCode: 'PKR', // Note: currency handle might be PKR but style currency uses currency property
         currency: 'PKR',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(value).replace('PKR', 'Rs.'); // Some browsers might show PKR or Rs.
+    }).format(value).replace('PKR', '₨');
+};
+
+export const formatPKR = (amount: number | string): string => {
+    const value = typeof amount === 'string'
+        ? parseFloat(amount.toString().replace(/[^0-9.-]+/g, ''))
+        : amount;
+
+    if (isNaN(value)) return '₨ 0';
+
+    const shouldShowDecimals = Math.abs(value - Math.round(value)) > 0;
+    const formattedValue = value.toLocaleString('en-PK', {
+        minimumFractionDigits: shouldShowDecimals ? 2 : 0,
+        maximumFractionDigits: 2,
+    });
+
+    return `₨ ${formattedValue}`;
 };
 
 /**

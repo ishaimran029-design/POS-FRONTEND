@@ -7,13 +7,19 @@ import {
     ClipboardList,
     Settings,
     LogOut,
-    Shield
+    Shield,
+    Zap,
+    CreditCard,
+    History
 } from "lucide-react";
 
 const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/super-admin/dashboard" },
     { name: "Stores", icon: Store, path: "/super-admin/stores" },
     { name: "Audit Logs", icon: ClipboardList, path: "/super-admin/audit-logs" },
+    { name: "Subscription Plan", icon: Zap, path: "/super-admin/subscription" },
+    { name: "Billing Page", icon: CreditCard, path: "/super-admin/billing" },
+    { name: "Payment History Page", icon: History, path: "/super-admin/billing/history" },
     { name: "Settings", icon: Settings, path: "/super-admin/settings" }
 ];
 

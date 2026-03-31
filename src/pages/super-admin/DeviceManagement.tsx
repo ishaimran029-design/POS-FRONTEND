@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Laptop2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
 import { devicesApi } from '../../service/api';
+import { DataTable } from '@/components/global-components/data-table';
 
 const DeviceManagement: React.FC = () => {
 
@@ -12,6 +14,62 @@ const DeviceManagement: React.FC = () => {
 
   const devices = devicesRes?.data?.data || [];
   const error = (devicesError as any)?.response?.data?.message || (devicesError as any)?.message;
+
+  const deviceColumns = useMemo<ColumnDef<any, any>[]>(() => [
+    {
+      accessorKey: 'deviceName',
+      header: 'Device Name',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-extrabold text-slate-900 tracking-tight">{row.original.deviceName}</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{row.original.deviceType}</div>
+        </div>
+      ),
+    },
+    {
+      accessorFn: (row) => row.storeId ? `${row.storeId.substring(0, 8)}...` : 'N/A',
+      id: 'storeReference',
+      header: 'Store Reference',
+      cell: ({ getValue }) => <span className="font-mono text-slate-500 text-xs">{getValue<string>()}</span>,
+    },
+    {
+      accessorKey: 'serialNumber',
+      header: 'Serial Number',
+      cell: ({ getValue }) => <span className="font-mono text-slate-900 font-bold text-xs uppercase">{getValue<string>()}</span>,
+    },
+    {
+      id: 'scanner',
+      header: 'Scanner',
+      accessorFn: (row) => row.barcodeScanner ? (row.scannerType || 'USB') : 'NONE',
+      cell: ({ getValue }) => (
+        getValue<string>() !== 'NONE' ? (
+          <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-bold font-mono tracking-wider">{getValue<string>()}</span>
+        ) : (
+          <span className="text-slate-300 font-bold text-xs">NONE</span>
+        )
+      ),
+    },
+    {
+      accessorFn: (row) => row.isActive,
+      id: 'status',
+      header: 'Status',
+      cell: ({ getValue }) => {
+        const active = getValue<boolean>();
+        return (
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${active ? 'bg-emerald-500' : 'bg-red-500'}`} />
+            {active ? 'Online' : 'Offline'}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'lastHeartbeat',
+      header: 'Last Heartbeat',
+      accessorFn: (row) => row.lastActiveAt ? new Date(row.lastActiveAt).toLocaleString() : 'Never',
+      cell: ({ getValue }) => <span className="text-slate-500 font-medium text-xs">{getValue<string>()}</span>,
+    },
+  ], []);
 
   return (
     <div className="space-y-6 animate-fade-in">

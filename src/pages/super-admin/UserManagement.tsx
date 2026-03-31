@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Shield, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
+import { DataTable } from '@/components/global-components/data-table';
 
 const UserManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +17,73 @@ const UserManagement: React.FC = () => {
 
   const users = usersRes?.data?.data || [];
   const error = (usersError as any)?.response?.data?.message || (usersError as any)?.message;
+
+  const adminUsers = useMemo(() => users.filter((u: any) => u.role !== 'SUPER_ADMIN'), [users]);
+
+  const userColumns = useMemo<ColumnDef<any, any>[]>(() => [
+    {
+      accessorKey: 'name',
+      header: 'Admin Name',
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shadow-sm ring-2 ring-white">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="font-extrabold text-slate-900 tracking-tight">{user.name}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email Address',
+      cell: ({ getValue }) => <div className="font-medium text-slate-600">{getValue<string>()}</div>,
+    },
+    {
+      accessorKey: 'storeId',
+      header: 'Store ID',
+      cell: ({ row }) => {
+        const value = row.original.storeId;
+        return <div className="font-mono text-slate-400 text-xs">{value ? `STR-${value.substring(value.length - 4).toUpperCase()}` : 'N/A'}</div>;
+      },
+    },
+    {
+      accessorKey: 'role',
+      header: 'Account Role',
+      cell: ({ getValue }) => (
+        <span className="uppercase font-bold tracking-wider text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">
+          {getValue<string>().replace('_', ' ')}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'Status',
+      cell: ({ getValue }) => {
+        const active = getValue<boolean>();
+        return (
+          <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${active ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${active ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+            {active ? 'Active' : 'Suspended'}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <button
+          onClick={() => navigate(`/super-admin/admins/edit/${row.original.id}`)}
+          className="font-bold text-xs tracking-widest text-indigo-600 cursor-pointer hover:text-indigo-800 hover:underline"
+        >
+          EDIT / VIEW
+        </button>
+      ),
+    },
+  ], [navigate]);
 
   return (
     <div className="p-8 bg-white border border-slate-200 rounded-3xl overflow-hidden group min-h-[500px] relative z-0">
@@ -87,103 +156,20 @@ const UserManagement: React.FC = () => {
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                  <th className="py-4 px-6 min-w-[250px]">User Details</th>
-                  <th className="py-4 px-6 min-w-[200px]">Email Address</th>
-                  <th className="py-4 px-6 min-w-[150px]">Role</th>
-                  <th className="py-4 px-6 min-w-[120px]">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[1, 2, 3, 4].map((item) => (
-                  <tr key={item} className="border-b border-slate-50 animate-pulse">
-                    <td className="py-5 px-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-                        <div className="h-4 bg-slate-200 rounded w-24"></div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-6"><div className="h-4 bg-slate-200 rounded w-32"></div></td>
-                    <td className="py-5 px-6"><div className="h-5 bg-slate-200 rounded-full w-24"></div></td>
-                    <td className="py-5 px-6"><div className="h-5 bg-slate-200 rounded-full w-16"></div></td>
-                    <td className="py-5 px-6 text-right"><div className="h-4 bg-slate-200 rounded w-16 ml-auto"></div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="flex flex-col items-center justify-center py-16 text-center px-4">
             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
             <p className="text-slate-500 font-medium">{error}</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest bg-slate-50">
-                  <th className="py-4 px-6 min-w-[250px]">Admin Name</th>
-                  <th className="py-4 px-6 min-w-[200px]">Email Address</th>
-                  <th className="py-4 px-6 min-w-[150px]">Store ID</th>
-                  <th className="py-4 px-6 min-w-[150px]">Account Role</th>
-                  <th className="py-4 px-6 min-w-[120px]">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {users.filter((u: any) => u.role !== 'SUPER_ADMIN').length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-slate-500 font-medium italic border-b border-slate-100">
-                      No store admins found in the network.
-                    </td>
-                  </tr>
-                ) : (
-                  users.filter((u: any) => u.role !== 'SUPER_ADMIN').map((user: any) => (
-                    <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-4 px-6">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shadow-sm ring-2 ring-white">
-                            {user.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="font-extrabold text-slate-900 tracking-tight">{user.name}</div>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 font-medium text-slate-600">
-                        {user.email}
-                      </td>
-                      <td className="py-4 px-6 font-mono text-slate-400 text-xs">
-                        {user.storeId ? `STR-${user.storeId.substring(user.storeId.length - 4).toUpperCase()}` : 'N/A'}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className="uppercase font-bold tracking-wider text-xs text-indigo-500 bg-indigo-50 px-2 py-1 rounded-md">
-                          {user.role.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${user.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full mr-2 ${user.isActive ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
-                          {user.isActive ? 'Active' : 'Suspended'}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <button 
-                          onClick={() => navigate(`/super-admin/admins/edit/${user.id}`)}
-                          className="font-bold text-xs tracking-widest text-indigo-600 cursor-pointer hover:text-indigo-800 hover:underline"
-                        >
-                          EDIT / VIEW
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            data={adminUsers}
+            columns={userColumns}
+            isLoading={isLoading}
+            showToolbar={false}
+            showExport={false}
+            showColumns={false}
+          />
         )}
       </div>
     </div>

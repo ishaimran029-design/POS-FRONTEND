@@ -55,7 +55,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
                 <ChevronRight size={20} className="rotate-180" />
             </button>
-            
+
             {/* Brand */}
             <div className="p-6 border-b border-slate-100/10 dark:border-slate-800/50">
                 <div className="flex items-center gap-3">
