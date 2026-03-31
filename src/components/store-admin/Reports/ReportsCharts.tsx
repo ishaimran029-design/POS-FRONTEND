@@ -1,6 +1,6 @@
 import React from 'react';
-import ChartLineDots from '@/components/global-components-temp/chart-line-dots';
-import BarChartLabelCustom from '@/components/global-components-temp/BarChartLabelCustom';
+import ChartLineDots from '@/components/global-components/chart-line-dots';
+import BarChartLabelCustom from '@/components/global-components/BarChartLabelCustom';
 
 interface ReportsChartsProps {
   charts: any;
@@ -38,7 +38,7 @@ const ReportsCharts: React.FC<ReportsChartsProps> = ({ charts }) => {
           {dailySales.length > 0 ? (
             <ChartLineDots noWrapper data={dailySales} />
           ) : (
-             <div className="h-full flex flex-col items-center justify-center">
+            <div className="h-full flex flex-col items-center justify-center">
               <p className="font-inter text-slate-400 text-sm font-medium">No trend data available</p>
             </div>
           )}

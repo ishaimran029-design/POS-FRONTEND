@@ -1,15 +1,16 @@
 @import "tailwindcss";
-@variant dark (&:where(.dark, .dark *));
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: 'Inter', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
   --font-inter: 'Inter', sans-serif;
+  --font-jakarta: 'Plus Jakarta Sans', sans-serif;
 }
 
 @layer base {
   body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
     @apply bg-[#F7F9FC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors duration-300;
   }
 }
@@ -38,6 +39,54 @@
   --foreground: #F8FAFC;
   --card: #1E293B;
   --border: #334155;
+}
+
+/* Super Admin scoped dark theme overrides */
+.dark .super-admin-root [class*="bg-white"] {
+  background-color: #0f172a !important;
+}
+
+.dark .super-admin-root [class*="bg-slate-50"] {
+  background-color: #111827 !important;
+}
+
+.dark .super-admin-root [class*="bg-slate-100"] {
+  background-color: #1e293b !important;
+}
+
+.dark .super-admin-root [class*="text-slate-900"] {
+  color: #e2e8f0 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-700"] {
+  color: #cbd5e1 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-600"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-500"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-400"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="border-slate-200"] {
+  border-color: #334155 !important;
+}
+
+.dark .super-admin-root [class*="border-slate-100"] {
+  border-color: #334155 !important;
+}
+
+.dark .super-admin-root .shadow-sm,
+.dark .super-admin-root .shadow-md,
+.dark .super-admin-root .shadow-lg,
+.dark .super-admin-root .shadow-xl {
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.22) !important;
 }
 
 /* Sliding Sidebar Label Visibility Rules */

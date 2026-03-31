@@ -9,7 +9,8 @@ import AddCategoryModal from "@/components/store-admin/AddCategoryModal"
 
 import { CheckCircle2 } from "lucide-react"
 
-import { useCategories } from "@/hooks/useProducts"
+import { useQuery } from "@tanstack/react-query";
+import { getCategories } from "@/api/category.api";
 
 const ProductCategoriesPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -17,7 +18,10 @@ const ProductCategoriesPage = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
 
-  const { data: categoriesRes, isLoading: loading, refetch: fetchCategories } = useCategories();
+  const { data: categoriesRes, isLoading: loading, refetch: fetchCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
   const categories = (categoriesRes as any)?.data || (Array.isArray(categoriesRes) ? categoriesRes : []);
 
   // Auto-dismiss success toast after 3 seconds

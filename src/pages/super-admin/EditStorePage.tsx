@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Store, Mail, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { storesApi } from '../../service/api';
@@ -7,9 +8,6 @@ import { StoreCharts } from '../../components/super-admin/StoreCharts';
 const EditStorePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-
-  const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -23,34 +21,27 @@ const EditStorePage: React.FC = () => {
     isActive: true,
   });
 
+  const { data: storeRes, isLoading: initialLoading } = useQuery({
+    queryKey: ['store', id],
+    queryFn: () => storesApi.getById(id!),
+    enabled: !!id,
+  });
+
   useEffect(() => {
-    const fetchStore = async () => {
-      if (!id) return;
-      try {
-        const response = await storesApi.getById(id);
-        if (response.data.success) {
-          const store = response.data.data;
-          setFormData({
-            name: store.name || '',
-            email: store.email || '',
-            phone: store.phone || '',
-            address: store.address || '',
-            city: store.city || '',
-            state: store.state || '',
-            zipCode: store.zipCode || '',
-            isActive: store.isActive !== undefined ? store.isActive : true,
-          });
-        } else {
-          setError(response.data.message || 'Failed to fetch store details');
-        }
-      } catch (err: any) {
-         setError(err.response?.data?.message || 'Error communicating with server');
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-    fetchStore();
-  }, [id]);
+    if (storeRes?.data?.success) {
+      const store = storeRes.data.data;
+      setFormData({
+        name: store.name || '',
+        email: store.email || '',
+        phone: store.phone || '',
+        address: store.address || '',
+        city: store.city || '',
+        state: store.state || '',
+        zipCode: store.zipCode || '',
+        isActive: store.isActive !== undefined ? store.isActive : true,
+      });
+    }
+  }, [storeRes]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -60,25 +51,25 @@ const EditStorePage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!id) return;
-    
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await storesApi.update(id, formData);
+  const { mutate: updateStore, isPending: loading } = useMutation({
+    mutationFn: (data: any) => storesApi.update(id!, data),
+    onSuccess: (response) => {
       if (response.data.success) {
         navigate('/super-admin/stores');
       } else {
         setError(response.data.message || 'Failed to update store');
       }
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       setError(err.response?.data?.message || 'Error occurred during update');
-    } finally {
-      setLoading(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    setError(null);
+    updateStore(formData);
   };
 
   if (initialLoading) {

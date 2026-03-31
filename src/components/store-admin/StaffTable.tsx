@@ -5,9 +5,11 @@ import type { StaffMember } from '../../pages/store-admin/staff-management/types
 interface StaffTableProps {
     staff: StaffMember[];
     onEdit: (member: StaffMember) => void;
+    onToggleStatus: (id: string, active: boolean) => void;
+    onViewDetails: (member: StaffMember) => void;
 }
 
-export default function StaffTable({ staff, onEdit }: StaffTableProps) {
+export default function StaffTable({ staff, onEdit, onToggleStatus, onViewDetails }: StaffTableProps) {
     return (
         <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden mb-10 animate-fade-in hover:shadow-md dark:shadow-none transition-all duration-300">
             <div className="overflow-x-auto">
@@ -25,12 +27,14 @@ export default function StaffTable({ staff, onEdit }: StaffTableProps) {
                     </thead>
                     <tbody className="divide-y divide-slate-50/50 dark:divide-slate-800/50">
                         {staff.map((member, idx) => (
-                             <StaffRow
-                                 key={member.id}
-                                 member={member}
-                                 index={idx + 1}
-                                 onEdit={onEdit}
-                             />
+                            <StaffRow
+                                key={member.id}
+                                member={member}
+                                index={idx + 1}
+                                onEdit={onEdit}
+                                onToggleStatus={onToggleStatus}
+                                onViewDetails={onViewDetails}
+                            />
                         ))}
                         {staff.length === 0 && (
                             <tr>

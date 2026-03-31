@@ -7,8 +7,10 @@ import StaffFilters from '@/components/store-admin/StaffFilters';
 import StaffTable from '@/components/store-admin/StaffTable';
 import StaffPagination from '@/components/store-admin/StaffPagination';
 import AddStaffModal from '@/components/store-admin/AddStaffModal';
+import StatsCards from '@/components/global-components/StatsCards';
 import type { StaffMember, CreateStaffInput, StaffRole, StaffStatus } from './types/staff.types';
-import { useStaff, useCreateStaff, useUpdateStaff } from '@/hooks/useStaff';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchStaffMembers, createStaffMember, updateStaffMember } from '@/api/staff.api';
 
 function formatActivity(value?: string | null): string {
     return value ? new Date(value).toLocaleString() : 'Never';
@@ -38,10 +40,24 @@ export default function StaffManagementPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
 
+    const queryClient = useQueryClient();
     // React Query Hooks
-    const { data: staffDataRes, isLoading: loading, refetch: refetchStaff } = useStaff();
-    const createStaffMutation = useCreateStaff();
-    const updateStaffMutation = useUpdateStaff();
+    const { data: staffDataRes, isLoading: loading, refetch: refetchStaff } = useQuery({
+        queryKey: ['staff'],
+        queryFn: fetchStaffMembers,
+    });
+    const createStaffMutation = useMutation({
+        mutationFn: createStaffMember,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['staff'] });
+        },
+    });
+    const updateStaffMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: any }) => updateStaffMember(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['staff'] });
+        },
+    });
 
     const staffRaw = (staffDataRes as any)?.data || (Array.isArray(staffDataRes) ? staffDataRes : []);
     const staff: StaffMember[] = Array.isArray(staffRaw) ? staffRaw.map(mapApiUser) : [];
@@ -105,6 +121,15 @@ export default function StaffManagementPage() {
                         onExport={() => alert('Export CSV feature coming soon!')}
                         onRefresh={() => refetchStaff()}
                     />
+
+                    <div className="mt-8">
+                        <StatsCards data={[
+                            { name: "Total Team", stat: String(staff.length), change: "+1", changeType: "positive" },
+                            { name: "Active Now", stat: String(staff.filter((m: any) => m.status === 'active').length), change: "100%", changeType: "positive" },
+                            { name: "Managers", stat: String(staff.filter((m: any) => m.role === 'ADMIN').length), change: "0%", changeType: "positive" },
+                            { name: "Cashiers", stat: String(staff.filter((m: any) => m.role === 'CASHIER').length), change: "+2", changeType: "positive" },
+                        ]} />
+                    </div>
 
                     <StaffFilters
                         searchQuery={searchQuery}

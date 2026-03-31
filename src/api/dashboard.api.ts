@@ -44,3 +44,8 @@ export const getSalesReport = (params: { startDate: string; endDate: string }) =
 export const getDashboardSummary = (params?: { startDate: string; endDate: string }) => {
     return api.get('/reports/storeadmin/dashboard', { params }).then(res => res.data);
 };
+
+// 9. Get Super Admin Specific Dashboard Metrics
+export const getSuperAdminOverview = () => {
+    return api.get('/reports/superadmin/overview').then(res => res.data);
+};

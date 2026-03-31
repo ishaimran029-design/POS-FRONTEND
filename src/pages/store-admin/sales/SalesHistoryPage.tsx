@@ -3,16 +3,17 @@ import { Download, Plus } from "lucide-react";
 import Sidebar from '@/components/store-admin/Sidebar';
 import TopNavbar from '@/components/store-admin/TopNavbar';
 import SalesFilters from "@/components/store-admin/SalesFilters";
-import SalesHistoryTable from "@/components/store-admin/SalesHistory/SalesHistoryTable";
+import SalesTable from "@/components/store-admin/SalesTable";
 import SalesSummaryCards from "@/components/store-admin/SalesHistory/SalesSummaryCards";
-import ChartTooltipFormatter from "@/components/global-components/ChartTooltipFormatter";
+import ChartAreaAxes from "@/components/global-components/chart-line-dots";
 
-import { useSales } from "@/hooks/useSales";
-import { useDashboardSummary } from "@/hooks/useDashboard";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getDashboardSummary } from "@/api/dashboard.api";
+import { getSalesTransactions, cancelSale, refundSale } from "@/api/sales.api";
 
 const SalesHistoryPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    
+
     // Filters state
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All Status");
@@ -21,7 +22,7 @@ const SalesHistoryPage = () => {
         start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
         end: new Date().toISOString().split('T')[0]
     });
-    
+
     // Pagination state
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
@@ -32,23 +33,31 @@ const SalesHistoryPage = () => {
         startDate: dateRange.start,
         endDate: dateRange.end
     };
-    
+
     if (search) params.search = search;
     if (status !== 'All Status') params.paymentStatus = status;
     if (paymentMethod !== 'All Methods') params.paymentMethod = paymentMethod;
 
+    const queryClient = useQueryClient();
+
     // React Query Hooks
-    const { data: salesDataRes, isLoading: salesLoading } = useSales(params);
-    const { data: dashboardDataRes, isLoading: summaryLoading } = useDashboardSummary({
-        startDate: dateRange.start,
-        endDate: dateRange.end
+    const { data: salesDataRes, isLoading: salesLoading } = useQuery({
+        queryKey: ['sales', params],
+        queryFn: () => getSalesTransactions(params),
+    });
+    const { data: dashboardDataRes, isLoading: summaryLoading } = useQuery({
+        queryKey: ['dashboard', 'summary', { startDate: dateRange.start, endDate: dateRange.end }],
+        queryFn: () => getDashboardSummary({
+            startDate: dateRange.start,
+            endDate: dateRange.end
+        }),
     });
 
     const transactions = salesDataRes?.data || (Array.isArray(salesDataRes) ? salesDataRes : []);
     const total = salesDataRes?.total || transactions.length;
 
     const reportData = dashboardDataRes?.data || dashboardDataRes;
-    
+
     const summary = {
         totalAmount: Number(reportData?.summary?.totalRevenue || 0),
         completedCount: Number(reportData?.summary?.totalTransactions || 0),
@@ -85,7 +94,7 @@ const SalesHistoryPage = () => {
                             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Sales History</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Manage and track all transaction logs</p>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                             <button className="flex items-center gap-2 px-5 py-3 bg-white border border-[#1E1B4B]/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[#1E1B4B] hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
                                 <Download size={16} className="text-[#1E1B4B]" />
@@ -101,7 +110,7 @@ const SalesHistoryPage = () => {
                     {/* Stats & Charts Summary */}
                     <div className="space-y-8">
                         <SalesSummaryCards data={summary} loading={summaryLoading} />
-                        
+
                         {/* Revenue Trend Chart */}
                         <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm transition-all hover:shadow-md">
                             <div className="flex items-center justify-between mb-8">
@@ -115,7 +124,7 @@ const SalesHistoryPage = () => {
                                 </div>
                             </div>
                             <div className="h-[300px] w-full">
-                                <ChartTooltipFormatter data={chartsData} height="h-[300px]" />
+                                <ChartAreaAxes data={chartsData.map((d: any) => ({ date: d.date, sales: d.revenue }))} className="h-[300px]" noWrapper />
                             </div>
                         </div>
                     </div>
@@ -128,8 +137,8 @@ const SalesHistoryPage = () => {
                                 {total} Entries Found
                             </span>
                         </div>
-                        
-                        <SalesFilters 
+
+                        <SalesFilters
                             search={search}
                             onSearchChange={setSearch}
                             status={status}
@@ -140,13 +149,25 @@ const SalesHistoryPage = () => {
                             onDateRangeChange={(start: string, end: string) => setDateRange({ start, end })}
                         />
 
-                        <SalesHistoryTable 
+                        <SalesTable
                             transactions={transactions}
                             loading={loading}
                             page={page}
                             total={total}
                             limit={limit}
                             onPageChange={setPage}
+                            onCancel={async (id) => {
+                                if (window.confirm("Cancel this sale?")) {
+                                    await cancelSale(id, "Cancelled by admin");
+                                    queryClient.invalidateQueries({ queryKey: ['sales'] });
+                                }
+                            }}
+                            onRefund={async (id) => {
+                                if (window.confirm("Refund this sale?")) {
+                                    await refundSale(id, "Refunded by admin");
+                                    queryClient.invalidateQueries({ queryKey: ['sales'] });
+                                }
+                            }}
                         />
                     </div>
                 </main>

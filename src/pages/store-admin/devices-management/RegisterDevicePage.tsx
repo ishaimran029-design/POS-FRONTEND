@@ -23,7 +23,8 @@ const initialForm: FormData = {
   printerType: 'None',
 };
 
-import { useRegisterDevice } from '@/hooks/useDevices';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as deviceApi from '@/api/devices.api';
 
 export default function RegisterDevicePage() {
   const navigate = useNavigate();
@@ -31,7 +32,13 @@ export default function RegisterDevicePage() {
   const [formData, setFormData] = useState<FormData>(initialForm);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const { mutate: register, isPending: loading, error: mutationError } = useRegisterDevice();
+  const queryClient = useQueryClient();
+  const { mutate: register, isPending: loading, error: mutationError } = useMutation({
+    mutationFn: deviceApi.registerDevice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+    },
+  });
   const error = localError || (mutationError as any)?.message;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

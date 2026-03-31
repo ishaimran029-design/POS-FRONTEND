@@ -8,8 +8,10 @@ import AddTerminalModal from "@/components/store-admin/AddTerminalModal"
 import DevicesFilters, { type StatusFilter, type ViewFilter } from "@/components/store-admin/DevicesFilters"
 import DevicesTable from "@/components/store-admin/DevicesTable"
 import DevicesPagination from "@/components/store-admin/DevicesPagination"
+import StatsCards from "@/components/global-components/StatsCards"
 
-import { useTerminals, useUpdateDevice } from "@/hooks/useDevices"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import * as deviceApi from "@/api/devices.api";
 import type { Device } from "./types/device.types"
 
 export default function DevicesManagementPage() {
@@ -22,9 +24,20 @@ export default function DevicesManagementPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const limit = 10
 
+    const queryClient = useQueryClient();
     // React Query Hooks
-    const { data: terminalsDataRes, isLoading: loading, refetch: refetchTerminals } = useTerminals();
-    const updateDeviceMutation = useUpdateDevice();
+    const { data: terminalsDataRes, isLoading: loading, refetch: refetchTerminals } = useQuery({
+        queryKey: ['terminals'],
+        queryFn: deviceApi.listTerminals,
+    });
+
+    const updateDeviceMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: any }) => deviceApi.updateDevice(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['terminals'] });
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        },
+    });
 
     useEffect(() => {
         if (viewFilter === "this_device") {
@@ -96,6 +109,16 @@ export default function DevicesManagementPage() {
                         onAddTerminal={() => setTerminalModalOpen(true)}
                         terminalCount={terminals.length}
                     />
+
+                    <div className="mt-8">
+                        <StatsCards data={[
+                            { name: "Connected Hardware", stat: String(terminals.length), change: "+2", changeType: "positive" },
+                            { name: "Online Devices", stat: String(terminals.filter((t: any) => t.status === 'online').length), change: "100%", changeType: "positive" },
+                            { name: "Offline / Alerts", stat: String(terminals.filter((t: any) => t.status === 'offline').length), change: "0%", changeType: "negative" },
+                            { name: "POS Terminals", stat: String(terminals.filter((t: any) => t.type === 'POS').length), change: "+1", changeType: "positive" },
+                        ]} />
+                    </div>
+
                     <AddTerminalModal
                         isOpen={terminalModalOpen}
                         onClose={() => setTerminalModalOpen(false)}
