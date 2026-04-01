@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle } from 'lucide-react';
 import { storesApi, reportsApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
+import { DataTable } from '@/components/global-components/data-table';
+import { formatPKR } from '@/utils/format';
+import { showToast } from '../../utils/admin-toast';
 
 const StoreOverview: React.FC = () => {
   const navigate = useNavigate();
@@ -63,7 +66,7 @@ const StoreOverview: React.FC = () => {
         />
         <StatsCard 
           title="Total Revenue"
-          value={`Rs ${stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}`}
+          value={formatPKR(stats?.totalRevenue || 0)}
           icon={CreditCard}
           iconColorClass="text-emerald-600"
           iconBgClass="bg-emerald-50"
@@ -97,42 +100,7 @@ const StoreOverview: React.FC = () => {
 
       {/* Data Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden relative z-0">
-        {loading ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                  <th className="py-4 px-6 min-w-[120px]">Store ID</th>
-                  <th className="py-4 px-6 min-w-[250px]">Store Name</th>
-                  <th className="py-4 px-6 min-w-[200px]">Address</th>
-                  <th className="py-4 px-6 min-w-[200px]">Store Email</th>
-                  <th className="py-4 px-6 text-center">Device Count</th>
-                  <th className="py-4 px-6 min-w-[120px]">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <tr key={item} className="border-b border-slate-50 animate-pulse">
-                    <td className="py-5 px-6"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
-                    <td className="py-5 px-6">
-                      <div className="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-slate-100 rounded w-1/2"></div>
-                    </td>
-                    <td className="py-5 px-6">
-                      <div className="h-4 bg-slate-200 rounded w-full mb-2"></div>
-                      <div className="h-3 bg-slate-100 rounded w-2/3"></div>
-                    </td>
-                    <td className="py-5 px-6"><div className="h-6 bg-slate-200 rounded-full w-20"></div></td>
-                    <td className="py-5 px-6"><div className="h-4 bg-slate-200 rounded w-8 mx-auto"></div></td>
-                    <td className="py-5 px-6"><div className="h-6 bg-slate-200 rounded-full w-24"></div></td>
-                    <td className="py-5 px-6 text-right"><div className="h-4 bg-slate-200 rounded w-16 ml-auto"></div></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="flex flex-col items-center justify-center py-16 text-center px-4">
             <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
             <h3 className="text-lg font-bold text-slate-900">Unable to load stores</h3>
@@ -201,19 +169,6 @@ const StoreOverview: React.FC = () => {
             </table>
           </div>
         )}
-        
-        {/* Pagination Footer */}
-        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center text-sm space-y-4 sm:space-y-0">
-          <div className="text-slate-500 font-medium">
-            Showing 1 to {Math.min(stores.length, 5)} of {stores.length || "0"} results
-          </div>
-          <div className="flex space-x-1">
-            <button className="px-3 sm:px-4 py-1.5 border border-slate-200 text-slate-500 font-bold rounded-lg opacity-50 cursor-not-allowed">Previous</button>
-            <button className="w-8 py-1.5 bg-[#1f1e35] text-white font-bold rounded-lg flex items-center justify-center">1</button>
-            <button className="w-8 py-1.5 border border-slate-200 text-slate-500 font-bold rounded-lg hover:bg-slate-50">2</button>
-            <button className="px-3 sm:px-4 py-1.5 border border-slate-200 text-slate-700 font-bold rounded-lg hover:bg-slate-50">Next</button>
-          </div>
-        </div>
       </div>
       
       {/* Footer copyright */}

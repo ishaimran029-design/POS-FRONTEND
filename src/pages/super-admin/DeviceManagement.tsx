@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Laptop2, AlertCircle, Plus, Activity, Search } from 'lucide-react';
 import { devicesApi } from '../../service/api';
+import { DataTable } from '@/components/global-components/data-table';
 
 const DeviceManagement: React.FC = () => {
 

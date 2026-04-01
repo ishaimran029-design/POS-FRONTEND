@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, UserPlus, Shield, AlertCircle } from 'lucide-react';
 import { usersApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
+import { DataTable } from '@/components/global-components/data-table';
 
 const UserManagement: React.FC = () => {
   const navigate = useNavigate();

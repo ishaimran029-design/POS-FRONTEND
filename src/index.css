@@ -41,6 +41,54 @@
   --border: #334155;
 }
 
+/* Super Admin scoped dark theme overrides */
+.dark .super-admin-root [class*="bg-white"] {
+  background-color: #0f172a !important;
+}
+
+.dark .super-admin-root [class*="bg-slate-50"] {
+  background-color: #111827 !important;
+}
+
+.dark .super-admin-root [class*="bg-slate-100"] {
+  background-color: #1e293b !important;
+}
+
+.dark .super-admin-root [class*="text-slate-900"] {
+  color: #e2e8f0 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-700"] {
+  color: #cbd5e1 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-600"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-500"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="text-slate-400"] {
+  color: #94a3b8 !important;
+}
+
+.dark .super-admin-root [class*="border-slate-200"] {
+  border-color: #334155 !important;
+}
+
+.dark .super-admin-root [class*="border-slate-100"] {
+  border-color: #334155 !important;
+}
+
+.dark .super-admin-root .shadow-sm,
+.dark .super-admin-root .shadow-md,
+.dark .super-admin-root .shadow-lg,
+.dark .super-admin-root .shadow-xl {
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.22) !important;
+}
+
 /* Sliding Sidebar Label Visibility Rules */
 .sidebar-collapsed .sidebar-label {
   opacity: 0;
