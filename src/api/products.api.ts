@@ -1,5 +1,65 @@
 import api from "./api";
 
+/**
+ * Products API Module
+ * Handles product creation, updates, and batch management
+ */
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface CreateProductData {
+  name: string;
+  sku: string;
+  barcode: string;
+  categoryId: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  taxPercentage?: number;
+  discountPercentage?: number;
+  reorderLevel?: number;
+  initialStock?: number;
+  description?: string;
+}
+
+export interface AddBatchData {
+  quantityReceived: number;
+  purchasePrice: number;
+  sellingPrice: number;
+  taxPercentage?: number;
+  discountPercentage?: number;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  barcode: string;
+  categoryId: string;
+  purchasePrice: number;
+  sellingPrice: number;
+  taxPercentage: number;
+  discountPercentage: number;
+  reorderLevel: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  inventoryStock?: {
+    totalQuantity: number;
+  };
+  category?: {
+    id: string;
+    name: string;
+  };
+}
+
+// ============================================================================
+// PRODUCT CRUD
+// ============================================================================
+
 export const fetchProducts = async () => {
   console.log('📦 [Products API] Calling GET /products...');
   try {
@@ -16,8 +76,23 @@ export const fetchTopProducts = () => {
   return api.get("/products/top");
 };
 
-export const createProduct = (data: any) => {
-  return api.post("/products", data);
+/**
+ * Creates a new product with optional opening stock
+ * Backend automatically handles:
+ * - Opening batch creation
+ * - Inventory stock initialization
+ * - Inventory log entry
+ */
+export const createProduct = async (data: CreateProductData) => {
+  console.log('📦 [Products API] Creating product:', data);
+  try {
+    const response = await api.post("/products", data);
+    console.log('✅ [Products API] Product created:', response.data);
+    return response;
+  } catch (error: any) {
+    console.error('❌ [Products API] Failed to create product:', error);
+    throw error;
+  }
 };
 
 export const updateProduct = (id: string, data: any) => {
@@ -36,4 +111,39 @@ export const getProductByBarcode = (barcode: string, deviceId?: string | null) =
 
 export const searchProducts = (query: string) => {
   return api.get(`/products`, { params: { search: query } });
+};
+
+// ============================================================================
+// BATCH MANAGEMENT
+// ============================================================================
+
+/**
+ * Adds a new batch to an existing product
+ * Updates inventory stock and creates inventory log
+ */
+export const addProductBatch = async (productId: string, data: AddBatchData) => {
+  console.log('📦 [Products API] Adding batch to product:', productId, data);
+  try {
+    const response = await api.post(`/products/${productId}/batch`, data);
+    console.log('✅ [Products API] Batch added:', response.data);
+    return response;
+  } catch (error: any) {
+    console.error('❌ [Products API] Failed to add batch:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches product details with stock information
+ */
+export const getProductById = async (productId: string) => {
+  console.log('📦 [Products API] Fetching product:', productId);
+  try {
+    const response = await api.get(`/products/${productId}`);
+    console.log('✅ [Products API] Product fetched:', response.data);
+    return response;
+  } catch (error: any) {
+    console.error('❌ [Products API] Failed to fetch product:', error);
+    throw error;
+  }
 };
