@@ -595,19 +595,19 @@ const ReceiptPage: React.FC = () => {
                           {details.quantity}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          ₹{details.unitPrice.toFixed(2)}
+                          {formatCurrency(details.unitPrice)}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          ₹{details.subtotal.toFixed(2)}
+                          {formatCurrency(details.subtotal)}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          ₹{details.gst.toFixed(2)}
+                          {formatCurrency(details.gst)}
                         </td>
                         <td className="px-2 py-2 text-right">
-                          ₹{itemDiscount.toFixed(2)}
+                          {formatCurrency(itemDiscount)}
                         </td>
                         <td className="px-2 py-2 text-right font-semibold text-slate-900">
-                          ₹{lineTotal.toFixed(2)}
+                          {formatCurrency(lineTotal)}
                         </td>
                       </tr>
                     );
@@ -656,21 +656,21 @@ const ReceiptPage: React.FC = () => {
                 <>
                   <div className="flex justify-between font-semibold text-slate-800">
                     <span>Total Subtotal:</span>
-                    <span>₹{totalSubtotal.toFixed(2)}</span>
+                    <span>{formatCurrency(totalSubtotal)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-slate-800">
                     <span>Total GST (18%):</span>
-                    <span>₹{totalGST.toFixed(2)}</span>
+                    <span>{formatCurrency(totalGST)}</span>
                   </div>
                   {totalDiscount > 0 && (
                     <div className="flex justify-between font-semibold text-emerald-600">
                       <span>Total Discount:</span>
-                      <span>-₹{totalDiscount.toFixed(2)}</span>
+                      <span>-{formatCurrency(totalDiscount)}</span>
                     </div>
                   )}
                   <div className="border-t border-dashed border-slate-300 pt-3 flex justify-between font-black text-base text-slate-900">
                     <span>GRAND TOTAL:</span>
-                    <span className="text-emerald-600">₹{grandTotal.toFixed(2)}</span>
+                    <span className="text-emerald-600">{formatCurrency(grandTotal)}</span>
                   </div>
                 </>
               );

@@ -8,21 +8,36 @@ import AddTerminalModal from "@/components/store-admin/AddTerminalModal"
 import DevicesFilters, { type StatusFilter, type ViewFilter } from "@/components/store-admin/DevicesFilters"
 import DevicesTable from "@/components/store-admin/DevicesTable"
 import DevicesPagination from "@/components/store-admin/DevicesPagination"
+import StatsCards from "@/components/global-components/StatsCards"
 
-import * as deviceApi from "@/api/devices.api"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import * as deviceApi from "@/api/devices.api";
 import type { Device } from "./types/device.types"
 
 export default function DevicesManagementPage() {
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [terminalModalOpen, setTerminalModalOpen] = useState(false)
-    const [terminals, setTerminals] = useState<Device[]>([])
-    const [loading, setLoading] = useState(false)
     const [page, setPage] = useState(1)
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
     const [viewFilter, setViewFilter] = useState<ViewFilter>("all")
     const [currentFingerprint, setCurrentFingerprint] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const limit = 10
+
+    const queryClient = useQueryClient();
+    // React Query Hooks
+    const { data: terminalsDataRes, isLoading: loading, refetch: refetchTerminals } = useQuery({
+        queryKey: ['terminals'],
+        queryFn: deviceApi.listTerminals,
+    });
+
+    const updateDeviceMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: any }) => deviceApi.updateDevice(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['terminals'] });
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
+        },
+    });
 
     useEffect(() => {
         if (viewFilter === "this_device") {
@@ -32,51 +47,27 @@ export default function DevicesManagementPage() {
         }
     }, [viewFilter])
 
-    useEffect(() => {
-        void loadTerminals()
-    }, [])
-
-    const loadTerminals = async () => {
-        setLoading(true)
-        try {
-            const res = await deviceApi.listTerminals()
-            const data = res.data?.data
-            if (Array.isArray(data)) {
-                const mapped: Device[] = data.map((t: any) => ({
-                    id: t.id,
-                    name: t.deviceName,
-                    serialNumber: t.deviceFingerprint ? String(t.deviceFingerprint).slice(0, 16) + "…" : "—",
-                    type: "POS",
-                    status: t.isActive ? "online" : "offline",
-                    lastHeartbeat: t.lastActiveAt ? new Date(t.lastActiveAt).toLocaleString() : "Never",
-                    ipAddress: "—",
-                    scanner: "None",
-                    connectedTo: t.currentUser?.name || null,
-                    deviceFingerprint: t.deviceFingerprint || null
-                }))
-                setTerminals(mapped)
-            } else {
-                setTerminals([])
-            }
-        } catch (error) {
-            console.error("Failed to fetch terminals:", error)
-            setTerminals([])
-        } finally {
-            setLoading(false)
-        }
-    }
+    const terminalsRaw = (terminalsDataRes as any)?.data || (Array.isArray(terminalsDataRes) ? terminalsDataRes : []);
+    const terminals: Device[] = terminalsRaw.map((t: any) => ({
+        id: t.id,
+        name: t.deviceName || t.name,
+        serialNumber: t.deviceFingerprint ? String(t.deviceFingerprint).slice(0, 16) + "…" : "—",
+        type: "POS",
+        status: t.isActive ? "online" : "offline",
+        lastHeartbeat: t.lastActiveAt ? new Date(t.lastActiveAt).toLocaleString() : "Never",
+        ipAddress: "—",
+        scanner: "None",
+        connectedTo: t.currentUser?.name || null,
+        deviceFingerprint: t.deviceFingerprint || null
+    }));
 
     const handleDelete = async (id: string): Promise<boolean> => {
-        setLoading(true)
         try {
-            await deviceApi.updateDevice(id, { isActive: false })
-            await loadTerminals()
+            await updateDeviceMutation.mutateAsync({ id, data: { isActive: false } });
             return true
         } catch (error) {
             console.error("Failed to deactivate terminal:", error)
             return false
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -99,7 +90,7 @@ export default function DevicesManagementPage() {
     const total = filtered.length
 
     return (
-        <div className="min-h-screen bg-[#F7F9FC] flex text-slate-900 transition-all duration-500">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 flex text-slate-900 dark:text-slate-100 transition-all duration-500">
             {/* Mobile Backdrop */}
             {sidebarOpen && (
                 <div
@@ -118,10 +109,20 @@ export default function DevicesManagementPage() {
                         onAddTerminal={() => setTerminalModalOpen(true)}
                         terminalCount={terminals.length}
                     />
+
+                    <div className="mt-8">
+                        <StatsCards data={[
+                            { name: "Connected Hardware", stat: String(terminals.length), change: "+2", changeType: "positive" },
+                            { name: "Online Devices", stat: String(terminals.filter((t: any) => t.status === 'online').length), change: "100%", changeType: "positive" },
+                            { name: "Offline / Alerts", stat: String(terminals.filter((t: any) => t.status === 'offline').length), change: "0%", changeType: "negative" },
+                            { name: "POS Terminals", stat: String(terminals.filter((t: any) => t.type === 'POS').length), change: "+1", changeType: "positive" },
+                        ]} />
+                    </div>
+
                     <AddTerminalModal
                         isOpen={terminalModalOpen}
                         onClose={() => setTerminalModalOpen(false)}
-                        onSuccess={() => { loadTerminals(); setTerminalModalOpen(false); }}
+                        onSuccess={() => { refetchTerminals(); setTerminalModalOpen(false); }}
                     />
 
                     <DevicesFilters

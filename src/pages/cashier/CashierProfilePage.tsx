@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Lock, Save, LogOut } from 'lucide-react';
+import { Lock, Save, LogOut, Eye, EyeOff } from 'lucide-react';
 import { profileApi, authApi } from '../../service/api';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -15,6 +15,9 @@ const CashierProfilePage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -181,39 +184,71 @@ const CashierProfilePage: React.FC = () => {
           <h2 className="text-xs font-black uppercase tracking-widest text-slate-500">
             Change Password
           </h2>
-          <div className="space-y-2 text-xs">
+          <div className="space-y-4 pt-2">
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1.5 ml-0.5 uppercase tracking-wider">
                 Current Password
               </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-              />
+              <div className="relative group">
+                <input
+                  type={showCurrent ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-11 py-2.5 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all flex items-center justify-center"
+                >
+                  {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
+
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1.5 ml-0.5 uppercase tracking-wider">
                 New Password
               </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-              />
+              <div className="relative group">
+                <input
+                  type={showNew ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-11 py-2.5 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all flex items-center justify-center"
+                >
+                  {showNew ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
+
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1.5 ml-0.5 uppercase tracking-wider">
                 Confirm New Password
               </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-100 focus:border-emerald-400"
-              />
+              <div className="relative group">
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repeat new password"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-4 pr-11 py-2.5 text-xs font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all flex items-center justify-center"
+                >
+                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
           </div>
           <button

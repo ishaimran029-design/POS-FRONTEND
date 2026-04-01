@@ -25,9 +25,9 @@ export default function Stats03({ data }: Stats03Props) {
         {data.map((item) => (
           <Card key={item.name} className="p-6 py-4 shadow-2xs">
             <CardContent className="p-0">
-              <dt className="text-sm font-medium text-muted-foreground">{item.name}</dt>
+              <dt className="text-sm font-medium text-slate-500">{item.name}</dt>
               <dd className="mt-2 flex items-baseline space-x-2.5">
-                <span className="tabular-nums text-3xl font-semibold text-foreground">
+                <span className="tabular-nums text-3xl font-bold text-slate-900 tracking-tight">
                   {item.stat}
                 </span>
                 {item.change && (

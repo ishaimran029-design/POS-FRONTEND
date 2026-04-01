@@ -18,7 +18,9 @@ export default function DeviceRow({ device, index, onDelete }: DeviceRowProps) {
     return (
         <tr className="group hover:bg-[#262255]/5 transition-all duration-300 cursor-pointer border-b border-slate-50/50 last:border-0">
             <td className="py-6 pl-8">
-                <span className="text-[10px] font-black text-slate-300 group-hover:text-[#262255]/40 transition-colors">{(index + 1).toString().padStart(2, '0')}</span>
+                <span className="text-[10px] font-mono font-black text-slate-400 group-hover:text-[#2563EB] transition-colors tracking-widest pl-1">
+                    {index.toString().padStart(2, '0')}
+                </span>
             </td>
             <td className="py-6">
                 <div className="flex items-center gap-4">

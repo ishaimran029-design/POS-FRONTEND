@@ -63,21 +63,26 @@ const StockOverviewCards: React.FC<Props> = ({ stats, loading }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {cards.map((card, idx) => (
-                <div key={idx} className="bg-white rounded-[20px] p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className={`w-12 h-12 ${card.bg} ${card.color} rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform`}>
-                            <card.icon size={24} />
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-[32px] p-7 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:shadow-indigo-600/5 transition-all duration-300 group overflow-hidden relative">
+                    {/* Decorative accent */}
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50/50 dark:bg-slate-800/20 rounded-full -mr-12 -mt-12 group-hover:scale-110 transition-transform"></div>
+                    
+                    <div className="relative z-10 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className={`w-12 h-12 ${card.bg} ${card.color} rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform border border-transparent group-hover:border-white/20`}>
+                                <card.icon size={24} />
+                            </div>
+                            <div className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <TrendingUp size={10} />
+                                {card.trend}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                            <TrendingUp size={12} />
-                            {card.trend}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="text-gray-500 text-sm font-bold tracking-tight mb-1">{card.label}</h3>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-black text-gray-900 tabular-nums">{card.value}</span>
-                            <span className="text-gray-400 text-xs font-medium">units</span>
+                        <div className="mt-auto">
+                            <h3 className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-[0.15em] mb-2">{card.label}</h3>
+                            <div className="flex items-baseline gap-2 group-hover:translate-x-1 transition-transform">
+                                <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">{card.value}</span>
+                                <span className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest">units</span>
+                            </div>
                         </div>
                     </div>
                 </div>

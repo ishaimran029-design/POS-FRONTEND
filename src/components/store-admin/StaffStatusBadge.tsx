@@ -25,9 +25,9 @@ export function StaffStatusBadge({ status, onClick }: { status: StaffStatus; onC
 }
 
 const ROLE_LABELS: Record<string, string> = {
-    STORE_ADMIN: "Administrator",
-    CASHIER: "POS Operator",
-    ACCOUNTANT: "Audit & Tax",
+    STORE_ADMIN: "Store Admin",
+    CASHIER: "Cashier",
+    ACCOUNTANT: "Accountant",
 };
 
 const ROLE_STYLES: Record<string, string> = {

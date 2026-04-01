@@ -1,6 +1,6 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 import {
   type ChartConfig,
@@ -9,7 +9,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-export const title = "An area chart with axes";
+export const title = "A line chart with dots";
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -31,82 +31,48 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-interface ChartAreaAxesProps {
+interface ChartLineDotsProps {
   className?: string;
   noWrapper?: boolean;
-  data?: any[];
 }
 
-const ChartAreaAxes = ({ className = "", noWrapper = false, data = [] }: ChartAreaAxesProps) => {
-  const displayData = data.length > 0 ? data : chartData;
-  const isRealData = data.length > 0;
-  
-  const xAxisKey = isRealData ? "date" : "month";
-  const dataKey = isRealData ? "sales" : "desktop";
-
-  const dateFormatter = (value: string) => {
-    if (!isRealData) return value.slice(0, 3);
-    try {
-      const d = new Date(value);
-      return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
-    } catch (e) {
-      return value;
-    }
-  };
-
+const ChartLineDots = ({ className = "", noWrapper = false }: ChartLineDotsProps) => {
   const chartContent = (
     <ChartContainer config={chartConfig}>
-      <AreaChart
+      <LineChart
         accessibilityLayer
-        data={displayData}
+        data={chartData}
         margin={{
           left: 12,
           right: 12,
         }}
       >
-
         <CartesianGrid vertical={false} stroke="#f1f5f9" />
         <XAxis
           axisLine={false}
-          dataKey={xAxisKey}
-          tickFormatter={dateFormatter}
+          dataKey="month"
+          tickFormatter={(value) => value.slice(0, 3)}
           tickLine={false}
           tickMargin={8}
           className="text-xs font-bold text-slate-400"
         />
-        <YAxis axisLine={false} tickCount={3} tickLine={false} tickMargin={8} className="text-xs font-bold text-slate-400" />
-        <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-        {isRealData ? (
-          <Area
-            dataKey={dataKey}
-            fill="#508CBB"
-            fillOpacity={0.4}
-            stackId="a"
-            stroke="#508CBB"
-            type="natural"
-          />
-
-        ) : (
-          <>
-            <Area
-              dataKey="mobile"
-              fill="var(--color-mobile)"
-              fillOpacity={0.4}
-              stackId="a"
-              stroke="var(--color-mobile)"
-              type="natural"
-            />
-            <Area
-              dataKey="desktop"
-              fill="var(--color-desktop)"
-              fillOpacity={0.4}
-              stackId="a"
-              stroke="var(--color-desktop)"
-              type="natural"
-            />
-          </>
-        )}
-      </AreaChart>
+        <ChartTooltip
+          content={<ChartTooltipContent hideLabel />}
+          cursor={false}
+        />
+        <Line
+          activeDot={{
+            r: 6,
+          }}
+          dataKey="desktop"
+          dot={{
+            fill: "var(--color-desktop)",
+          }}
+          stroke="var(--color-desktop)"
+          strokeWidth={2}
+          type="natural"
+        />
+      </LineChart>
     </ChartContainer>
   );
 
@@ -121,4 +87,4 @@ const ChartAreaAxes = ({ className = "", noWrapper = false, data = [] }: ChartAr
   );
 };
 
-export default ChartAreaAxes;
+export default ChartLineDots;

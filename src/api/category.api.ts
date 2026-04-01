@@ -25,6 +25,33 @@ export function removeFromHierarchy(categoryId: string) {
   localStorage.setItem(HIERARCHY_KEY, JSON.stringify(map))
 }
 
+const SUBCATEGORIES_KEY = "pos_category_subcategories"
+
+export function getSubcategoriesMap(): Record<string, string[]> {
+  try {
+    const raw = localStorage.getItem(SUBCATEGORIES_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function getSubcategories(categoryId: string): string[] {
+  return getSubcategoriesMap()[categoryId] || []
+}
+
+export function setSubcategories(categoryId: string, subcategories: string[]) {
+  const map = getSubcategoriesMap()
+  map[categoryId] = subcategories
+  localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(map))
+}
+
+export function removeSubcategories(categoryId: string) {
+  const map = getSubcategoriesMap()
+  delete map[categoryId]
+  localStorage.setItem(SUBCATEGORIES_KEY, JSON.stringify(map))
+}
+
 /** Enriches a list of API categories with parentId/parentName from localStorage */
 export function enrichWithHierarchy(categories: Category[]): Category[] {
   const map = getHierarchyMap()
@@ -39,18 +66,18 @@ export function enrichWithHierarchy(categories: Category[]): Category[] {
 
 // ----------- API calls -----------
 export const getCategories = () => {
-  return api.get("/categories")
+  return api.get("/categories").then(res => res.data)
 }
 
 export const createCategory = (data: { name: string; description?: string; parentId?: string | null }) => {
   const { parentId, ...apiData } = data
-  return api.post("/categories", apiData)
+  return api.post("/categories", apiData).then(res => res.data)
 }
 
 export const updateCategory = (id: string, data: any) => {
-  return api.patch(`/categories/${id}`, data)
+  return api.patch(`/categories/${id}`, data).then(res => res.data)
 }
 
 export const deleteCategory = (id: string) => {
-  return api.delete(`/categories/${id}`)
+  return api.delete(`/categories/${id}`).then(res => res.data)
 }

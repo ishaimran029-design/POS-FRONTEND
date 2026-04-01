@@ -7,12 +7,28 @@ import TaxSettingsForm from '@/components/store-admin/TaxSettingsForm';
 import { StoreHealthCard, StoreBrandingCard, QuickHelpCard } from '@/components/store-admin/SettingsUtilityCards';
 import { Save, X } from 'lucide-react';
 
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentUser, getStoreInfo } from '@/api/dashboard.api';
+
 const SettingsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('Store Profile');
 
+    const { data: userData } = useQuery({
+        queryKey: ['auth', 'me'],
+        queryFn: getCurrentUser,
+    });
+    const storeId = (userData as any)?.data?.storeId || (userData as any)?.storeId;
+    const { data: storeRes, isLoading } = useQuery({
+        queryKey: ['store', storeId],
+        queryFn: () => getStoreInfo(storeId!),
+        enabled: !!storeId,
+    });
+
+    const storeData = (storeRes as any)?.data || storeRes;
+
     return (
-        <div className="min-h-screen bg-[#F7F9FC] transition-colors duration-500 flex text-slate-900">
+        <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 transition-colors duration-500 flex text-slate-900 dark:text-slate-100">
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[55] lg:hidden animate-fade-in"
@@ -37,8 +53,8 @@ const SettingsPage = () => {
                     {/* Content Section */}
                     {activeTab === 'Store Profile' ? (
                         <div className="max-w-4xl mx-auto w-full flex flex-col gap-8">
-                            <StoreIdentityCard />
-                            <TaxSettingsForm />
+                            <StoreIdentityCard data={storeData} isLoading={isLoading} />
+                            <TaxSettingsForm data={storeData} isLoading={isLoading} />
 
                             {/* Action Buttons */}
                             <div className="flex items-center justify-end gap-3 pt-4">
