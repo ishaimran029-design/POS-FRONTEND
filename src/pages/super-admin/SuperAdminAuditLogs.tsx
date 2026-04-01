@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { reportsApi } from '../../service/api';
 import { useStoreStore } from '../../store/useStoreStore';
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Pagination from '../../components/shared/admin/Pagination';
-import { DataTable } from '@/components/global-components/data-table';
 
 const ENTITIES = ['USER', 'STORE', 'PRODUCT', 'DEVICE', 'SALE', 'CATEGORY', 'STOCK'];
 const ACTIONS = ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'STOCK_ADJUSTMENT'];
@@ -79,84 +77,6 @@ const SuperAdminAuditLogs: React.FC = () => {
             default: return <Target size={14} />;
         }
     };
-
-    const auditColumns = useMemo<ColumnDef<any, any>[]>(() => [
-        {
-            accessorFn: (row) => row.createdAt,
-            id: 'timestamp',
-            header: 'Timestamp',
-            cell: ({ row }) => {
-                const date = new Date(row.original.createdAt);
-                return (
-                    <div className="flex items-center gap-3">
-                        <Clock size={14} className="text-slate-300" />
-                        <div>
-                            <p className="font-bold text-slate-900 tracking-tight leading-none">{date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}</p>
-                            <p className="text-[10px] font-medium text-slate-400 mt-1">{date.toLocaleTimeString('en-US')}</p>
-                        </div>
-                    </div>
-                );
-            },
-        },
-        {
-            accessorFn: (row) => row.user?.name || 'System',
-            id: 'initiator',
-            header: 'Initiator',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-[10px]">
-                        {(row.original.user?.name || 'S')[0]}
-                    </div>
-                    <div>
-                        <p className="font-bold text-slate-900 leading-none mb-1">{row.original.user?.name || 'System'}</p>
-                        <p className="text-[10px] font-medium text-indigo-500 uppercase tracking-wide">{row.original.userRole || 'Service'}</p>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'action',
-            header: 'Operation',
-            cell: ({ getValue }) => {
-                const action = getValue<string>();
-                const isCreate = action.includes('CREATE');
-                const isDelete = action.includes('DELETE');
-                const isUpdate = action.includes('UPDATE');
-                const isLogin = action.includes('LOGIN');
-                return (
-                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-widest ${
-                        isCreate ? 'bg-emerald-50 text-emerald-600 border-emerald-500/20' :
-                        isDelete ? 'bg-rose-50 text-rose-600 border-rose-500/20' :
-                        isUpdate ? 'bg-amber-50 text-amber-600 border-amber-500/20' :
-                        'bg-indigo-50 text-indigo-600 border-indigo-500/20'
-                    }`}>
-                        {action.replace(/_/g, ' ')}
-                    </div>
-                );
-            },
-        },
-        {
-            id: 'entity',
-            header: 'Target Entity',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-slate-50 rounded-lg text-slate-300">
-                        {getEntityIcon(row.original.entity)}
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tight leading-none mb-1">{row.original.entity}</p>
-                        <p className="text-[9px] font-medium text-slate-400 font-mono italic truncate max-w-[100px]">{row.original.entityId}</p>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            accessorFn: (row) => row.ipAddress || 'Internal',
-            id: 'identifier',
-            header: 'Identifier',
-            cell: ({ getValue }) => <span className="text-right font-mono text-[10px] text-slate-400">{getValue<string>()}</span>,
-        },
-    ], [getEntityIcon]);
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
@@ -247,20 +167,89 @@ const SuperAdminAuditLogs: React.FC = () => {
 
             {/* Table Area */}
             <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-sm overflow-hidden min-h-[400px] relative">
-                <DataTable
-                    data={logs}
-                    columns={auditColumns}
-                    isLoading={isLoading}
-                    manualPagination={true}
-                    pageCount={pagination.totalPages}
-                    pageIndex={page}
-                    onPageChange={setPage}
-                    totalItems={pagination.totalItems}
-                    showToolbar={false}
-                    showExport={false}
-                    showColumns={false}
-                />
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th className="px-8 py-5">Timestamp</th>
+                                <th className="px-8 py-5">Initiator</th>
+                                <th className="px-8 py-5">Operation</th>
+                                <th className="px-8 py-5">Target Entity</th>
+                                <th className="px-8 py-5 text-right">Identifier</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50 relative">
+                            {isLoading ? (
+                                <tr>
+                                    <td colSpan={5} className="py-32 text-center text-slate-400">
+                                        <RefreshCcw className="w-8 h-8 animate-spin mx-auto mb-4 opacity-20" />
+                                        <p className="text-[10px] font-bold uppercase tracking-widest">Consulting Ledgers...</p>
+                                    </td>
+                                </tr>
+                            ) : logs.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="py-32 text-center">
+                                        <AlertCircle size={32} className="text-slate-200 mx-auto mb-4" />
+                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest leading-loose">No events found matching current criteria.</p>
+                                    </td>
+                                </tr>
+                            ) : logs.map((log: any) => {
+                                const actionColor = getActionColor(log.action);
+                                return (
+                                    <tr key={log.id} className="group hover:bg-[#2563EB]/5 transition-all text-sm">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <Clock size={14} className="text-slate-300" />
+                                                <div>
+                                                    <p className="font-bold text-slate-900 tracking-tight leading-none">{format(new Date(log.createdAt), 'MMM dd')}</p>
+                                                    <p className="text-[10px] font-medium text-slate-400 mt-1">{format(new Date(log.createdAt), 'HH:mm:ss')}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center font-bold text-slate-700 text-[10px]">
+                                                    {(log.user?.name || 'S')[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-900 leading-none mb-1">{log.user?.name || 'System'}</p>
+                                                    <p className="text-[10px] font-medium text-indigo-500 uppercase tracking-wide">{log.userRole || 'Service'}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border font-bold text-[9px] uppercase tracking-widest ${actionColor}`}>
+                                                <div className={`w-1 h-1 rounded-full ${actionColor.includes('indigo') ? 'bg-indigo-500' : actionColor.includes('emerald') ? 'bg-emerald-500' : actionColor.includes('rose') ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                                                {log.action.replace(/_/g, ' ')}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-1.5 bg-slate-50 rounded-lg text-slate-300 group-hover:text-indigo-400 transition-colors">
+                                                    {getEntityIcon(log.entity)}
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-900 uppercase tracking-tight leading-none mb-1">{log.entity}</p>
+                                                    <p className="text-[9px] font-medium text-slate-400 font-mono italic truncate max-w-[100px]">{log.entityId}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-right font-mono text-[10px] text-slate-400">
+                                            {log.ipAddress || 'Internal'}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
                 {isRefetching && <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] pointer-events-none" />}
+                
+                <Pagination 
+                    currentPage={page}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                />
             </div>
         </div>
     );

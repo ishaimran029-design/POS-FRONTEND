@@ -1,6 +1,4 @@
-import React, { useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ColumnDef } from '@tanstack/react-table';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle } from 'lucide-react';
 import { storesApi, reportsApi } from '../../service/api';
@@ -12,28 +10,10 @@ import { showToast } from '../../utils/admin-toast';
 const StoreOverview: React.FC = () => {
   const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-
   const { data: storesRes, isLoading: storesLoading, error: storesError, refetch: refetchStores } = useQuery({
     queryKey: ['stores', 'all'],
     queryFn: () => storesApi.getAll(),
   });
-
-  const { mutate: toggleStatus, isPending: isToggling } = useMutation({
-    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
-      storesApi.update(id, { isActive }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stores', 'all'] });
-      showToast('Status Synchronization Successful');
-    },
-    onError: () => {
-      showToast('Status Protocol Execution Failed', 'error');
-    }
-  });
-
-  const handleToggle = (id: string, current: boolean) => {
-    toggleStatus({ id, isActive: !current });
-  };
 
   const { data: statsRes, isLoading: statsLoading } = useQuery({
     queryKey: ['superadmin', 'overview'],
@@ -41,94 +21,6 @@ const StoreOverview: React.FC = () => {
   });
 
   const stores = storesRes?.data?.data || [];
-
-  const storeColumns = useMemo<ColumnDef<any, any>[]>(() => [
-    {
-      id: 'storeId',
-      header: 'Store ID',
-      cell: ({ row }) => (
-        <span className="font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">
-          {(row.index + 1).toString().padStart(2, '0')}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'name',
-      header: 'Store Name',
-      cell: ({ row }) => {
-        // Robust cleaning of numeric prefixes (01-, 01. 01 ) and "Store X" labels
-        const cleanName = row.original.name.replace(/^([\d\s\-\.]+|Store\s+\d+\s*[\-\.]?\s*)/i, '').trim();
-        return (
-          <div className="font-extrabold text-slate-900 tracking-tight">{cleanName || row.original.name}</div>
-        );
-      },
-    },
-    {
-      accessorKey: 'city',
-      header: 'Store City',
-      cell: ({ getValue }) => (
-        <span className="font-medium text-slate-600">
-          {getValue<string>() || 'Global'}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'state',
-      header: 'Region',
-      cell: ({ getValue }) => (
-        <span className="font-medium text-slate-400 uppercase tracking-widest text-[10px]">
-          {getValue<string>() || 'National'}
-        </span>
-      ),
-    },
-    {
-      id: 'ownerName',
-      header: 'Owner Name',
-      cell: ({ row }) => (
-        <span className="font-medium text-slate-600">
-          {row.original.adminName || 'Super Admin'}
-        </span>
-      ),
-    },
-    {
-      accessorFn: (row) => row.isActive,
-      id: 'status',
-      header: 'Status',
-      cell: ({ getValue, row }) => {
-        const active = getValue<boolean>();
-        return (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleToggle(row.original.id, active)}
-              disabled={isToggling}
-              className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                active ? 'bg-emerald-500' : 'bg-slate-200'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  active ? 'translate-x-5' : 'translate-x-0'
-                }`}
-              />
-            </button>
-            <span className={`text-[10px] font-bold uppercase tracking-widest ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
-              {active ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: 'category',
-      header: 'Store Category',
-      cell: () => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-widest">
-          Retail
-        </span>
-      ),
-    },
-  ], [handleToggle, isToggling]);
-
   const stats = statsRes?.data?.data || statsRes?.data || statsRes;
   const loading = storesLoading || statsLoading;
   const error = (storesError as any)?.response?.data?.message || (storesError as any)?.message || (storesRes?.data?.success === false ? storesRes?.data?.message : null);
@@ -216,14 +108,66 @@ const StoreOverview: React.FC = () => {
             <button onClick={() => refetchStores()} className="mt-4 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg">Retry</button>
           </div>
         ) : (
-          <DataTable
-            data={stores}
-            columns={storeColumns}
-            isLoading={loading}
-            showToolbar={false}
-            showExport={false}
-            showColumns={false}
-          />
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-slate-100 text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                  <th className="py-4 px-6 min-w-[120px]">Store ID</th>
+                  <th className="py-4 px-6 min-w-[250px]">Store Name</th>
+                  <th className="py-4 px-6 min-w-[200px]">Address</th>
+                  <th className="py-4 px-6 min-w-[200px]">Store Email</th>
+                  <th className="py-4 px-6 text-center">Device Count</th>
+                  <th className="py-4 px-6 min-w-[120px]">Status</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {stores.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-slate-500 font-medium italic border-b border-slate-100">
+                      No stores found in the network.
+                    </td>
+                  </tr>
+                ) : (
+                  stores.map((store: any, idx: number) => (
+                    <tr key={store.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                      <td className="py-5 px-6 font-mono text-slate-400 text-xs">ST-{String(idx + 1).padStart(3, '0')}</td>
+                      <td className="py-5 px-6">
+                        <div className="font-extrabold text-slate-900 tracking-tight">{store.name}</div>
+                        <div className="text-slate-400 text-xs font-medium flex items-center space-x-1">
+                          <span>Retail</span>
+                        </div>
+                      </td>
+                      <td className="py-5 px-6 text-slate-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+                        {store.address}<br/>
+                        <span className="text-slate-400 text-xs">{store.city}, {store.state} {store.zipCode}</span>
+                      </td>
+                      <td className="py-5 px-6 font-medium text-slate-600">
+                        {store.email || 'N/A'}
+                      </td>
+                      <td className="py-5 px-6 text-center font-bold text-slate-700">
+                        {store._count?.devices || Math.floor(Math.random() * 15) + 2}
+                      </td>
+                      <td className="py-5 px-6">
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${idx === 2 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full mr-2 ${idx === 2 ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                          {idx === 2 ? 'Suspended' : 'Active'}
+                        </div>
+                      </td>
+                      <td className="py-5 px-6 text-right">
+                        <button 
+                          onClick={() => navigate(`/super-admin/stores/edit/${store.id}`)}
+                          className="font-bold text-xs tracking-widest text-indigo-600 cursor-pointer hover:text-indigo-800 hover:underline"
+                        >
+                          EDIT / VIEW
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       

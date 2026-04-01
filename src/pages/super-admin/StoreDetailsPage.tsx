@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -11,20 +10,19 @@ import InputField from '../../components/shared/admin/InputField';
 import PasswordInput from '../../components/shared/admin/PasswordInput';
 import SubmitButton from '../../components/shared/admin/SubmitButton';
 import ToggleSwitch from '../../components/shared/admin/ToggleSwitch';
-import { DataTable } from '@/components/global-components/data-table';
-import {
-    ArrowLeft,
-    Settings,
-    Users,
-    Monitor,
-    Save,
-    UserPlus,
-    CheckCircle2,
+import { 
+    ArrowLeft, 
+    Settings, 
+    Users, 
+    Monitor, 
+    Save, 
+    UserPlus, 
+    CheckCircle2, 
     XCircle,
     Activity
 } from 'lucide-react';
 import { showToast } from '../../utils/admin-toast';
-// Pagination removed: using DataTable's pagination
+import Pagination from '../../components/shared/admin/Pagination';
 
 const storeUpdateSchema = yup.object().shape({
   name: yup.string().required('Store name is required'),
@@ -125,56 +123,6 @@ const StoreDetailsPage: React.FC = () => {
         const success = await toggleUserStatus(userId, !current);
         if (success) showToast('User Access Protocol Updated');
     };
-
-    const adminColumns = useMemo<ColumnDef<any, any>[]>(() => [
-        {
-            accessorKey: 'name',
-            header: 'Administrator',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-indigo-600 text-[11px] shadow-sm">
-                        {row.original.name[0]?.toUpperCase()}
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-slate-900 leading-none mb-1.5">{row.original.name}</h4>
-                        <p className="text-[11px] font-medium text-slate-400">{row.original.email}</p>
-                    </div>
-                </div>
-            ),
-        },
-        {
-            accessorFn: (row) => row.isActive,
-            id: 'status',
-            header: 'Status',
-            cell: ({ getValue }) => {
-                const active = getValue<boolean>();
-                return (
-                    <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
-                        active ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                    }`}>
-                        {active ? 'Active' : 'Suspended'}
-                    </span>
-                );
-            },
-        },
-        {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => (
-                <button
-                    onClick={() => handleToggleUser(row.original.id, row.original.isActive)}
-                    className={`p-2 rounded-xl transition-all shadow-sm border ${
-                        row.original.isActive
-                            ? 'text-rose-500 bg-rose-50 border-rose-100 hover:bg-rose-100'
-                            : 'text-emerald-500 bg-emerald-50 border-emerald-100 hover:bg-emerald-100'
-                    }`}
-                    title={row.original.isActive ? 'Deactivate User' : 'Activate User'}
-                >
-                    {row.original.isActive ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
-                </button>
-            ),
-        },
-    ], [handleToggleUser]);
 
     if (isStoreLoading && !currentStore) {
         return (
@@ -316,17 +264,61 @@ const StoreDetailsPage: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in slide-in-from-right-4">
                         {/* Administrator List */}
                         <div className="lg:col-span-2">
-                            <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-sm overflow-hidden p-6">
-                                <DataTable
-                                    data={users.slice((userPage - 1) * itemsPerPage, userPage * itemsPerPage)}
-                                    columns={adminColumns}
-                                    isLoading={false}
-                                    manualPagination={true}
-                                    pageCount={Math.ceil(users.length / itemsPerPage)}
-                                    pageIndex={userPage}
+                            <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-sm overflow-hidden">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                            <th className="px-8 py-5">Administrator</th>
+                                            <th className="px-8 py-5 text-center">Status</th>
+                                            <th className="px-8 py-5 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {users.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={3} className="px-8 py-12 text-center text-slate-400 text-sm font-medium">No administrators found.</td>
+                                            </tr>
+                                        ) : users.slice((userPage - 1) * itemsPerPage, userPage * itemsPerPage).map(u => (
+                                            <tr key={u.id} className="group hover:bg-[#2563EB]/5 transition-all text-sm">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-indigo-600 text-[11px] shadow-sm">
+                                                            {u.name[0].toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-slate-900 leading-none mb-1.5">{u.name}</h4>
+                                                            <p className="text-[11px] font-medium text-slate-400">{u.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5 text-center">
+                                                    <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                                                        u.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                                    }`}>
+                                                        {u.isActive ? 'Active' : 'Suspended'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right">
+                                                    <button 
+                                                        onClick={() => handleToggleUser(u.id, u.isActive)}
+                                                        className={`p-2 rounded-xl transition-all shadow-sm border ${
+                                                            u.isActive 
+                                                                ? 'text-rose-500 bg-rose-50 border-rose-100 hover:bg-rose-100' 
+                                                                : 'text-emerald-500 bg-emerald-50 border-emerald-100 hover:bg-emerald-100'
+                                                        }`}
+                                                        title={u.isActive ? "Deactivate User" : "Activate User"}
+                                                    >
+                                                        {u.isActive ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <Pagination 
+                                    currentPage={userPage}
+                                    totalPages={Math.ceil(users.length / itemsPerPage)}
                                     onPageChange={setUserPage}
-                                    totalItems={users.length}
-                                    showToolbar={false}
                                 />
                             </div>
                         </div>
