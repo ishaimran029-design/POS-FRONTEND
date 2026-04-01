@@ -210,7 +210,7 @@ function DataTableComponent<TData, TValue>({
                                 <Input
                                     placeholder={placeholder}
                                     value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-                                    onChange={(event) =>
+                                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                                         table.getColumn(searchKey)?.setFilterValue(event.target.value)
                                     }
                                     className="pl-10 h-11 border-input bg-background/50 text-foreground shadow-sm focus:ring-primary/20 rounded-xl font-bold"
@@ -252,7 +252,7 @@ function DataTableComponent<TData, TValue>({
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-[180px]">
-                                    {table
+                                            {table
                                         .getAllColumns()
                                         .filter((column) => column.getCanHide())
                                         .map((column) => (
@@ -260,7 +260,7 @@ function DataTableComponent<TData, TValue>({
                                                 key={column.id}
                                                 className="capitalize"
                                                 checked={column.getIsVisible()}
-                                                onCheckedChange={(value) =>
+                                                onCheckedChange={(value?: boolean) =>
                                                     column.toggleVisibility(!!value)
                                                 }
                                             >

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useNavigate } from 'react-router-dom';
 import { Store, Laptop2, CreditCard, Activity, Plus, Filter, AlertCircle } from 'lucide-react';
@@ -7,14 +7,33 @@ import { storesApi, reportsApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
 import { DataTable } from '@/components/global-components/data-table';
 import { formatPKR } from '@/utils/format';
+import { showToast } from '../../utils/admin-toast';
 
 const StoreOverview: React.FC = () => {
   const navigate = useNavigate();
+
+  const queryClient = useQueryClient();
 
   const { data: storesRes, isLoading: storesLoading, error: storesError, refetch: refetchStores } = useQuery({
     queryKey: ['stores', 'all'],
     queryFn: () => storesApi.getAll(),
   });
+
+  const { mutate: toggleStatus, isPending: isToggling } = useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => 
+      storesApi.update(id, { isActive }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stores', 'all'] });
+      showToast('Status Synchronization Successful');
+    },
+    onError: () => {
+      showToast('Status Protocol Execution Failed', 'error');
+    }
+  });
+
+  const handleToggle = (id: string, current: boolean) => {
+    toggleStatus({ id, isActive: !current });
+  };
 
   const { data: statsRes, isLoading: statsLoading } = useQuery({
     queryKey: ['superadmin', 'overview'],
@@ -25,65 +44,90 @@ const StoreOverview: React.FC = () => {
 
   const storeColumns = useMemo<ColumnDef<any, any>[]>(() => [
     {
+      id: 'storeId',
+      header: 'Store ID',
+      cell: ({ row }) => (
+        <span className="font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">
+          {(row.index + 1).toString().padStart(2, '0')}
+        </span>
+      ),
+    },
+    {
       accessorKey: 'name',
       header: 'Store Name',
+      cell: ({ row }) => {
+        // Robust cleaning of numeric prefixes (01-, 01. 01 ) and "Store X" labels
+        const cleanName = row.original.name.replace(/^([\d\s\-\.]+|Store\s+\d+\s*[\-\.]?\s*)/i, '').trim();
+        return (
+          <div className="font-extrabold text-slate-900 tracking-tight">{cleanName || row.original.name}</div>
+        );
+      },
+    },
+    {
+      accessorKey: 'city',
+      header: 'Store City',
+      cell: ({ getValue }) => (
+        <span className="font-medium text-slate-600">
+          {getValue<string>() || 'Global'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'state',
+      header: 'Region',
+      cell: ({ getValue }) => (
+        <span className="font-medium text-slate-400 uppercase tracking-widest text-[10px]">
+          {getValue<string>() || 'National'}
+        </span>
+      ),
+    },
+    {
+      id: 'ownerName',
+      header: 'Owner Name',
       cell: ({ row }) => (
-        <div>
-          <div className="font-extrabold text-slate-900 tracking-tight">{row.original.name}</div>
-          <div className="text-slate-400 text-xs font-medium">Retail</div>
-        </div>
+        <span className="font-medium text-slate-600">
+          {row.original.adminName || 'Super Admin'}
+        </span>
       ),
-    },
-    {
-      accessorFn: (row) => row.address || '',
-      id: 'address',
-      header: 'Address',
-      cell: ({ getValue, row }) => (
-        <div className="text-slate-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
-          {row.original.address}
-          <br />
-          <span className="text-slate-400 text-xs">{row.original.city}, {row.original.state} {row.original.zipCode}</span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'email',
-      header: 'Store Email',
-      cell: ({ getValue }) => <span className="font-medium text-slate-600">{getValue<string>() || 'N/A'}</span>,
-    },
-    {
-      accessorFn: (row) => row._count?.devices ?? Math.floor(Math.random() * 15) + 2,
-      id: 'deviceCount',
-      header: 'Device Count',
-      cell: ({ getValue }) => <div className="text-center font-bold text-slate-700">{getValue<number>()}</div>,
     },
     {
       accessorFn: (row) => row.isActive,
       id: 'status',
       header: 'Status',
-      cell: ({ getValue }) => {
+      cell: ({ getValue, row }) => {
         const active = getValue<boolean>();
         return (
-          <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${active ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${active ? 'bg-emerald-500' : 'bg-red-500'}`} />
-            {active ? 'Active' : 'Suspended'}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleToggle(row.original.id, active)}
+              disabled={isToggling}
+              className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                active ? 'bg-emerald-500' : 'bg-slate-200'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  active ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
+              {active ? 'Active' : 'Inactive'}
+            </span>
           </div>
         );
       },
     },
     {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <button
-          onClick={() => navigate(`/super-admin/stores/edit/${row.original.id}`)}
-          className="font-bold text-xs tracking-widest text-indigo-600 cursor-pointer hover:text-indigo-800 hover:underline"
-        >
-          EDIT / VIEW
-        </button>
+      id: 'category',
+      header: 'Store Category',
+      cell: () => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-widest">
+          Retail
+        </span>
       ),
     },
-  ], [navigate]);
+  ], [handleToggle, isToggling]);
 
   const stats = statsRes?.data?.data || statsRes?.data || statsRes;
   const loading = storesLoading || statsLoading;

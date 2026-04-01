@@ -1,16 +1,19 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { reportsApi } from '../../service/api';
-import StatsCards from '@/components/global-components/StatsCards';
+import { storesApi } from '../../service/api';
+import DashboardStats from '@/components/global-components/DashboardStats';
 import { DataTable } from '@/components/global-components/data-table';
-import { formatPKR } from '@/utils/format';
 import { 
     RefreshCcw, 
     Shield, 
     ChevronRight,
-    AlertTriangle 
+    AlertTriangle
 } from 'lucide-react';
+import { showToast } from '../../utils/admin-toast';
+import MonthlyActivityChart from '@/components/global-components/monthly-activity-chart';
 
 const SuperAdminDashboard: React.FC = () => {
     const { data: overviewRes, isLoading, isError, refetch, isRefetching } = useQuery({
@@ -20,46 +23,119 @@ const SuperAdminDashboard: React.FC = () => {
 
     const statsRaw = overviewRes?.data?.data || overviewRes?.data || {};
     
-    const statsData = [
-        { 
-            name: "Global Stores", 
-            stat: statsRaw.totalStores?.toLocaleString() || "0", 
-            change: "+8.4%", 
-            changeType: "positive" as const 
+    // Fetch stores for dashboard table
+    const queryClient = useQueryClient();
+    const { data: storesRes } = useQuery({
+        queryKey: ['superadmin-stores'],
+        queryFn: async () => {
+            const res = await storesApi.getAll();
+            return res.data?.data ?? res.data;
         },
-        { 
-            name: "Total Revenue", 
-            stat: formatPKR(statsRaw.totalRevenue || 0), 
-            change: "+12.1%", 
-            changeType: "positive" as const 
-        },
-        { 
-            name: "Active Devices", 
-            stat: statsRaw.activeDevices?.toLocaleString() || "0", 
-            change: "+4.2%", 
-            changeType: "positive" as const 
-        },
-        { 
-            name: "Health Status", 
-            stat: "Stable", 
-            change: "99.9% Uptime", 
-            changeType: "positive" as const 
-        },
-    ];
+    });
 
-    const tableData = useMemo(
-        () => [{ id: 1, name: 'Ada' }],
-        []
-    );
+    const stores = storesRes || [];
 
-    const tableColumns = useMemo<ColumnDef<{ id: number; name: string }, any>[]>(
+    const toggleStore = async (id: string, currentStatus: boolean) => {
+        try {
+            await storesApi.update(id, { isActive: !currentStatus });
+            queryClient.invalidateQueries({ queryKey: ['superadmin-stores'] });
+            queryClient.invalidateQueries({ queryKey: ['superadmin-overview'] });
+            showToast(`Status updated successfully`);
+        } catch (e) {
+            console.error('Failed to toggle store status', e);
+            showToast('Protocol Update Failed', 'error');
+        }
+    };
+
+    const tableData = useMemo(() => stores, [stores]);
+
+    const tableColumns = useMemo<ColumnDef<any, any>[]>(
         () => [
             {
-                accessorKey: 'name',
-                header: 'Name',
+                id: 'storeId',
+                header: 'Store ID',
+                cell: ({ row }) => (
+                    <span className="font-bold text-slate-400 group-hover:text-indigo-600 transition-colors">
+                        {(row.index + 1).toString().padStart(2, '0')}
+                    </span>
+                ),
             },
+            {
+                accessorKey: 'name',
+                header: 'Store Name',
+                cell: ({ row }) => {
+                    // Robust cleaning of numeric prefixes (01-, 01. 01 ) and "Store X" labels
+                    const cleanName = row.original.name.replace(/^([\d\s\-\.]+|Store\s+\d+\s*[\-\.]?\s*)/i, '').trim();
+                    return (
+                        <div className="font-extrabold text-slate-900 tracking-tight">{cleanName || row.original.name}</div>
+                    );
+                },
+            },
+            {
+                id: 'city',
+                header: 'Store City',
+                cell: ({ row }) => (
+                    <span className="font-medium text-slate-600">
+                        {row.original.city || row.original.store?.city || 'Global'}
+                    </span>
+                ),
+            },
+            {
+                id: 'region',
+                header: 'Region',
+                cell: ({ row }) => (
+                    <span className="font-medium text-slate-400 uppercase tracking-widest text-[10px]">
+                        {row.original.state || row.original.region || row.original.store?.state || 'National'}
+                    </span>
+                ),
+            },
+            {
+                id: 'owner',
+                header: 'Owner Name',
+                cell: ({ row }) => (
+                    <span className="font-medium text-slate-600">
+                        {row.original.owner?.name || row.original.ownerName || row.original.contactName || 'Main Admin'}
+                    </span>
+                ),
+            },
+            {
+                id: 'status',
+                header: 'Status',
+                cell: ({ row }) => {
+                    const isActive = !!row.original.isActive || row.original.status === 'ACTIVE';
+                    const id = row.original.id || row.original._id || row.original.storeId;
+                    return (
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => toggleStore(id, isActive)}
+                                className={`relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                                    isActive ? 'bg-emerald-500' : 'bg-slate-200'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        isActive ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                {isActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                    );
+                }
+            },
+            {
+                id: 'category',
+                header: 'Store Category',
+                cell: ({ row }) => (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-widest">
+                        {row.original.category?.name || row.original.category || 'Retail'}
+                    </span>
+                )
+            }
         ],
-        []
+        [stores]
     );
 
     if (isLoading) {
@@ -109,8 +185,16 @@ const SuperAdminDashboard: React.FC = () => {
 
             {/* Main Metrics */}
             <div className="w-full">
-                <StatsCards data={statsData} />
+                <DashboardStats 
+                    totalStores={statsRaw.totalStores}
+                    totalRevenue={statsRaw.totalRevenue}
+                    activeStores={statsRaw.activeStores || statsRaw.activeStoreCount}
+                    totalDevices={statsRaw.activeDevices || statsRaw.totalDevices}
+                />
             </div>
+
+            {/* Monthly Activity Chart */}
+            <MonthlyActivityChart />
 
             {/* Sample Dashboard Table */}
             <div className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm transition-all dark:bg-slate-950 dark:border-slate-700">
