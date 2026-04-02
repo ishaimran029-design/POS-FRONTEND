@@ -53,7 +53,7 @@ export function StoreCharts() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      
+
       {/* Area Chart Gradient */}
       <Card className="shadow-sm border-slate-100">
         <CardHeader>
@@ -169,14 +169,14 @@ export function StoreCharts() {
           <CardDescription className="font-medium text-slate-500">All time distribution</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 pb-0">
-          <GlobalPieChart 
-            noWrapper 
-            data={pieData} 
-            config={pieConfig} 
-            dataKey="visitors" 
-            nameKey="browser" 
-            centerLabel={totalVisitors.toLocaleString()} 
-            innerRadius={60} 
+          <GlobalPieChart
+            noWrapper
+            data={pieData}
+            config={pieConfig}
+            dataKey="visitors"
+            nameKey="browser"
+            centerLabel={totalVisitors.toLocaleString()}
+            innerRadius={60}
             outerRadius={85}
           />
         </CardContent>

@@ -50,17 +50,17 @@ const CategoriesTable = ({ categories, loading, searchQuery }: Props) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">
-                  Preview
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 w-32">
+                  ID
                 </th>
                 <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">
-                  Department Name
+                  Category
+                </th>
+                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">
+                  Sub Category
                 </th>
                 <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400">
                   Assigned Items
-                </th>
-                <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[2px] text-slate-400 text-right pr-10">
-                  Manage
                 </th>
               </tr>
             </thead>
@@ -84,8 +84,8 @@ const CategoriesTable = ({ categories, loading, searchQuery }: Props) => {
                   </td>
                 </tr>
               ) : (
-                paginated.map((cat) => (
-                  <CategoryRow key={cat.id} category={cat} />
+                paginated.map((cat, idx) => (
+                  <CategoryRow key={cat.id} category={cat} index={startIdx + idx + 1} />
                 ))
               )}
             </tbody>

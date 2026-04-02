@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Printer, Mail, CheckCircle2, Clock, ArrowLeft } from 'lucide-react';
 import { getSaleById } from '../../api/sales.api';
+import { formatCurrency } from '@/utils/format';
 
 type ReceiptStatus = 'COMPLETED' | 'PENDING_SYNC';
 
@@ -18,19 +19,46 @@ const ReceiptPage: React.FC = () => {
   const [emailMessage, setEmailMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const fetchSaleIfNeeded = async () => {
-      if (sale || !saleId || status === 'PENDING_SYNC') return;
+    const fetchSale = async () => {
+      if (!saleId) return;
       try {
+        console.log('📡 [ReceiptPage] Fetching sale from API:', saleId);
         const res = await getSaleById(saleId);
+        console.log('🔍 [ReceiptPage] Full API response:', res);
+        console.log('🔍 [ReceiptPage] res.data:', res.data);
+        console.log('🔍 [ReceiptPage] res.data.data:', res.data.data);
+        console.log('🔍 [ReceiptPage] res.data.data.store:', res.data.data?.store);
         if (res.data?.success && res.data.data) {
+          console.log('✅ [ReceiptPage] Sale fetched:', res.data.data);
           setSale(res.data.data);
         }
-      } catch {
-        // Ignore; minimal fallback
+      } catch (err: any) {
+        console.error('❌ [ReceiptPage] Error fetching sale:', err);
+        // Fallback to location state if API fails
+        if (location.state?.sale) {
+          setSale(location.state.sale);
+        }
       }
     };
-    fetchSaleIfNeeded();
-  }, [sale, saleId, status]);
+    fetchSale();
+  }, [saleId]);
+
+  // Debug: Log sale data when it changes
+  React.useEffect(() => {
+    if (sale) {
+      console.log('📦 [ReceiptPage] Current sale data:', {
+        saleId: sale.id,
+        invoiceNumber: sale.invoiceNumber,
+        saleItemsCount: sale.saleItems?.length || 0,
+        saleItems: sale.saleItems,
+        subtotal: sale.subtotal,
+        discountAmount: sale.discountAmount,
+        totalTax: sale.totalTax,
+        totalAmount: sale.totalAmount,
+        store: sale.store,
+      });
+    }
+  }, [sale]);
 
   const handlePrint = () => {
     window.print();
@@ -49,7 +77,8 @@ const ReceiptPage: React.FC = () => {
     ? new Date(sale.createdAt)
     : new Date();
 
-  const items = sale?.items || [];
+  // Backend returns saleItems with product info
+  const items = sale?.saleItems || sale?.items || [];
   const totals = sale?.totals || {};
 
   return (
@@ -85,6 +114,20 @@ const ReceiptPage: React.FC = () => {
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0">
         <section className="md:col-span-2 border-r border-slate-200 p-6 print:p-4">
+          {/* Store Info Header */}
+          {sale?.store && (
+            <div className="mb-4 pb-4 border-b border-slate-200">
+              <h2 className="text-lg font-bold text-slate-900">{sale.store.name}</h2>
+              <p className="text-xs text-slate-600 mt-1">{sale.store.address}</p>
+              {sale.store.phone && (
+                <p className="text-xs text-slate-600">Phone: {sale.store.phone}</p>
+              )}
+              {sale.store.email && (
+                <p className="text-xs text-slate-600">Email: {sale.store.email}</p>
+              )}
+            </div>
+          )}
+
           <div className="mb-4 flex items-center justify-between text-xs text-slate-600">
             <div>
               <div className="font-bold text-slate-800">
@@ -92,13 +135,13 @@ const ReceiptPage: React.FC = () => {
               </div>
               <div>{createdAt.toLocaleString()}</div>
             </div>
-            {sale?.cashier && (
+            {sale?.user && (
               <div className="text-right">
                 <div className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
                   Cashier
                 </div>
                 <div className="font-semibold text-slate-800">
-                  {sale.cashier.name || sale.cashier.email}
+                  {sale.user.name || sale.user.email}
                 </div>
               </div>
             )}
@@ -118,75 +161,160 @@ const ReceiptPage: React.FC = () => {
           <table className="w-full text-xs border-t border-b border-slate-200">
             <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
               <tr>
-                <th className="px-3 py-2 text-left">Item</th>
-                <th className="px-3 py-2 text-center w-16">Qty</th>
-                <th className="px-3 py-2 text-right w-20">Unit</th>
-                <th className="px-3 py-2 text-right w-24">Total</th>
+                <th className="px-2 py-2 text-left">Item</th>
+                <th className="px-2 py-2 text-center w-12">Qty</th>
+                <th className="px-2 py-2 text-right w-16">Unit Price</th>
+                <th className="px-2 py-2 text-right w-16">Subtotal</th>
+                <th className="px-2 py-2 text-right w-14">GST (18%)</th>
+                <th className="px-2 py-2 text-right w-14">Discount</th>
+                <th className="px-2 py-2 text-right w-16">Line Total</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={7}
                     className="px-3 py-6 text-center text-slate-400"
                   >
                     No line items available.
                   </td>
                 </tr>
               ) : (
-                items.map((item: any, idx: number) => (
-                  <tr
-                    key={idx}
-                    className="border-t border-slate-100"
-                  >
-                    <td className="px-3 py-2">
-                      <div className="font-semibold text-slate-800">
-                        {item.product?.name || item.name}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-center">
-                      {item.quantity}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      ₹{(item.unitPrice || item.price || 0).toFixed(2)}
-                    </td>
-                    <td className="px-3 py-2 text-right font-semibold">
-                      ₹{(
-                        (item.unitPrice || item.price || 0) *
-                        (item.quantity || 1)
-                      ).toFixed(2)}
-                    </td>
-                  </tr>
-                ))
+                (() => {
+                  // Calculate totals for distribution
+                  let totalSubtotal = 0;
+                  let totalGST = 0;
+                  let totalDiscount = sale?.discountAmount || 0;
+                  let totalLineAmount = 0;
+
+                  // Calculate per-item values
+                  const itemDetails = items.map((item: any) => {
+                    const productName = item.product?.name || item.name || 'Unknown Product';
+                    const unitPrice = Number(item.price || item.unitPrice || 0);
+                    const quantity = Number(item.quantity || 1);
+                    const subtotal = unitPrice * quantity;
+                    const taxRate = Number(item.product?.taxPercentage || item.taxPercentage || 18) / 100;
+                    const gst = subtotal * taxRate;
+                    
+                    totalSubtotal += subtotal;
+                    totalGST += gst;
+                    
+                    return { productName, unitPrice, quantity, subtotal, gst, taxRate };
+                  });
+
+                  // Distribute discount proportionally
+                  const discountPercentage = totalSubtotal > 0 ? (totalDiscount / totalSubtotal) : 0;
+                  
+                  return itemDetails.map((details: any, idx: number) => {
+                    const itemDiscount = details.subtotal * discountPercentage;
+                    const lineTotal = details.subtotal + details.gst - itemDiscount;
+                    totalLineAmount += lineTotal;
+
+                    console.log(`🧾 Receipt item ${idx}:`, {
+                      productName: details.productName,
+                      unitPrice: details.unitPrice,
+                      quantity: details.quantity,
+                      subtotal: details.subtotal,
+                      gst: details.gst,
+                      discount: itemDiscount,
+                      lineTotal,
+                    });
+
+                    return (
+                      <tr
+                        key={idx}
+                        className="border-t border-slate-100"
+                      >
+                        <td className="px-2 py-2">
+                          <div className="font-semibold text-slate-800">
+                            {details.productName}
+                          </div>
+                        </td>
+                        <td className="px-2 py-2 text-center">
+                          {details.quantity}
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatCurrency(details.unitPrice)}
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatCurrency(details.subtotal)}
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatCurrency(details.gst)}
+                        </td>
+                        <td className="px-2 py-2 text-right">
+                          {formatCurrency(itemDiscount)}
+                        </td>
+                        <td className="px-2 py-2 text-right font-semibold text-slate-900">
+                          {formatCurrency(lineTotal)}
+                        </td>
+                      </tr>
+                    );
+                  });
+                })()
               )}
             </tbody>
           </table>
 
-          <div className="mt-4 text-xs text-slate-600">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>
-                ₹{(totals.subtotal || totals.total || 0).toFixed(2)}
-              </span>
-            </div>
-            {typeof totals.discountAmount === 'number' && (
-              <div className="flex justify-between">
-                <span>Discount</span>
-                <span>-₹{totals.discountAmount.toFixed(2)}</span>
-              </div>
-            )}
-            {typeof totals.tax === 'number' && (
-              <div className="flex justify-between">
-                <span>Tax</span>
-                <span>₹{totals.tax.toFixed(2)}</span>
-              </div>
-            )}
-            <hr className="my-2 border-dashed border-slate-200" />
-            <div className="flex justify-between font-bold text-slate-900">
-              <span>TOTAL</span>
-              <span>₹{(totals.total || totals.subtotal || 0).toFixed(2)}</span>
-            </div>
+          <div className="mt-6 space-y-3 border-t border-dashed border-slate-200 pt-4 text-xs text-slate-600">
+            {(() => {
+              // Calculate combined totals
+              let totalSubtotal = 0;
+              let totalGST = 0;
+              let totalDiscount = Number(sale?.discountAmount) || 0;
+              let grandTotal = 0;
+
+              items.forEach((item: any) => {
+                const unitPrice = Number(item.price || item.unitPrice || 0);
+                const quantity = Number(item.quantity || 1);
+                const subtotal = unitPrice * quantity;
+                const taxRate = Number(item.product?.taxPercentage || item.taxPercentage || 18) / 100;
+                const gst = subtotal * taxRate;
+                
+                totalSubtotal += subtotal;
+                totalGST += gst;
+              });
+
+              // Distribute discount proportionally
+              const discountPercentage = totalSubtotal > 0 ? (totalDiscount / totalSubtotal) : 0;
+              
+              // Calculate line totals with distributed discount
+              items.forEach((item: any) => {
+                const unitPrice = Number(item.price || item.unitPrice || 0);
+                const quantity = Number(item.quantity || 1);
+                const subtotal = unitPrice * quantity;
+                const taxRate = Number(item.product?.taxPercentage || item.taxPercentage || 18) / 100;
+                const gst = subtotal * taxRate;
+                const itemDiscount = subtotal * discountPercentage;
+                const lineTotal = subtotal + gst - itemDiscount;
+                
+                grandTotal += lineTotal;
+              });
+
+              return (
+                <>
+                  <div className="flex justify-between font-semibold text-slate-800">
+                    <span>Total Subtotal:</span>
+                    <span>{formatCurrency(totalSubtotal)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-slate-800">
+                    <span>Total GST (18%):</span>
+                    <span>{formatCurrency(totalGST)}</span>
+                  </div>
+                  {totalDiscount > 0 && (
+                    <div className="flex justify-between font-semibold text-emerald-600">
+                      <span>Total Discount:</span>
+                      <span>-{formatCurrency(totalDiscount)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-dashed border-slate-300 pt-3 flex justify-between font-black text-base text-slate-900">
+                    <span>GRAND TOTAL:</span>
+                    <span className="text-emerald-600">{formatCurrency(grandTotal)}</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
           {sale?.paymentMethod && (

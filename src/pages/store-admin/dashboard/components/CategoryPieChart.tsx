@@ -6,7 +6,7 @@ interface CategoryPieChartProps {
 
 export default function CategoryPieChart({ data }: CategoryPieChartProps) {
     return (
-        <GlobalPieChart 
+        <GlobalPieChart
             data={data}
             dataKey="value"
             nameKey="name"

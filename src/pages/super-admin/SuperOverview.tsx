@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Store, CreditCard, Laptop2, Activity, CalendarDays, Download, Loader2, AlertCircle } from 'lucide-react';
 import { reportsApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
+import { DataTable } from '@/components/global-components/data-table';
+import { formatPKR } from '@/utils/format';
 
 const SuperOverview: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -46,6 +48,42 @@ const SuperOverview: React.FC = () => {
 
   const maxRevenue = stats?.revenueByStore?.length ? Math.max(...stats.revenueByStore.map((s: any) => s.revenue)) : 1;
 
+  const recentDeviceColumns = [
+    {
+      accessorKey: 'storeId',
+      header: 'Store ID',
+      cell: ({ getValue }) => <span className="font-bold text-slate-700">STR-{getValue<string>()?.slice(-4)?.toUpperCase()}</span>,
+    },
+    {
+      accessorKey: 'deviceType',
+      header: 'Device Type',
+      cell: ({ getValue }) => <span className="text-slate-500 font-medium">{getValue<string>() || 'Terminal'}</span>,
+    },
+    {
+      accessorKey: 'store.city',
+      id: 'region',
+      header: 'Region',
+      cell: ({ row }) => <span className="text-slate-500 font-medium truncate max-w-[150px]">{row.original.store?.city || 'Unknown'}, {row.original.store?.state || ''}</span>,
+    },
+    {
+      accessorKey: 'isActive',
+      header: 'Status',
+      cell: ({ getValue }) => {
+        const active = getValue<boolean>();
+        return (
+          <span className={`px-3 py-1 rounded-md text-xs font-bold ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+            {active ? 'Active' : 'Inactive'}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Time',
+      cell: ({ getValue }) => <span className="text-slate-400 font-medium text-xs">{new Date(getValue<string>()).toLocaleDateString()}</span>,
+    },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in relative z-0">
       
@@ -80,7 +118,7 @@ const SuperOverview: React.FC = () => {
         />
         <StatsCard 
           title="Total Revenue"
-          value={`Rs ${stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}`}
+          value={formatPKR(stats?.totalRevenue || 0)}
           icon={CreditCard}
           iconColorClass="text-emerald-600"
           iconBgClass="bg-emerald-50"
@@ -121,7 +159,7 @@ const SuperOverview: React.FC = () => {
           
           <div className="mb-4">
             <div className="text-4xl font-extrabold text-slate-900 tracking-tight">
-              Rs {stats?.totalRevenue ? stats.totalRevenue.toLocaleString() : '0'}
+              {formatPKR(stats?.totalRevenue || 0)}
             </div>
             <div className="text-xs font-bold text-slate-400 flex items-center mt-2">
               <span className="text-slate-500">Total Lifetime Revenue</span>
@@ -134,7 +172,7 @@ const SuperOverview: React.FC = () => {
                 const heightPercentage = Math.max((store.revenue / maxRevenue) * 100, 5);
                 const isTop = idx === 0;
                 return (
-                  <div key={store.storeId} className="flex flex-col items-center space-y-3 w-1/6 group cursor-pointer" title={`Rs ${store.revenue.toLocaleString()}`}>
+                  <div key={store.storeId} className="flex flex-col items-center space-y-3 w-1/6 group cursor-pointer" title={formatPKR(store.revenue)}>
                     <div 
                       className={`w-full ${isTop ? 'bg-slate-900' : 'bg-slate-100 group-hover:bg-indigo-50'} rounded-t-sm relative transition-all`}
                       style={{ height: `${Math.min(heightPercentage, 100)}%`, minHeight: '30px' }}
@@ -207,45 +245,13 @@ const SuperOverview: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900 tracking-tight">Recent Device Provisioning</h2>
           <button className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors">See activity log</button>
         </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">
-                <th className="py-4 px-6 min-w-[150px]">Store ID</th>
-                <th className="py-4 px-6 min-w-[200px]">Device Type</th>
-                <th className="py-4 px-6 min-w-[150px]">Region</th>
-                <th className="py-4 px-6 min-w-[120px]">Status</th>
-                <th className="py-4 px-6 min-w-[150px]">Time</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm">
-              {stats?.recentDevices?.length > 0 ? (
-                stats.recentDevices.map((device: any) => (
-                  <tr key={device.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
-                    <td className="py-4 px-6 font-bold text-slate-700">STR-{device.storeId?.substring(device.storeId.length - 4).toUpperCase()}</td>
-                    <td className="py-4 px-6 text-slate-500 font-medium">{device.deviceName || device.deviceType || 'Terminal'}</td>
-                    <td className="py-4 px-6 text-slate-500 font-medium truncate max-w-[150px]">
-                      {device.store?.city || 'Unknown'}, {device.store?.state || ''}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-3 py-1 rounded-md text-xs font-bold font-mono ${device.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                        {device.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-slate-400 font-medium whitespace-nowrap">
-                      {new Date(device.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-500 italic border bg-slate-50">No devices provisioned recently.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          data={stats?.recentDevices || []}
+          columns={recentDeviceColumns}
+          showToolbar={false}
+          showExport={false}
+          showColumns={false}
+        />
       </div>
 
     </div>
