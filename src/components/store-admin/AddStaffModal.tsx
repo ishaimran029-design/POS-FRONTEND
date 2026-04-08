@@ -1,5 +1,5 @@
-import { X, User, Mail, Shield, Lock, Monitor, Eye, EyeOff } from 'lucide-react';
-import type { StaffMember, CreateStaffInput } from '../../pages/store-admin/staff-management/types/staff.types';
+import { X, User, Mail, Shield, Lock, Eye, EyeOff, Calculator, Calendar, Phone, Fingerprint } from 'lucide-react';
+import type { UnifiedStaffMember, CreateStaffInput, UserRole } from '../../pages/store-admin/staff-management/types/staff.types';
 import { useState, useEffect } from 'react';
 import { terminalsApi } from '../../service/api';
 
@@ -12,24 +12,23 @@ interface AddStaffModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdd: (data: CreateStaffInput) => Promise<{ success: boolean; error?: string }>;
-    editMember?: StaffMember;
+    editMember?: UnifiedStaffMember;
     onEdit?: (id: string, data: any) => Promise<{ success: boolean; error?: string }>;
 }
 
-const PASSWORD_HINT = '8+ chars, uppercase, lowercase, digit, special character';
-
-interface FormState extends CreateStaffInput {
-    isActive: boolean;
-}
-
 export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEdit }: AddStaffModalProps) {
-    const [formData, setFormData] = useState<FormState>({
+    const [formData, setFormData] = useState<CreateStaffInput>({
         name: '',
-        email: '',
+        phone: '',
         role: 'CASHIER',
+        monthlySalary: 0,
+        joiningDate: new Date().toISOString().split('T')[0],
+        enableLogin: false,
+        email: '',
         password: '',
-        isActive: true
+        systemRole: 'CASHIER' as UserRole,
     });
+    
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
@@ -40,13 +39,28 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
             if (editMember) {
                 setFormData({
                     name: editMember.name,
-                    email: editMember.email,
-                    role: editMember.role as any,
+                    phone: editMember.phone || '',
+                    role: editMember.hrRole,
+                    monthlySalary: editMember.monthlySalary,
+                    joiningDate: editMember.joiningDate ? new Date(editMember.joiningDate).toISOString().split('T')[0] : '',
+                    enableLogin: !!editMember.userId,
+                    email: editMember.email || '',
                     password: '',
-                    isActive: editMember.status === 'active'
+                    systemRole: editMember.systemRole || 'CASHIER',
+                    assignedTerminalIds: editMember.assignedTerminals?.map(t => t.id)
                 });
             } else {
-                setFormData({ name: '', email: '', role: 'CASHIER', password: '', isActive: true });
+                setFormData({
+                    name: '',
+                    phone: '',
+                    role: 'CASHIER',
+                    monthlySalary: 0,
+                    joiningDate: new Date().toISOString().split('T')[0],
+                    enableLogin: false,
+                    email: '',
+                    password: '',
+                    systemRole: 'CASHIER',
+                });
             }
             setError(null);
             setShowPassword(false);
@@ -54,24 +68,20 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
     }, [isOpen, editMember]);
 
     useEffect(() => {
-        if (isOpen && formData.role === 'CASHIER') {
+        if (isOpen && formData.enableLogin && formData.systemRole === 'CASHIER') {
             terminalsApi.list()
                 .then(res => {
                     const data = res.data?.data;
                     setTerminals(Array.isArray(data) ? data : []);
                 })
                 .catch(() => setTerminals([]));
-        } else {
-            setTerminals([]);
         }
-    }, [isOpen, formData.role]);
+    }, [isOpen, formData.enableLogin, formData.systemRole]);
 
     if (!isOpen) return null;
 
     const handleClose = () => {
         setError(null);
-        setFormData({ name: '', email: '', role: 'CASHIER', password: '', isActive: true });
-        setShowPassword(false);
         onClose();
     };
 
@@ -79,15 +89,10 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
         e.preventDefault();
         setError(null);
 
-        if (!editMember) {
+        // Validation for login enabled
+        if (formData.enableLogin && !editMember) {
             const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
-            if (!passRegex.test(formData.password)) {
-                setError('Password must be 8+ chars with uppercase, lowercase, digit, and special character');
-                return;
-            }
-        } else if (formData.password && formData.password.trim().length > 0) {
-            const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/;
-            if (!passRegex.test(formData.password)) {
+            if (!passRegex.test(formData.password || '')) {
                 setError('Password must be 8+ chars with uppercase, lowercase, digit, and special character');
                 return;
             }
@@ -95,171 +100,210 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
 
         setLoading(true);
         const result = editMember && onEdit 
-            ? await onEdit(editMember.id, { 
-                name: formData.name, 
-                role: formData.role, 
-                isActive: (formData as any).isActive,
-                ...(formData.password ? { password: formData.password } : {}),
-                ...(formData.role === "CASHIER" ? { assignedTerminalIds: formData.assignedTerminalIds } : {})
-              }) 
+            ? await onEdit(editMember.id, formData) 
             : await onAdd(formData);
         setLoading(false);
 
         if (result.success) {
             handleClose();
         } else {
-            setError(result.error || `Failed to ${editMember ? 'update' : 'create'} staff.`);
+            setError(result.error || `Failed to save employment record.`);
         }
     };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-8">
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={handleClose}></div>
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[32px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-fade-in">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-slide-up theme-transition">
+                {/* Header */}
                 <div className="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                     <div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{editMember ? 'Edit Staff Details' : 'Add New Staff'}</h2>
-                        <p className="text-slate-400 dark:text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">{editMember ? 'Modify identity or permissions' : 'Onboard Cashier or Accountant'}</p>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{editMember ? 'Modify Personnel' : 'Onboard Employee'}</h2>
+                        <p className="text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{editMember ? 'Updating Integrated HR + SYSTEM access' : 'Integrated HR + SYSTEM Provisioning'}</p>
                     </div>
                     <button onClick={handleClose} type="button" className="p-3 hover:bg-white dark:hover:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 transition-all active:scale-95">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto flex-1">
+                <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
                     {error && (
-                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-sm font-medium">
+                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-[11px] font-black uppercase tracking-wider animate-shake">
                             {error}
                         </div>
                     )}
-                    <div className="grid grid-cols-1 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                                <input
-                                    required
-                                    type="text"
-                                    placeholder="e.g. Jane Doe"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
-                                />
-                            </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="jane.doe@example.com"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 dark:text-white"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Role</label>
-                            <div className="relative">
-                                <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                                <select
-                                    value={formData.role}
-                                    onChange={e => {
-                                        const role = e.target.value as 'CASHIER' | 'ACCOUNTANT';
-                                        setFormData({ ...formData, role, assignedTerminalIds: role === 'ACCOUNTANT' ? undefined : formData.assignedTerminalIds });
-                                    }}
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer text-slate-900 dark:text-white"
-                                >
-                                    <option value="CASHIER">Cashier</option>
-                                    <option value="ACCOUNTANT">Accountant</option>
-                                </select>
-                            </div>
-                        </div>
-                        {formData.role === 'CASHIER' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* ─── HR Section ─── */}
+                        <div className="space-y-6">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-600 mb-4 flex items-center gap-2">
+                                <Fingerprint className="w-4 h-4" /> Personal & HR Data
+                            </h3>
+                            
                             <div className="space-y-2">
-                                <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-2">
-                                    <Monitor className="w-4 h-4" /> Assign Terminal
-                                </label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
                                 <div className="relative">
-                                    <Monitor className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                                    <select
-                                        value={formData.assignedTerminalIds?.[0] || ""}
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setFormData({ ...formData, assignedTerminalIds: val ? [val] : undefined });
-                                        }}
-                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer"
-                                    >
-                                        <option value="">No Terminal Assigned</option>
-                                        {terminals.map(t => (
-                                            <option key={t.id} value={t.id}>{t.deviceName}</option>
-                                        ))}
-                                    </select>
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        required
+                                        type="text"
+                                        placeholder="Full Legal Name"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all font-bold text-slate-900 dark:text-white"
+                                    />
                                 </div>
                             </div>
-                        )}
 
-
-                        <div className="space-y-2">
-                            <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Password {editMember ? '(Leave blank to keep same)' : '(required)'}</label>
-                            <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-blue-500 transition-colors" />
-                                <input
-                                    required={!editMember}
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full pl-12 pr-12 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-300"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white rounded-xl text-slate-400 hover:text-slate-600 transition-all active:scale-95"
-                                >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                            <p className="text-[10px] text-slate-400 font-medium ml-1">{PASSWORD_HINT}</p>
-                        </div>
-
-                        {editMember && (
                             <div className="space-y-2">
-                                <label className="text-xs font-medium uppercase tracking-widest text-slate-400 ml-1">Account Status</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
                                 <div className="relative">
-                                    <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                                    <select
-                                        value={formData.isActive ? "active" : "inactive"}
-                                        onChange={e => setFormData({ ...formData, isActive: e.target.value === "active" })}
-                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-black uppercase tracking-widest text-xs appearance-none cursor-pointer text-slate-900 dark:text-white"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="tel"
+                                        placeholder="+92 3XX XXXXXXX"
+                                        value={formData.phone}
+                                        onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all font-bold text-slate-900 dark:text-white"
+                                    />
                                 </div>
                             </div>
-                        )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Monthly Salary</label>
+                                    <div className="relative">
+                                        <Calculator className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            required
+                                            type="number"
+                                            placeholder="₨ 0.00"
+                                            value={formData.monthlySalary}
+                                            onChange={e => setFormData({ ...formData, monthlySalary: Number(e.target.value) })}
+                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Joining Date</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            required
+                                            type="date"
+                                            value={formData.joiningDate}
+                                            onChange={e => setFormData({ ...formData, joiningDate: e.target.value })}
+                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-slate-900 transition-all font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ─── System Auth Section ─── */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 flex items-center gap-2">
+                                    <Shield className="w-4 h-4" /> System Access
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400">Enable</span>
+                                    <input 
+                                        type="checkbox"
+                                        checked={formData.enableLogin}
+                                        onChange={e => setFormData({...formData, enableLogin: e.target.checked})}
+                                        className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={`space-y-6 transition-all duration-500 ${formData.enableLogin ? 'opacity-100' : 'opacity-30 pointer-events-none grayscale select-none'}`}>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Login Email</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            required={formData.enableLogin}
+                                            type="email"
+                                            placeholder="System Login ID"
+                                            value={formData.email}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-900 dark:text-white"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <input
+                                            required={formData.enableLogin && !editMember}
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            value={formData.password}
+                                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full pl-11 pr-12 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-slate-900 dark:text-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-white rounded-xl text-slate-400 transition-all active:scale-95"
+                                        >
+                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">System Role</label>
+                                    <select
+                                        value={formData.systemRole}
+                                        onChange={e => setFormData({ ...formData, systemRole: e.target.value as UserRole })}
+                                        className="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-black uppercase tracking-widest text-[10px] appearance-none cursor-pointer text-slate-900 dark:text-white"
+                                    >
+                                        <option value="CASHIER">Cashier Access</option>
+                                        <option value="ACCOUNTANT">Accountant Access</option>
+                                        <option value="STORE_ADMIN">Store Admin Access</option>
+                                    </select>
+                                </div>
+
+                                {formData.systemRole === 'CASHIER' && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Default Terminal</label>
+                                        <select
+                                            value={formData.assignedTerminalIds?.[0] || ""}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setFormData({ ...formData, assignedTerminalIds: val ? [val] : undefined });
+                                            }}
+                                            className="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 transition-all font-black uppercase tracking-widest text-[10px] appearance-none cursor-pointer text-slate-900 dark:text-white"
+                                        >
+                                            <option value="">Auto-Detect Device</option>
+                                            {terminals.map(t => (
+                                                <option key={t.id} value={t.id}>{t.deviceName}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex gap-4 pt-6">
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-[20px] font-bold uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
+                            className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-[20px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-slate-200 transition-all active:scale-95"
                         >
-                            Cancel
+                            Abort
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-4 bg-indigo-900 text-white rounded-[20px] font-bold uppercase tracking-widest text-xs hover:bg-indigo-600 shadow-lg shadow-indigo-900/25 transition-all active:scale-95 disabled:opacity-50"
+                            className="flex-1 py-4 bg-slate-900 text-white rounded-[20px] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl shadow-slate-900/10 hover:bg-slate-800 active:scale-95 disabled:opacity-50 transition-all"
                         >
-                            {loading ? (editMember ? 'Saving...' : 'Creating...') : (editMember ? 'Save Changes' : 'Create Staff')}
+                            {loading ? (editMember ? 'Syncing...' : 'Deploying...') : (editMember ? 'Confirm Updates' : 'Complete Onboarding')}
                         </button>
                     </div>
                 </form>
@@ -267,3 +311,4 @@ export default function AddStaffModal({ isOpen, onClose, onAdd, editMember, onEd
         </div>
     );
 }
+

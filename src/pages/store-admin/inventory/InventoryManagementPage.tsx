@@ -21,8 +21,6 @@ const InventoryManagementPage = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("All Movements")
   const [timeFilter, setTimeFilter] = useState("All Time")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5;
 
   const [inventoryDataRes, setInventoryDataRes] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -58,24 +56,8 @@ const InventoryManagementPage = () => {
     referenceId: m.referenceId || m.id.slice(0, 8),
     user: m.user?.name || "System",
     timestamp: new Date(m.createdAt).toLocaleString(),
-    image: m.product?.image ? `http://localhost:3005${m.product.image}` : null
+    image: m.product?.imageUrl || (m.product?.image ? (m.product.image.startsWith('http') ? m.product.image : `http://localhost:3005${m.product.image}`) : null)
   }));
-
-  const filteredMovements = movements.filter(m => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch = !q ||
-      m.productName.toLowerCase().includes(q) ||
-      m.sku.toLowerCase().includes(q) ||
-      m.referenceId.toLowerCase().includes(q);
-
-    const matchesType = typeFilter === "All Movements" ||
-      (typeFilter.toLowerCase() === m.changeType.toLowerCase());
-
-    return matchesSearch && matchesType;
-  });
-
-  const totalCount = filteredMovements.length;
-  const paginatedMovements = filteredMovements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="animate-in fade-in duration-500 space-y-10">
@@ -96,12 +78,8 @@ const InventoryManagementPage = () => {
         </div>
       ) : (
         <InventoryTable 
-          movements={paginatedMovements} 
+          movements={movements} 
           loading={loading}
-          currentPage={currentPage}
-          totalCount={totalCount}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
         />
       )}
     </div>
