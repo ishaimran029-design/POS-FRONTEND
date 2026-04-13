@@ -26,6 +26,7 @@ export default function StoreAdminDashboard() {
   const [dateRange, setDateRange] = useState('7D'); // 7D, 30D, Today
 
   const [dashRes, setDashRes] = useState<any>(null);
+  const [prevDashRes, setPrevDashRes] = useState<any>(null);
   const [dashLoading, setDashLoading] = useState(true);
   const [dashError, setDashError] = useState<any>(null);
 
@@ -40,30 +41,52 @@ export default function StoreAdminDashboard() {
   const calculateDateRange = (range: string) => {
     const end = new Date();
     const start = new Date();
+    let days = 0;
+
     if (range === 'Today') {
       start.setHours(0, 0, 0, 0);
+      days = 1;
     } else if (range === '7D') {
       start.setDate(start.getDate() - 6);
       start.setHours(0, 0, 0, 0);
+      days = 7;
     } else if (range === '30D') {
       start.setDate(start.getDate() - 29);
       start.setHours(0, 0, 0, 0);
+      days = 30;
     }
+
+    const prevEnd = new Date(start);
+    prevEnd.setMilliseconds(-1);
+    const prevStart = new Date(prevEnd);
+    prevStart.setDate(prevStart.getDate() - (days - 1));
+    prevStart.setHours(0,0,0,0);
+
     return {
-      startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0]
+      current: {
+        startDate: start.toISOString().split('T')[0],
+        endDate: end.toISOString().split('T')[0]
+      },
+      previous: {
+        startDate: prevStart.toISOString().split('T')[0],
+        endDate: prevEnd.toISOString().split('T')[0]
+      }
     };
   };
 
   const loadDashboardData = async () => {
-    const { startDate, endDate } = calculateDateRange(dateRange);
+    const { current, previous } = calculateDateRange(dateRange);
     
     // Summary
     setDashLoading(true);
     setDashError(null);
     try {
-      const res = await getDashboardSummary({ startDate, endDate });
-      setDashRes(res);
+      const [currRes, pRes] = await Promise.all([
+        getDashboardSummary(current),
+        getDashboardSummary(previous)
+      ]);
+      setDashRes(currRes);
+      setPrevDashRes(pRes);
     } catch (err) {
       setDashError(err);
     } finally {
@@ -106,18 +129,26 @@ export default function StoreAdminDashboard() {
     : null;
 
   const raw = (dashRes as any)?.data ?? null;
+  const prevRaw = (prevDashRes as any)?.data ?? null;
   const deviceData = (devicesRes as any)?.data ?? [];
 
   const data: DashboardView | null = useMemo(() => {
     if (!raw) return null;
 
     const s = raw.summary ?? {};
+    const ps = prevRaw?.summary ?? {};
     const inv = raw.inventory ?? {};
     const charts = raw.charts ?? {};
     const revByDate = charts.revenueByDate ?? [];
     const payBreakdown = charts.paymentBreakdown ?? [];
     const topProductsRaw = raw.topProducts ?? [];
     const invItems = (invRes as any)?.data ?? [];
+
+    const calculateTrend = (current: number, previous: number) => {
+      if (!previous || previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
     const stockMap = invItems.reduce((acc: any, item: any) => {
       acc[item.productId] = {
         quantity: item.totalQuantity,
@@ -129,11 +160,26 @@ export default function StoreAdminDashboard() {
     const colors = ['#262255', '#24608F', '#508CBB', '#7CB8E7', '#A8D4F3'];
     return {
       metrics: [
-        { value: s.totalRevenue ?? 0 },
-        { value: s.totalTransactions ?? 0 },
-        { value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0) },
-        { value: s.totalRefunds ?? 0 },
-        { value: s.totalDiscount ?? 0 },
+        { 
+          value: s.totalRevenue ?? 0, 
+          trend: calculateTrend(s.totalRevenue ?? 0, ps.totalRevenue ?? 0) 
+        },
+        { 
+          value: s.totalTransactions ?? 0, 
+          trend: calculateTrend(s.totalTransactions ?? 0, ps.totalTransactions ?? 0) 
+        },
+        { 
+          value: (inv.lowStockCount ?? 0) + (inv.outOfStockCount ?? 0),
+          trend: 0 // Stock alerts are point-in-time, trend less relevant but could compare
+        },
+        { 
+          value: s.totalRefunds ?? 0, 
+          trend: calculateTrend(s.totalRefunds ?? 0, ps.totalRefunds ?? 0) 
+        },
+        { 
+          value: s.totalDiscount ?? 0, 
+          trend: calculateTrend(s.totalDiscount ?? 0, ps.totalDiscount ?? 0) 
+        },
       ],
       dailySales: revByDate.map((d: { date?: string; revenue?: number }) => ({ date: d.date ?? '', sales: d.revenue ?? 0 })),
       weeklyRevenue: revByDate.map((d: { date?: string; revenue?: number }) => ({ week: d.date ?? '', revenue: d.revenue ?? 0 })),
@@ -153,11 +199,6 @@ export default function StoreAdminDashboard() {
         const invInfo = stockMap[productId];
         const currentStock = invInfo?.quantity ?? 0;
         const reorder = invInfo?.reorderLevel ?? 10;
-
-        // Calculate stock health percentage for UI progress bar
-        // 100% means currentStock >= reorder * 2 (Healthy)
-        // 50% means currentStock == reorder
-        // Below 50% means approaching reorder level
         const stockLevel = Math.min(100, Math.round((currentStock / (reorder * 2 || 20)) * 100));
 
         return {
@@ -170,7 +211,7 @@ export default function StoreAdminDashboard() {
         };
       }),
     };
-  }, [raw, deviceData, invRes]);
+  }, [raw, prevRaw, deviceData, invRes]);
 
   if (loading && !data) {
     return (
@@ -202,35 +243,35 @@ export default function StoreAdminDashboard() {
     {
       name: "Total Revenue",
       stat: formatCurrency(data.metrics?.[0]?.value ?? 0),
-      change: "+12.5%",
-      changeType: "positive" as const,
+      change: `${(data.metrics?.[0] as any)?.trend >= 0 ? '+' : ''}${(data.metrics?.[0] as any)?.trend}%`,
+      changeType: (data.metrics?.[0] as any)?.trend >= 0 ? "positive" as const : "negative" as const,
       linkTo: "/store-admin/reports"
     },
     {
       name: "Active Sales",
       stat: `${Number(data.metrics?.[1]?.value ?? 0).toLocaleString()}`,
-      change: "+5.1%",
-      changeType: "positive" as const,
+      change: `${(data.metrics?.[1] as any)?.trend >= 0 ? '+' : ''}${(data.metrics?.[1] as any)?.trend}%`,
+      changeType: (data.metrics?.[1] as any)?.trend >= 0 ? "positive" as const : "negative" as const,
       linkTo: "/store-admin/sales"
     },
     {
       name: "Inventory Alerts",
       stat: `${Number(data.metrics?.[2]?.value ?? 0).toLocaleString()}`,
-      change: "0%",
+      change: "LIVE",
       changeType: "positive" as const,
       linkTo: "/store-admin/inventory/stocks"
     },
     {
       name: "Total Refunds",
       stat: `${Number(data.metrics?.[3]?.value ?? 0).toLocaleString()}`,
-      change: "-2.1%",
-      changeType: "negative" as const,
+      change: `${(data.metrics?.[3] as any)?.trend >= 0 ? '+' : ''}${(data.metrics?.[3] as any)?.trend}%`,
+      changeType: (data.metrics?.[3] as any)?.trend <= 0 ? "positive" as const : "negative" as const, // Fewer refunds is positive
       linkTo: "/store-admin/sales"
     },
     {
       name: "Total Discounts",
       stat: formatCurrency(data.metrics?.[4]?.value ?? 0),
-      change: "+2.1%",
+      change: `${(data.metrics?.[4] as any)?.trend >= 0 ? '+' : ''}${(data.metrics?.[4] as any)?.trend}%`,
       changeType: "positive" as const,
       linkTo: "/store-admin/reports"
     }
@@ -238,21 +279,21 @@ export default function StoreAdminDashboard() {
 
   return (
     <div className="animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 mt-2">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Console Overview</h1>
-          <p className="text-slate-500 dark:text-slate-500 font-medium uppercase tracking-widest text-[11px] mt-1">Real-time Analytics & Performance</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none font-brand">Console Overview</h1>
+          <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2.5 font-num">Real-time Analytics & Performance</p>
         </div>
-        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+        <div className="flex items-center gap-2 bg-indigo-50/50 dark:bg-slate-900 p-1.5 rounded-2xl border border-indigo-100 dark:border-slate-800 shadow-sm">
           {['Today', '7D', '30D'].map((range) => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
               className={cn(
-                "px-6 py-2 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all",
+                "px-6 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all font-num",
                 dateRange === range
-                  ? "bg-slate-900 dark:bg-indigo-600 text-white shadow-lg shadow-slate-200 dark:shadow-none"
-                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                  : "text-slate-500 hover:text-indigo-600 hover:bg-white dark:hover:bg-slate-800"
               )}
             >
               {range}

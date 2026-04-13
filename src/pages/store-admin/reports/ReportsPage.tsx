@@ -5,7 +5,7 @@ import ReportsCharts from "@/components/store-admin/Reports/ReportsCharts";
 import TopPerformingProducts from "@/components/store-admin/Reports/TopPerformingProducts";
 import InventoryReportTables from "@/components/store-admin/Reports/InventoryReportTables";
 import * as reportsApi from "@/api/reports.api";
-import { AlertTriangle, FileText } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/utils/format";
 
 const ReportsPage = () => {
@@ -13,6 +13,7 @@ const ReportsPage = () => {
     const [dateRangeFilter, setDateRangeFilter] = useState('This Week');
 
     const [salesReportData, setSalesReportData] = useState<any>(null);
+    const [prevSalesReportData, setPrevSalesReportData] = useState<any>(null);
     const [salesLoading, setSalesLoading] = useState(false);
     const [salesError, setSalesError] = useState<string | null>(null);
 
@@ -23,29 +24,51 @@ const ReportsPage = () => {
     const calculateDateRange = (range: string) => {
         const end = new Date();
         const start = new Date();
+        let days = 0;
+
         if (range === 'Today') {
             start.setHours(0, 0, 0, 0);
+            days = 1;
         } else if (range === 'This Week') {
             const day = start.getDay();
             const diff = start.getDate() - day + (day === 0 ? -6 : 1);
             start.setDate(diff);
             start.setHours(0, 0, 0, 0);
+            days = 7;
         } else if (range === 'Month') {
             start.setDate(1);
             start.setHours(0, 0, 0, 0);
+            days = 30; // Approximation for previous period
         }
+
+        const prevEnd = new Date(start);
+        prevEnd.setMilliseconds(-1);
+        const prevStart = new Date(prevEnd);
+        prevStart.setDate(prevStart.getDate() - (days - 1));
+        prevStart.setHours(0,0,0,0);
+
         return {
-            startDate: start.toISOString().split('T')[0],
-            endDate: end.toISOString().split('T')[0]
+            current: {
+                startDate: start.toISOString().split('T')[0],
+                endDate: end.toISOString().split('T')[0]
+            },
+            previous: {
+                startDate: prevStart.toISOString().split('T')[0],
+                endDate: prevEnd.toISOString().split('T')[0]
+            }
         };
     };
 
-    const loadSalesData = async (params: any) => {
+    const loadSalesData = async (ranges: { current: any, previous: any }) => {
         setSalesLoading(true);
         setSalesError(null);
         try {
-            const res = await reportsApi.getStoreDashboardData(params);
-            setSalesReportData(res);
+            const [currRes, prevRes] = await Promise.all([
+                reportsApi.getStoreDashboardData(ranges.current),
+                reportsApi.getStoreDashboardData(ranges.previous)
+            ]);
+            setSalesReportData(currRes);
+            setPrevSalesReportData(prevRes);
         } catch (err: any) {
             console.error("Failed to load sales report:", err);
             setSalesError(err.message || "Failed to load sales report");
@@ -77,18 +100,50 @@ const ReportsPage = () => {
         }
     }, [activeTab, dateRangeFilter]);
 
+    const calculateTrend = (current: number, previous: number) => {
+        if (!previous || previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+    };
+
     const loading = activeTab === 'sales' ? salesLoading : inventoryLoading;
     const error = activeTab === 'sales' ? salesError : inventoryError;
     const reportRes = activeTab === 'sales' ? salesReportData : inventoryReportData;
+    const prevReportRes = activeTab === 'sales' ? prevSalesReportData : null;
 
     const data = (reportRes as any)?.data || reportRes || null;
+    const prevData = (prevReportRes as any)?.data || prevReportRes || null;
 
     const salesStats = data ? [
-        { name: "Total Revenue", stat: formatCurrency(data.summary?.totalRevenue ?? 0), change: "+14%", changeType: "positive" as const },
-        { name: "Transactions", stat: `${data.summary?.totalTransactions ?? 0}`, change: "+8%", changeType: "positive" as const },
-        { name: "Avg Ticket", stat: formatCurrency(Math.round(data.summary?.averageTicketSize ?? 0)), change: "+2%", changeType: "positive" as const },
-        { name: "Tax Collected", stat: formatCurrency(Number(data.summary?.totalTax ?? 0)), change: "+12%", changeType: "positive" as const },
-        { name: "Discounts", stat: formatCurrency(data.summary?.totalDiscount ?? 0), change: "+2%", changeType: "positive" as const }
+        { 
+            name: "Total Revenue", 
+            stat: formatCurrency(data.summary?.totalRevenue ?? 0), 
+            change: `${calculateTrend(data.summary?.totalRevenue ?? 0, prevData?.summary?.totalRevenue ?? 0)}%`, 
+            changeType: calculateTrend(data.summary?.totalRevenue ?? 0, prevData?.summary?.totalRevenue ?? 0) >= 0 ? "positive" as const : "negative" as const 
+        },
+        { 
+            name: "Transactions", 
+            stat: `${data.summary?.totalTransactions ?? 0}`, 
+            change: `${calculateTrend(data.summary?.totalTransactions ?? 0, prevData?.summary?.totalTransactions ?? 0)}%`, 
+            changeType: calculateTrend(data.summary?.totalTransactions ?? 0, prevData?.summary?.totalTransactions ?? 0) >= 0 ? "positive" as const : "negative" as const 
+        },
+        { 
+            name: "Avg Ticket", 
+            stat: formatCurrency(Math.round(data.summary?.averageTicketSize ?? 0)), 
+            change: `${calculateTrend(data.summary?.averageTicketSize ?? 0, prevData?.summary?.averageTicketSize ?? 0)}%`, 
+            changeType: calculateTrend(data.summary?.averageTicketSize ?? 0, prevData?.summary?.averageTicketSize ?? 0) >= 0 ? "positive" as const : "negative" as const 
+        },
+        { 
+            name: "Tax Collected", 
+            stat: formatCurrency(Number(data.summary?.totalTax ?? 0)), 
+            change: `${calculateTrend(Number(data.summary?.totalTax ?? 0), Number(prevData?.summary?.totalTax ?? 0))}%`, 
+            changeType: calculateTrend(data.summary?.totalTax ?? 0, prevData?.summary?.totalTax ?? 0) >= 0 ? "positive" as const : "negative" as const 
+        },
+        { 
+            name: "Discounts", 
+            stat: formatCurrency(data.summary?.totalDiscount ?? 0), 
+            change: `${calculateTrend(data.summary?.totalDiscount ?? 0, prevData?.summary?.totalDiscount ?? 0)}%`, 
+            changeType: "positive" as const 
+        }
     ] : [];
 
     const inventoryStats = data ? [

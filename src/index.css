@@ -6,6 +6,13 @@
   --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+
+  /* Font Weights Hierarchy Reference */
+  --font-weight-bold: 700;   /* Headers, KPIs, Store Names */
+  --font-weight-extrabold: 800;
+  --font-weight-medium: 500; /* Sub-headings, Table Headers, Buttons */
+  --font-weight-semibold: 600;
+  --font-weight-regular: 400; /* Body Text, Descriptions */
 }
 
 @layer base {
@@ -13,6 +20,14 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     @apply bg-[#F7F9FC] dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900 transition-colors duration-300;
   }
+
+  h1, h2, h3 { @apply font-jakarta font-extrabold tracking-tight; }
+  h4, h5, h6 { @apply font-jakarta font-bold tracking-tight; }
+}
+
+@layer utilities {
+  .font-num { font-family: 'Inter', sans-serif; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+  .font-brand { font-family: 'Plus Jakarta Sans', sans-serif; }
 }
 
 

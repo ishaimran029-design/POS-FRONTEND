@@ -1,104 +1,115 @@
-import InventoryRow from "./InventoryRow"
-import type { InventoryMovement } from "@/pages/store-admin/inventory/InventoryManagementPage"
+import { Box, User as UserIcon, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { DataTable } from '@/components/global-components/data-table';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import type { InventoryMovement } from "@/pages/store-admin/inventory/InventoryManagementPage";
 
 interface Props {
-  movements: InventoryMovement[]
-  loading: boolean
-  currentPage: number
-  totalCount: number
-  itemsPerPage: number
-  onPageChange: (page: number) => void
+  movements: InventoryMovement[];
+  loading: boolean;
 }
 
-const InventoryTable = ({ movements, loading, currentPage, totalCount, itemsPerPage, onPageChange }: Props) => {
-  if (loading) {
-    return (
-      <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-slate-100 shadow-sm transition-all duration-300">
-        <div className="w-12 h-12 border-[3px] border-slate-100 border-t-[#2563EB] rounded-full animate-spin"></div>
-        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-[2px] animate-pulse mt-6">Indexing Logs...</p>
-      </div>
-    )
-  }
-
-  if (movements.length === 0) {
-    return (
-      <div className="bg-white rounded-[32px] p-24 flex flex-col items-center justify-center border border-slate-100 shadow-sm text-center">
-        <div className="w-20 h-20 bg-slate-50 rounded-[32px] flex items-center justify-center mb-6">
-          <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-          </svg>
+const InventoryTable = ({ movements, loading }: Props) => {
+  const columns: ColumnDef<InventoryMovement>[] = [
+    {
+      accessorKey: "timestamp",
+      header: "Timestamp",
+      cell: ({ row }) => (
+        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-num">
+          {row.original.timestamp}
         </div>
-        <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-2">No logs recorded</h3>
-        <p className="text-slate-400 text-xs font-medium max-w-xs uppercase tracking-widest leading-loose">We couldn't find any inventory movements matching your active criteria.</p>
-      </div>
-    )
-  }
-
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const startEntry = (currentPage - 1) * itemsPerPage + 1;
-  const endEntry = Math.min(currentPage * itemsPerPage, totalCount);
+      )
+    },
+    {
+      accessorKey: "productName",
+      header: "Product Details",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 dark:border-slate-800 flex flex-shrink-0 items-center justify-center overflow-hidden shadow-sm">
+            {row.original.image ? (
+              <img src={row.original.image} alt={row.original.productName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+                <Box size={16} />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{row.original.productName}</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[2.5px] mt-0.5 truncate leading-none">SKU: {row.original.sku}</p>
+          </div>
+        </div>
+      )
+    },
+    {
+      accessorKey: "quantityChange",
+      header: "Movement",
+      cell: ({ row }) => {
+        const qty = row.original.quantityChange;
+        return (
+          <div className="flex items-center gap-2">
+            {qty > 0 ? (
+              <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <ArrowDownCircle className="h-4 w-4 text-rose-500" />
+            )}
+            <span className={`text-[12px] font-black tabular-nums ${qty > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {qty > 0 ? '+' : ''}{qty}
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      accessorKey: "changeType",
+      header: "Ref & Type",
+      cell: ({ row }) => {
+        const type = row.original.changeType;
+        const variants: any = {
+           sale: "secondary",
+           restock: "success",
+           adjustment: "destructive"
+        };
+        return (
+          <div className="space-y-1">
+             <Badge variant={variants[type] || "outline"} className="uppercase tracking-widest text-[9px] font-black p-1 leading-none">
+              {type}
+            </Badge>
+            <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              ID: {row.original.referenceId}
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      accessorKey: "user",
+      header: "Operator",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+            <UserIcon className="h-3.5 w-3.5 text-slate-500" />
+          </div>
+          <span className="text-[11px] font-black text-slate-600 dark:text-slate-300">{row.original.user}</span>
+        </div>
+      )
+    }
+  ];
 
   return (
-    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden animate-fade-in hover:shadow-lg transition-all duration-300">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[800px]">
-          <thead className="bg-white dark:bg-slate-900 border-t-4 border-black">
-            <tr className="border-b-4 border-black">
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 w-12">ID</th>
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 whitespace-nowrap">Product Details</th>
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 whitespace-nowrap">Movement</th>
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 whitespace-nowrap shrink-0">Status</th>
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 whitespace-nowrap">Operator</th>
-              <th className="px-6 py-5 text-left text-[11px] font-black uppercase tracking-[3px] text-slate-400 whitespace-nowrap">Timestamp</th>
-              <th className="px-6 py-5 text-right text-[11px] font-black uppercase tracking-[3px] text-indigo-600 whitespace-nowrap w-24">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {movements.map((movement, idx) => (
-              <InventoryRow key={movement.id} movement={movement} index={startEntry + idx} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      <div className="px-8 py-6 border-t border-slate-50 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          Showing <span className="text-indigo-600 font-black px-2 bg-indigo-50 border border-indigo-100 rounded-lg mx-1">{startEntry}–{endEntry}</span> of <span className="text-slate-900 font-black mx-1">{totalCount}</span> entries
-        </p>
-        <div className="flex items-center gap-1.5">
-          <button 
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
-          >
-            &lt;
-          </button>
-          
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => onPageChange(i + 1)}
-              className={`w-10 h-10 rounded-xl font-black text-[10px] transition-all ${
-                currentPage === i + 1 
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 border border-slate-900" 
-                  : "bg-white border border-slate-100 text-slate-400 hover:bg-slate-50"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button 
-            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages}
-            className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
-          >
-            &gt;
-          </button>
-        </div>
-      </div>
+    <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300">
+      <DataTable 
+        columns={columns} 
+        data={movements} 
+        isLoading={loading}
+        searchKey="productName"
+        placeholder="Search audit trail by product or SKU..."
+        showExport
+        exportFilename="Inventory-Audit-Registry"
+      />
     </div>
-  )
-}
+  );
+};
 
-export default InventoryTable
+export default InventoryTable;
+

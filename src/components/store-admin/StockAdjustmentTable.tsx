@@ -1,95 +1,104 @@
-import { History } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { History, User as UserIcon } from 'lucide-react';
+import { DataTable } from '@/components/global-components/data-table';
 
 const StockAdjustmentTable = ({ adjustments = [] }: { adjustments?: any[] }) => {
+    const columns: ColumnDef<any>[] = [
+        {
+            accessorKey: "createdAt",
+            header: "Date",
+            cell: ({ row }) => (
+                <div className="text-xs font-bold text-slate-500 font-num">
+                    {new Date(row.original.createdAt).toLocaleString()}
+                </div>
+            )
+        },
+        {
+            id: "product",
+            header: "Product",
+            cell: ({ row }) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                        {row.original.product?.name || 'Deleted Product'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-black tracking-widest uppercase">
+                        SKU: {row.original.product?.sku || 'N/A'}
+                    </span>
+                </div>
+            )
+        },
+        {
+            accessorKey: "changeType",
+            header: "Type",
+            cell: ({ row }) => {
+                const type = row.original.changeType;
+                const variants: any = {
+                    DAMAGE: "destructive",
+                    RETURN: "secondary",
+                    PURCHASE: "success",
+                };
+                return (
+                    <Badge variant={variants[type] || "outline"} className="uppercase tracking-widest text-[9px] font-black px-2.5">
+                        {type}
+                    </Badge>
+                );
+            }
+        },
+        {
+            accessorKey: "quantityChange",
+            header: () => <div className="text-center">Quantity</div>,
+            cell: ({ row }) => (
+                <div className={`text-center text-sm font-black tabular-nums ${row.original.quantityChange > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {row.original.quantityChange > 0 ? '+' : ''}{row.original.quantityChange}
+                </div>
+            )
+        },
+        {
+            accessorKey: "user",
+            header: "Executed By",
+            cell: ({ row }) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+                        <UserIcon className="h-4 w-4 text-slate-500" />
+                    </div>
+                    <div>
+                        <div className="text-xs font-black text-slate-900 dark:text-white">{row.original.user?.name || 'System'}</div>
+                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                            {row.original.user?.role?.replace('_', ' ') || 'Process'}
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            accessorKey: "notes",
+            header: "Notes",
+            cell: ({ row }) => (
+                <p className="text-[11px] font-bold text-slate-500 truncate max-w-[150px]" title={row.original.notes}>
+                    {row.original.notes || '—'}
+                </p>
+            )
+        }
+    ];
+
     return (
-        <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden animate-fade-in">
-            <div className="p-6 border-b border-gray-50 flex items-center gap-3">
-                <History className="text-blue-500" size={20} />
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Recent Adjustments</h3>
+        <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden transition-all duration-300">
+            <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <History className="text-blue-500 h-5 w-5" />
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Audit Logs: Stock Movements</h3>
+                </div>
             </div>
             
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-gray-50/50">
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 w-12 text-center">ID</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Product</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Type</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Quantity</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Notes</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Date</th>
-                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">User</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {adjustments.length > 0 ? (
-                            adjustments.map((adj, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50 transition-colors group">
-                                    <td className="px-6 py-4 text-center">
-                                        <span className="text-[10px] font-mono text-gray-400 group-hover:text-blue-600 transition-colors">
-                                            {(idx + 1).toString().padStart(2, '0')}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-gray-800">{adj.product?.name || 'Deleted Product'}</span>
-                                            <span className="text-[10px] text-gray-400 font-mono">{adj.product?.sku || 'N/A'}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                                            adj.changeType === 'DAMAGE' ? 'bg-red-50 text-red-600' :
-                                            adj.changeType === 'RETURN' ? 'bg-blue-50 text-blue-600' :
-                                            adj.changeType === 'PURCHASE' ? 'bg-emerald-50 text-emerald-600' :
-                                            'bg-gray-100 text-gray-600'
-                                        }`}>
-                                            {adj.changeType}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`text-sm font-black ${
-                                            adj.quantityChange > 0 ? 'text-emerald-600' : 'text-red-600'
-                                        }`}>
-                                            {adj.quantityChange > 0 ? '+' : ''}{adj.quantityChange}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-xs font-bold text-gray-500 truncate max-w-[200px]" title={adj.notes}>
-                                            {adj.notes || '—'}
-                                        </p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className="text-xs font-bold text-gray-400">
-                                            {new Date(adj.createdAt).toLocaleString()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600 uppercase">
-                                                    {adj.user?.name?.substring(0, 2) || 'S'}
-                                                </div>
-                                                <span className="text-xs font-bold text-gray-800">{adj.user?.name || 'System'}</span>
-                                            </div>
-                                            {adj.user?.role && adj.user.role !== 'SYSTEM' && (
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 ml-8">
-                                                    {adj.user.role.replace('_', ' ')}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-bold text-xs">
-                                    No recent adjustments found
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
+            <DataTable 
+                columns={columns} 
+                data={adjustments} 
+                searchKey="notes"
+                placeholder="Search audit trail by notes..."
+                showExport
+                exportFilename="Stock-Adjustment-Audit-Log"
+            />
         </div>
     );
 };
