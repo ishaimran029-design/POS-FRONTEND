@@ -146,8 +146,8 @@ const StoreDetailsPage: React.FC = () => {
                     <ArrowLeft size={20} />
                 </button>
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{currentStore?.name}</h1>
-                    <p className="text-slate-500 font-medium uppercase tracking-widest text-[11px] mt-1">Management & Configuration Interface</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight font-brand leading-none">{currentStore?.name}</h1>
+                    <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-2 font-num">Management & Configuration Interface</p>
                 </div>
             </div>
 
@@ -159,8 +159,8 @@ const StoreDetailsPage: React.FC = () => {
                             <Activity size={18} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Network Status</p>
-                            <span className={`text-xs font-bold uppercase tracking-widest ${currentStore?.isActive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 font-num">Network Status</p>
+                            <span className={`text-xs font-extrabold uppercase tracking-widest ${currentStore?.isActive ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {currentStore?.isActive ? 'Online' : 'Offline'}
                             </span>
                         </div>
@@ -170,8 +170,8 @@ const StoreDetailsPage: React.FC = () => {
                             <Users size={18} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Administrators</p>
-                            <span className="text-xs font-bold text-slate-700">{currentStore?._count?.users || 0} Registered</span>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 font-num">Administrators</p>
+                            <span className="text-xs font-extrabold text-slate-700 font-num">{currentStore?._count?.users || 0} REGISTERED</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 px-6 border-r border-slate-100">
@@ -179,8 +179,8 @@ const StoreDetailsPage: React.FC = () => {
                             <Package size={18} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Inventory Items</p>
-                            <span className="text-xs font-bold text-slate-700">{currentStore?._count?.products || 0} Products</span>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 font-num">Inventory Items</p>
+                            <span className="text-xs font-extrabold text-slate-700 font-num">{currentStore?._count?.products || 0} PRODUCTS</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 px-6">
@@ -188,8 +188,8 @@ const StoreDetailsPage: React.FC = () => {
                             <Monitor size={18} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Device Uplinks</p>
-                            <span className="text-xs font-bold text-slate-700">{currentStore?._count?.devices || 0} Registered</span>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1 font-num">Device Uplinks</p>
+                            <span className="text-xs font-extrabold text-slate-700 font-num">{currentStore?._count?.devices || 0} REGISTERED</span>
                         </div>
                     </div>
                 </div>
@@ -206,14 +206,14 @@ const StoreDetailsPage: React.FC = () => {
             <div className="flex gap-2 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-200/60 w-fit">
                 <button
                     onClick={() => setActiveTab('details')}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${activeTab === 'details' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all font-num ${activeTab === 'details' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                         }`}
                 >
                     <Settings size={14} /> Store Details
                 </button>
                 <button
                     onClick={() => setActiveTab('users')}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${activeTab === 'users' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all font-num ${activeTab === 'users' ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                         }`}
                 >
                     <Users size={14} /> Administrators
@@ -282,10 +282,10 @@ const StoreDetailsPage: React.FC = () => {
                             <div className="bg-white rounded-[2rem] border border-slate-200/60 shadow-sm overflow-hidden">
                                 <table className="w-full text-left">
                                     <thead>
-                                        <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                            <th className="px-8 py-5">Administrator</th>
+                                        <tr className="bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100 font-num">
+                                            <th className="px-8 py-5">Administrator Details</th>
                                             <th className="px-8 py-5 text-center">Status</th>
-                                            <th className="px-8 py-5 text-right">Actions</th>
+                                            <th className="px-8 py-5 text-right font-jakarta">Node Control</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
@@ -297,17 +297,17 @@ const StoreDetailsPage: React.FC = () => {
                                             <tr key={u.id} className="group hover:bg-[#2563EB]/5 transition-all text-sm">
                                                 <td className="px-8 py-5">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-indigo-600 text-[11px] shadow-sm">
+                                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-extrabold text-indigo-600 font-num shadow-sm">
                                                             {u.name[0].toUpperCase()}
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-bold text-slate-900 leading-none mb-1.5">{u.name}</h4>
-                                                            <p className="text-[11px] font-medium text-slate-400">{u.email}</p>
+                                                            <h4 className="font-extrabold text-slate-800 tracking-tight mb-1">{u.name}</h4>
+                                                            <p className="text-[11px] font-bold text-slate-400 font-num">{u.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 text-center">
-                                                    <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${u.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                                    <span className={`inline-flex px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest font-num ${u.isActive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'
                                                         }`}>
                                                         {u.isActive ? 'Active' : 'Suspended'}
                                                     </span>

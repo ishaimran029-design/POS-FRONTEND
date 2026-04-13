@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, UserPlus, Shield, AlertCircle } from 'lucide-react';
+import { Users, UserPlus } from 'lucide-react';
 import { usersApi } from '../../service/api';
 import { StatsCard } from '../../components/ui/StatsCard';
 import { DataTable } from '@/components/global-components/data-table';
@@ -31,9 +31,30 @@ const UserManagement: React.FC = () => {
   const users = usersRes || [];
 
   // 2. Stats
-  const totalAdmins = users.length;
-  const storeAdmins = users.filter((u: any) => u.role === 'STORE_ADMIN').length;
-  const activeAdmins = users.filter((u: any) => u.isActive).length;
+  const { totalAdmins, activeAdmins, storeAdmins, stakeholdersTrend } = useMemo(() => {
+    const total = users.length;
+    const active = users.filter((u: any) => u.isActive).length;
+    const stores = users.filter((u: any) => u.role === 'STORE_ADMIN').length;
+
+    // Trend calculation (Last 30 days vs Previous 30 days)
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const currentPeriodCount = users.filter((u: any) => u.createdAt && new Date(u.createdAt) > thirtyDaysAgo).length;
+    const previousPeriodCount = users.filter((u: any) => u.createdAt && new Date(u.createdAt) > sixtyDaysAgo && new Date(u.createdAt) <= thirtyDaysAgo).length;
+
+    const trendValue = previousPeriodCount === 0 
+      ? (currentPeriodCount > 0 ? 100 : 0) 
+      : Math.round(((currentPeriodCount - previousPeriodCount) / previousPeriodCount) * 100);
+
+    return {
+      totalAdmins: total,
+      activeAdmins: active,
+      storeAdmins: stores,
+      stakeholdersTrend: trendValue
+    };
+  }, [users]);
 
   // 3. Columns Definition
   const columns: ColumnDef<any>[] = useMemo(() => [
@@ -109,7 +130,7 @@ const UserManagement: React.FC = () => {
         </div>
       ),
     },
-  ], [navigate]);
+  ], [navigate, users]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -138,18 +159,18 @@ const UserManagement: React.FC = () => {
           title="Total Stakeholders"
           value={totalAdmins}
           icon={Users}
-          trend={{ value: "+12%", label: "from last month", isPositive: true }}
+          trend={{ value: `${stakeholdersTrend >= 0 ? '+' : ''}${stakeholdersTrend}%`, label: "from last month", isPositive: stakeholdersTrend >= 0 }}
         />
         <StatsCard
           title="Active Sessions"
           value={activeAdmins}
-          icon={Shield}
-          description="Normal throughput"
+          icon={Users}
+          description="Verified access nodes"
         />
         <StatsCard
           title="Store Operators"
           value={storeAdmins}
-          icon={AlertCircle}
+          icon={Users}
           description="Verified nodes"
         />
       </div>

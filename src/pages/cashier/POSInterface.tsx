@@ -601,27 +601,26 @@ const POSInterface: React.FC = () => {
 
       <div className="flex flex-col h-full overflow-hidden bg-white border border-slate-200 rounded-3xl">
       {/* Top Bar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/60">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/60 sticky top-0 z-50 backdrop-blur-md">
         <div>
-          <div className="text-sm font-extrabold text-slate-900">
-            {user?.store?.name || 'Store'}
+          <div className="text-sm font-extrabold text-slate-900 font-brand tracking-tight">
+            {user?.store?.name || 'Store Console'}
           </div>
-          <div className="text-[11px] text-slate-500 font-medium">
+          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1 font-num">
             CASHIER POS TERMINAL
-
           </div>
         </div>
-        <div className="text-xs font-semibold text-slate-600">
+        <div className="text-[11px] font-bold text-slate-500 font-num bg-white/50 px-3 py-1 rounded-lg border border-slate-100 shadow-sm">
           {now.toLocaleString()}
         </div>
         <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2.5 bg-white/50 px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm">
             <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                isOnline ? 'bg-emerald-500' : 'bg-amber-400'
+              className={`h-2 w-2 rounded-full animate-pulse ${
+                isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]'
               }`}
             />
-            <span className="text-[11px] font-black uppercase tracking-widest text-slate-600">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.1em] text-slate-600 font-num">
               {isOnline ? 'Online' : 'Offline'}
             </span>
           </div>
@@ -629,7 +628,7 @@ const POSInterface: React.FC = () => {
             <button
               type="button"
               onClick={triggerSync}
-              className="ml-2 inline-flex items-center space-x-1 rounded-lg bg-blue-600 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white hover:bg-blue-700 transition-all"
+              className="ml-2 inline-flex items-center space-x-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-widest text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 active:scale-95"
               title="Sync pending offline sales"
             >
               <Clock size={12} />
@@ -637,15 +636,17 @@ const POSInterface: React.FC = () => {
             </button>
           )}
           <div className="h-6 w-px bg-slate-200" />
-          <div className="flex items-center space-x-2">
-            <UserCircle2 size={18} className="text-slate-500" />
+          <div className="flex items-center space-x-3 pl-1">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-slate-900/10 border border-white/10 shrink-0">
+                {(user?.name || (user?.email ? user.email[0] : 'U'))[0].toUpperCase()}
+            </div>
             <div className="text-[11px] leading-tight">
-              <div className="font-bold text-slate-800">
+              <div className="font-extrabold text-slate-900 tracking-tight">
                 {user?.name || user?.email}
               </div>
               {displayTerminalName && (
-                <div className="text-slate-500 font-medium">
-                  Terminal: {displayTerminalName}
+                <div className="text-slate-400 font-bold uppercase text-[9px] tracking-[0.1em] mt-0.5 font-num">
+                  ID: {displayTerminalName}
                 </div>
               )}
             </div>

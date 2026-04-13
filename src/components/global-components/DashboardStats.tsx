@@ -9,6 +9,7 @@ export interface DashboardStatsProps {
   totalRevenue?: number;
   activeStores?: number | string;
   totalDevices?: number | string;
+  activeTrials?: number | string;
 }
 
 const StatCard: React.FC<{ 
@@ -24,7 +25,7 @@ const StatCard: React.FC<{
         <div className="space-y-3">
           <div>
             <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-2">{title}</p>
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+            <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-num">
               {value}
             </h3>
           </div>
@@ -44,14 +45,18 @@ const StatCard: React.FC<{
   );
 };
 
-const DashboardStats: React.FC<DashboardStatsProps> = ({ totalStores, totalRevenue, activeStores, totalDevices }) => {
+const DashboardStats: React.FC<DashboardStatsProps> = ({ totalStores, totalRevenue, activeStores, totalDevices, activeTrials }) => {
   const totalStoresStr = typeof totalStores === 'number' ? totalStores.toLocaleString() : (totalStores || '0');
   const revenueStr = typeof totalRevenue === 'number' ? formatPKR(totalRevenue) : (totalRevenue ? String(totalRevenue) : formatPKR(0));
   const activeStoresStr = typeof activeStores === 'number' ? activeStores.toLocaleString() : (activeStores || '0');
   const totalDevicesStr = typeof totalDevices === 'number' ? totalDevices.toLocaleString() : (totalDevices || '0');
+  const activeTrialsStr = typeof activeTrials === 'number' ? activeTrials.toLocaleString() : (activeTrials || '0');
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+    <div className={cn(
+      "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full",
+      activeTrials !== undefined && "xl:grid-cols-5"
+    )}>
       <StatCard 
         title="Total Stores" 
         value={String(totalStoresStr)} 
@@ -72,6 +77,13 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ totalStores, totalReven
         icon={<CheckCircle size={24} />} 
         iconBgColor="bg-sky-50" 
         iconColor="text-sky-600" 
+      />
+      <StatCard 
+        title="Active Trials" 
+        value={String(activeTrialsStr)} 
+        icon={<CheckCircle size={24} className="opacity-50" />} 
+        iconBgColor="bg-amber-50" 
+        iconColor="text-amber-600" 
       />
       <StatCard 
         title="Total Devices" 

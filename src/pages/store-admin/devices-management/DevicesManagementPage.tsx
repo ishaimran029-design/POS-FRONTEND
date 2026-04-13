@@ -4,7 +4,6 @@ import DevicesHeader from "@/components/store-admin/DevicesHeader"
 import AddTerminalModal from "@/components/store-admin/AddTerminalModal"
 import DevicesFilters, { type StatusFilter, type ViewFilter } from "@/components/store-admin/DevicesFilters"
 import DevicesTable from "@/components/store-admin/DevicesTable"
-import DevicesPagination from "@/components/store-admin/DevicesPagination"
 import StatsCards from "@/components/global-components/StatsCards"
 
 import * as deviceApi from "@/api/devices.api";
@@ -12,12 +11,9 @@ import type { Device } from "./types/device.types"
 
 export default function DevicesManagementPage() {
     const [terminalModalOpen, setTerminalModalOpen] = useState(false)
-    const [page, setPage] = useState(1)
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
     const [viewFilter, setViewFilter] = useState<ViewFilter>("all")
     const [currentFingerprint, setCurrentFingerprint] = useState<string | null>(null)
-    const [searchQuery, setSearchQuery] = useState("")
-    const limit = 10
 
     const [terminalsDataRes, setTerminalsDataRes] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -57,8 +53,8 @@ export default function DevicesManagementPage() {
         type: "POS",
         status: t.isActive ? "online" : "offline",
         lastHeartbeat: t.lastActiveAt ? new Date(t.lastActiveAt).toLocaleString() : "Never",
-        ipAddress: "—",
-        scanner: "None",
+        ipAddress: t.ipAddress || "Dynamic",
+        scanner: t.scannerType || "Unified",
         connectedTo: t.currentUser?.name || null,
         deviceFingerprint: t.deviceFingerprint || null
     }));
@@ -82,15 +78,8 @@ export default function DevicesManagementPage() {
             statusFilter === "all" ||
             (statusFilter === "online" && t.status === "online") ||
             (statusFilter === "offline" && t.status === "offline")
-        const q = searchQuery.trim().toLowerCase()
-        const matchesSearch =
-            !q ||
-            t.name.toLowerCase().includes(q) ||
-            t.serialNumber.toLowerCase().includes(q)
-        return matchesView && matchesStatus && matchesSearch
-    })
-    const paginated = filtered.slice((page - 1) * limit, page * limit)
-    const total = filtered.length
+        return matchesView && matchesStatus
+    });
 
     return (
         <div className="animate-in fade-in duration-500 space-y-10">
@@ -116,11 +105,11 @@ export default function DevicesManagementPage() {
 
             <DevicesFilters
                 statusFilter={statusFilter}
-                onStatusFilterChange={(v) => { setStatusFilter(v); setPage(1); }}
+                onStatusFilterChange={(v) => { setStatusFilter(v); }}
                 viewFilter={viewFilter}
-                onViewFilterChange={(v) => { setViewFilter(v); setPage(1); }}
-                searchQuery={searchQuery}
-                onSearchQueryChange={(v) => { setSearchQuery(v); setPage(1); }}
+                onViewFilterChange={(v) => { setViewFilter(v); }}
+                searchQuery=""
+                onSearchQueryChange={() => {}} 
             />
 
             {loading ? (
@@ -135,9 +124,8 @@ export default function DevicesManagementPage() {
                     <button onClick={() => refetchTerminals()} className="mt-8 px-8 py-3 bg-slate-900 dark:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Retry Link</button>
                 </div>
             ) : (
-                <div className="space-y-8 animate-fade-in">
-                    <DevicesTable data={paginated} onDelete={handleDelete} />
-                    <DevicesPagination page={page} setPage={setPage} total={total} />
+                <div className="animate-fade-in">
+                    <DevicesTable data={filtered} onDelete={handleDelete} />
                 </div>
             )}
         </div>

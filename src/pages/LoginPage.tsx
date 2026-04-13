@@ -117,25 +117,25 @@ const LoginPage: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-10 animate-fade-in-down">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 shadow-xl shadow-indigo-600/30 mb-6 group hover:scale-105 transition-transform cursor-pointer">
-            <Shield className="text-slate-900 w-8 h-8 group-hover:rotate-12 transition-transform" />
+            <Shield className="text-white w-8 h-8 group-hover:rotate-12 transition-transform" />
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">POS <span className="text-indigo-600">SaaS</span></h1>
-          <p className="text-slate-500 font-semibold tracking-wide text-sm">ENTERPRISE RESOURCE PLANNING</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2 font-brand leading-none">POS <span className="text-indigo-600">SaaS</span></h1>
+          <p className="text-slate-400 font-bold tracking-[0.2em] text-[10px] uppercase font-num mt-3">Enterprise Resource Planning</p>
         </div>
 
-        <div className="bg-white border border-slate-200/60 p-8 rounded-3xl shadow-xl shadow-slate-200/50 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500"></div>
+        <div className="bg-white border border-indigo-100/50 p-8 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-500"></div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email Address</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.15em] mb-2.5 ml-1 font-num">Email Address</label>
               <div className="relative group/input">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within/input:text-indigo-600 transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within/input:text-indigo-600 transition-colors" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-11 pr-4 py-3.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all placeholder:text-slate-500 font-medium"
+                  className="w-full bg-slate-50/50 border border-slate-100 text-slate-900 pl-11 pr-4 py-4 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-100/50 focus:border-indigo-600 outline-none transition-all placeholder:text-slate-300 font-bold text-sm font-num"
                   placeholder="admin@pos.com"
                   required
                 />
@@ -143,14 +143,14 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Password</label>
+              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.15em] mb-2.5 ml-1 font-num">Security Password</label>
               <div className="relative group/input">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5 group-focus-within/input:text-indigo-600 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within/input:text-indigo-600 transition-colors" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-11 pr-4 py-3.5 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition-all placeholder:text-slate-500 font-medium"
+                  className="w-full bg-slate-50/50 border border-slate-100 text-slate-900 pl-11 pr-4 py-4 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-100/50 focus:border-indigo-600 outline-none transition-all placeholder:text-slate-300 font-bold text-sm font-num"
                   placeholder="••••••••"
                   required
                 />
@@ -158,24 +158,24 @@ const LoginPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center space-x-3 text-red-600 animate-shake shadow-sm">
+              <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center space-x-3 text-rose-600 animate-shake shadow-sm">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm font-semibold">{error}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide font-num">{error}</p>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-slate-900 font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/40 active:scale-[0.98] flex items-center justify-center space-x-2"
+              className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-extrabold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/30 active:scale-95 flex items-center justify-center space-x-3 text-[11px] uppercase tracking-[0.2em] font-num"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>AUTHENTICATING...</span>
+                  <span>Authenticating...</span>
                 </>
               ) : (
-                <span>SIGN IN TO DASHBOARD</span>
+                <span>Sign In to Terminal</span>
               )}
             </button>
           </form>

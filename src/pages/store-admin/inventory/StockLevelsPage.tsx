@@ -57,7 +57,7 @@ const StockLevelsPage = () => {
             currentStock: stock,
             reorderLevel: item.reorderLevel || 10,
             category: typeof item.category === 'object' ? item.category?.name : item.category || 'General',
-            image: (item.image || item.imageUrl) ? `http://localhost:3005${item.image || item.imageUrl}` : null
+            image: item.imageUrl || (item.image ? (item.image.startsWith('http') ? item.image : `http://localhost:3005${item.image}`) : null)
         };
     });
 
